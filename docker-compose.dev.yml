@@ -1,0 +1,50 @@
+# Development overrides: the API from the source tree, and Vite serving the interface.
+#
+# `make dev` runs this with docker-compose.yml. The API mounts src/ and reloads on change; the
+# interface runs its own server on 5173 and proxies /api to the API, so it hot-reloads without a
+# rebuild.
+services:
+  house-cost:
+    build:
+      context: .
+      target: app
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-}
+    # Root and writable in development only: the mounted source tree belongs to the developer, and
+    # the reloader writes beside it.
+    user: root
+    read_only: false
+    environment:
+      LOG_LEVEL: DEBUG
+      # Vite serves the interface here, so the API serves no static files.
+      STATIC_DIR: ""
+      PYTHONPATH: /app/src
+    volumes:
+      - ./data:/data
+      - ./backend/src:/app/src
+      - ./backend/alembic:/app/alembic
+    command: ["--reload"]
+
+  frontend:
+    image: node:24-alpine
+    working_dir: /app
+    environment:
+      # Vite reaches the API by service name inside the compose network.
+      VITE_API_TARGET: http://house-cost:8000
+      # This container runs its own `npm ci`, so the mirror arrives as npm configuration. Defaulted
+      # to the public registry, which is what the lockfile records.
+      npm_config_registry: ${NPM_REGISTRY:-https://registry.npmjs.org/}
+    ports:
+      - "127.0.0.1:5173:5173"
+    volumes:
+      - ./frontend:/app
+      # node_modules lives in a volume of its own: the container installs Linux binaries, and
+      # letting those land in the working copy would break running the tests on the host.
+      - frontend_node_modules:/app/node_modules
+    command: sh -c "npm ci --loglevel=error && npx vite --host 0.0.0.0 --port 5173"
+    depends_on:
+      house-cost:
+        condition: service_started
+
+volumes:
+  frontend_node_modules:

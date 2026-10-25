@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+
+# Node
+node_modules/
+frontend/dist/
+# Paraglide's compiled messages, generated on every build and test run
+frontend/src/paraglide/
+
+# Runtime state: the database, uploaded files, snapshots
+data/
+
+# Real bills and contracts for `make test-samples`; they hold personal details
+samples/
+
+# Local overrides of the compose defaults
+.env
+
+# Coverage and test output
+.coverage
+coverage.json
+coverage.xml
+htmlcov/
+frontend/coverage/
+junit/
+.pytest_cache/
+# Staging directory the coverage publish step assembles (CI only)
+coverage-upload/
+# Shared coverage tooling, fetched on demand by `make coverage`
+.coverage-report.py
+
+# Bruno: a deployment's own environment stays local
+bruno/environments/*
+!bruno/environments/local.yml
+!bruno/environments/example.yml
+
+# Editor and OS junk
+.idea/
+*.iml
+*.swp
+.DS_Store
+
+# Claude Code local settings
+.claude/settings.local.json

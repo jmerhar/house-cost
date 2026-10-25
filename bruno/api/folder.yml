@@ -1,0 +1,12 @@
+info:
+  name: API
+  type: folder
+  seq: 1
+
+request: {}
+
+docs:
+  content: |-
+    The API under /api. bin/test-bruno.sh runs this folder, with its assertions, against the real
+    application over the tests' fixture data.
+  type: text/markdown

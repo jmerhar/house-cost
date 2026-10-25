@@ -1,0 +1,26 @@
+# Only the backend's pyproject.toml, source and migrations, the sources the interface is built
+# from, and the entrypoint are copied into the image. Everything else stays out of the build
+# context, which matters most for data/: the database and uploaded bills hold personal details,
+# and the context is sent to the Docker daemon in full.
+*
+!backend/pyproject.toml
+!backend/src/
+!backend/alembic.ini
+!backend/alembic/
+!frontend/package.json
+!frontend/package-lock.json
+!frontend/.npmrc
+!frontend/index.html
+!frontend/vite.config.ts
+!frontend/build/
+!frontend/svelte.config.js
+!frontend/tsconfig.json
+!frontend/src/
+!frontend/project.inlang/settings.json
+!frontend/messages/
+!frontend/public/
+!bin/entrypoint.sh
+**/node_modules
+**/*.test.ts
+**/__pycache__
+frontend/src/paraglide

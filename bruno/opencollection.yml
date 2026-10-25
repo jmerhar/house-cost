@@ -1,0 +1,18 @@
+opencollection: 1.0.0
+
+info:
+  name: House costs
+  version: "1"
+
+docs:
+  content: |-
+    The House costs API. Choose an environment: `local` is the development stack's default port,
+    `example` a template for a deployment. Keep your own deployment's environment beside them:
+    environments/ ignores everything but these two.
+  type: text/markdown
+bundled: false
+extensions:
+  bruno:
+    ignore:
+      - node_modules
+      - .git

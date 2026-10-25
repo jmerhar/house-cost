@@ -1,0 +1,34 @@
+# The stack, as one service.
+#
+# Self-contained: this file is all anyone needs to run House costs, so it pulls the published
+# image rather than naming a build context. Building from source is docker-compose.build.yml,
+# which `make up` adds.
+#
+# Everything mutable lives in ./data: the database, uploaded files and the database's daily
+# snapshots. Back that directory up and there is nothing else to keep.
+services:
+  house-cost:
+    # The release line: every release that keeps these settings and the stored data working.
+    image: ghcr.io/jmerhar/house-cost:0.0
+    container_name: house-cost
+    restart: unless-stopped
+    # Runs as an ordinary user so the files under ./data belong to a real account on the host.
+    # Change it to match the owner of that directory.
+    user: "${HOUSE_COST_UID:-1000}:${HOUSE_COST_GID:-1000}"
+    mem_limit: 512m
+    # Nothing in the image is written at run time: the application writes only to /data and
+    # /tmp, and Python writes no bytecode. It needs no Linux capabilities.
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    environment:
+      TZ: ${TZ:-UTC}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      # Loopback, for a reverse proxy to publish. Until the first administrator is created, the
+      # first person to open the interface becomes one, so finish setup before anyone else can
+      # reach it.
+      - "${HOUSE_COST_BIND:-127.0.0.1}:${HOUSE_COST_PORT:-8000}:8000"
+    volumes:
+      - ./data:/data

@@ -1,0 +1,28 @@
+info:
+  name: Health
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{base_url}}/api/health"
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.status
+      operator: eq
+      value: ok
+    - expression: res.body.database
+      operator: eq
+      value: connected
+    - expression: res.body.version
+      operator: isString
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0

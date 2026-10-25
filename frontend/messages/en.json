@@ -1,0 +1,10 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "app_name": "House costs",
+  "app_tagline": "Running costs, shared fairly between households.",
+  "coming_soon": "Bills, settlements and balances are on their way.",
+  "language_label": "Language",
+  "language_browser": "As the browser",
+  "server_version": "Server {version}",
+  "server_unreachable": "The server cannot be reached."
+}
