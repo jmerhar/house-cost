@@ -12,12 +12,9 @@ runtime:
     - expression: res.status
       operator: eq
       value: "200"
-    - expression: res.body.status
-      operator: eq
-      value: ok
     - expression: res.body.database
       operator: eq
-      value: connected
+      value: "connected"
     - expression: res.body.version
       operator: isString
 

@@ -1,0 +1,38 @@
+info:
+  name: Log in
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{base_url}}/api/auth/login"
+  headers:
+    - name: X-Requested-With
+      value: house-cost
+  body:
+    type: json
+    data: |-
+      {"login": "{{login}}", "password": "{{password}}"}
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.role
+      operator: eq
+      value: "admin"
+    - expression: res.body.household_name
+      operator: eq
+      value: "Lúcia"
+
+docs:
+  content: |-
+    Starts the session the other requests use; Bruno keeps its cookie for the rest of the run.
+  type: text/markdown
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0

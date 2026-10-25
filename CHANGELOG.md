@@ -8,5 +8,14 @@ what under **Upgrading**. Before 1.0, a minor release may.
 
 ### Added
 
-- The project's foundations: an API with a health endpoint, an interface in English and
-  Portuguese, the container image, and the tests and checks every change runs through.
+- Bills split line by line by each category's rule in force on the bill's date, with the split
+  fixed when the bill is saved.
+- Households, people with their own logins, and categories with split rules from a date on,
+  kept by an administrator.
+- Balances, with the transfers that would settle everyone up, and settlements to record them.
+- Files attached to bills and settlements: PDFs and photos.
+- Reports by year, category and month, and a CSV export of every bill line.
+- An activity log of every change and who made it.
+- Optional annual reconciliation, off until an administrator turns it on.
+- First-run setup in the browser, logins with sessions that last 90 days of use, and an
+  interface in English and Portuguese.

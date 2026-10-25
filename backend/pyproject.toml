@@ -16,6 +16,9 @@ dependencies = [
     "alembic>=1.19",
     "pydantic>=2.13",
     "pydantic-settings>=2.15",
+    "argon2-cffi>=25.1",
+    # Multipart form parsing, which FastAPI's file uploads need.
+    "python-multipart>=0.0.20",
 ]
 
 [project.optional-dependencies]
@@ -24,6 +27,7 @@ test = [
     "pytest-asyncio>=1.4",
     "pytest-cov>=7.1",
     "httpx>=0.28",
+    "hypothesis>=6.140",
     "ruff>=0.16",
 ]
 

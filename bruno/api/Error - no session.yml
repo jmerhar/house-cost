@@ -1,0 +1,23 @@
+info:
+  name: Error - no session
+  type: http
+  seq: 3
+
+http:
+  method: GET
+  url: "{{base_url}}/api/balances"
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "401"
+    - expression: res.body.detail
+      operator: eq
+      value: "not_authenticated"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0

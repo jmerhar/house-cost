@@ -7,6 +7,8 @@ request: {}
 
 docs:
   content: |-
-    The API under /api. bin/test-bruno.sh runs this folder, with its assertions, against the real
-    application over the tests' fixture data.
+    The API under /api. Run in order: Log in starts the session the rest read with, and every
+    write carries the X-Requested-With header the API requires. bin/test-bruno.sh runs this folder,
+    with its assertions, against the real application over the fixture server's example: two
+    households, the electricity and road rules, and one bill in each.
   type: text/markdown
