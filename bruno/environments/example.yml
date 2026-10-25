@@ -2,3 +2,7 @@ name: example
 variables:
   - name: base_url
     value: https://house-cost.example.com
+  - name: login
+    value: ""
+  - secret: true
+    name: password

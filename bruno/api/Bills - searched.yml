@@ -1,0 +1,26 @@
+info:
+  name: Bills - searched
+  type: http
+  seq: 14
+
+http:
+  method: GET
+  url: "{{base_url}}/api/bills?q=gravel"
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.total
+      operator: eq
+      value: "1"
+    - expression: res.body.items[0].total_cents
+      operator: eq
+      value: "10000"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0

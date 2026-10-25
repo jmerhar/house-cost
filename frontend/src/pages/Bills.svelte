@@ -1,0 +1,134 @@
+<script lang="ts">
+  import { onMount } from "svelte";
+  import type { Bill } from "../lib/api";
+  import { useApp } from "../lib/context";
+  import { errorMessage } from "../lib/errors";
+  import { day, euros } from "../lib/format";
+  import { m } from "../paraglide/messages.js";
+
+  const PAGE = 50;
+  const app = useApp();
+
+  let bills = $state<Bill[]>([]);
+  let total = $state(0);
+  let loaded = $state(false);
+  let error = $state("");
+  let q = $state("");
+  let year = $state("");
+  let categoryId = $state("");
+  let paidById = $state("");
+  let years = $state<number[]>([]);
+
+  const filtered = $derived(Boolean(q || year || categoryId || paidById));
+
+  async function load(more = false): Promise<void> {
+    error = "";
+    try {
+      const page = await app.api.bills({
+        q,
+        year,
+        category_id: categoryId,
+        paid_by_id: paidById,
+        limit: PAGE,
+        offset: more ? bills.length : 0,
+      });
+      bills = more ? [...bills, ...page.items] : page.items;
+      total = page.total;
+    } catch (failure) {
+      error = errorMessage(failure);
+    } finally {
+      loaded = true;
+    }
+  }
+
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  function search(): void {
+    clearTimeout(timer);
+    timer = setTimeout(() => load(), 250);
+  }
+
+  async function loadYears(): Promise<void> {
+    try {
+      years = (await app.api.summary()).years;
+    } catch {
+      // The year filter just stays short; the list itself reports failures.
+    }
+  }
+
+  onMount(() => {
+    load();
+    loadYears();
+    return () => clearTimeout(timer);
+  });
+
+  function categories(bill: Bill): string {
+    return [...new Set(bill.lines.map((line) => app.category(line.category_id)))].join(", ");
+  }
+</script>
+
+<div class="heading">
+  <h1>{m.bills_title()}</h1>
+  <a class="button" href="/bills/new">{m.bill_new()}</a>
+</div>
+
+<div class="filters">
+  <label class="grow">
+    {m.search_label()}
+    <input type="search" bind:value={q} oninput={search} placeholder={m.search_placeholder()} />
+  </label>
+  <label>
+    {m.filter_year()}
+    <select bind:value={year} onchange={() => load()}>
+      <option value="">{m.filter_all_years()}</option>
+      {#each years as y (y)}<option value={String(y)}>{y}</option>{/each}
+    </select>
+  </label>
+  <label>
+    {m.filter_category()}
+    <select bind:value={categoryId} onchange={() => load()}>
+      <option value="">{m.filter_all_categories()}</option>
+      {#each app.categories as category (category.id)}
+        <option value={String(category.id)}>{category.name}</option>
+      {/each}
+    </select>
+  </label>
+  <label>
+    {m.filter_paid_by()}
+    <select bind:value={paidById} onchange={() => load()}>
+      <option value="">{m.filter_anyone()}</option>
+      {#each app.households as household (household.id)}
+        <option value={String(household.id)}>{household.name}</option>
+      {/each}
+    </select>
+  </label>
+</div>
+
+{#if error}
+  <p role="alert">{error}</p>
+{:else if !loaded}
+  <p>{m.loading()}</p>
+{:else if bills.length === 0}
+  <p>{filtered ? m.bills_none_match() : m.bills_empty()}</p>
+{:else}
+  <p class="muted">{m.bill_count({ count: total })}</p>
+  <ul class="list">
+    {#each bills as bill (bill.id)}
+      <li>
+        <a class="row" href={`/bills/${bill.id}`}>
+          <span class="when">{day(bill.date)}</span>
+          <span class="what">
+            <strong>{bill.supplier || bill.description || categories(bill)}</strong>
+            <small>{categories(bill)} · {m.bill_paid_by({ name: app.household(bill.paid_by_id) })}</small>
+          </span>
+          <span class="amount">
+            {euros(bill.total_cents)}
+            {#if bill.locked}<small class="tag">{m.bill_locked()}</small>{/if}
+          </span>
+        </a>
+      </li>
+    {/each}
+  </ul>
+  {#if bills.length < total}
+    <button type="button" class="secondary" onclick={() => load(true)}>{m.show_more()}</button>
+  {/if}
+{/if}

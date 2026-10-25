@@ -1,0 +1,26 @@
+info:
+  name: Me
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: "{{base_url}}/api/auth/me"
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.login
+      operator: eq
+      value: "{{login}}"
+    - expression: res.body.reconciliation_enabled
+      operator: eq
+      value: "false"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0

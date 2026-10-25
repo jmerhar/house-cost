@@ -32,6 +32,7 @@ export default defineConfig({
         "src/test-setup.ts",
         "src/main.ts",
         "src/lib/api-types.ts",
+        "src/testing.ts",
         "src/paraglide/**",
       ],
       // json-summary is the istanbul file coverage.toml's shared tooling reads; lcov is Codecov's.

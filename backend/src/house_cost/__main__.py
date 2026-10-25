@@ -27,8 +27,18 @@ def main(argv: list[str] | None = None) -> None:
         return
     from .api.app import create_app
 
-    # log_config=None keeps the logging configured above instead of uvicorn's own handlers.
-    uvicorn.run(create_app(settings), host=HOST, port=PORT, log_config=None)
+    # log_config=None keeps the logging configured above instead of uvicorn's own handlers. The
+    # proxy's X-Forwarded-For and X-Forwarded-Proto are believed from the configured addresses
+    # only: they decide the client address the login throttle counts and the session cookie's
+    # Secure flag.
+    uvicorn.run(
+        create_app(settings),
+        host=HOST,
+        port=PORT,
+        log_config=None,
+        proxy_headers=True,
+        forwarded_allow_ips=settings.forwarded_allow_ips,
+    )
 
 
 if __name__ == "__main__":

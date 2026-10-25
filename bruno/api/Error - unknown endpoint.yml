@@ -1,7 +1,7 @@
 info:
   name: Error - unknown endpoint
   type: http
-  seq: 2
+  seq: 23
 
 http:
   method: GET

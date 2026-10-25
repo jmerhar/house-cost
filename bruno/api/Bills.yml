@@ -1,0 +1,29 @@
+info:
+  name: Bills
+  type: http
+  seq: 13
+
+http:
+  method: GET
+  url: "{{base_url}}/api/bills"
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.total
+      operator: eq
+      value: "2"
+    - expression: res.body.items[0].supplier
+      operator: eq
+      value: "MEO Energia"
+    - expression: res.body.items[0].lines[0].shares[0].amount_cents
+      operator: eq
+      value: "14380"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0

@@ -1,0 +1,30 @@
+info:
+  name: Error - write without the header
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{base_url}}/api/auth/login"
+  headers:
+    - name: X-Requested-With
+      value: someone-else
+  body:
+    type: json
+    data: |-
+      {"login": "{{login}}", "password": "{{password}}"}
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "403"
+    - expression: res.body.detail
+      operator: eq
+      value: "missing_write_header"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0

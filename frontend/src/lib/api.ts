@@ -5,9 +5,44 @@
 
 import type { components } from "./api-types";
 
-export type Health = components["schemas"]["Health"];
+type Schemas = components["schemas"];
+export type Health = Schemas["Health"];
+export type Me = Schemas["Me"];
+export type MeUpdate = Schemas["MeUpdate"];
+export type SessionOut = Schemas["SessionOut"];
+export type SetupIn = Schemas["SetupIn"];
+export type Household = Schemas["HouseholdOut"];
+export type HouseholdIn = Schemas["HouseholdIn"];
+export type Person = Schemas["PersonOut"];
+export type PersonIn = Schemas["PersonIn"];
+export type PersonUpdate = Schemas["PersonUpdate"];
+export type Category = Schemas["CategoryOut"];
+export type CategoryIn = Schemas["CategoryIn"];
+export type Rule = Schemas["RuleOut"];
+export type RuleIn = Schemas["RuleIn"];
+export type SplitPreview = Schemas["SplitPreview"];
+export type Bill = Schemas["BillOut"];
+export type BillIn = Schemas["BillIn"];
+export type BillPage = Schemas["BillPage"];
+export type Line = Schemas["LineOut"];
+export type Attachment = Schemas["AttachmentOut"];
+export type Settlement = Schemas["SettlementOut"];
+export type SettlementIn = Schemas["SettlementIn"];
+export type Balances = Schemas["Balances"];
+export type Summary = Schemas["Summary"];
+export type AuditPage = Schemas["AuditPage"];
+export type AuditEntry = Schemas["AuditOut"];
+export type AppSettings = Schemas["SettingsOut"];
+export type Reconciliation = Schemas["ReconciliationOut"];
+export type ReconciliationIn = Schemas["ReconciliationIn"];
 
-/** A request that failed: its HTTP status (0 when the server could not be reached) and why. */
+/** The header every write carries; the API refuses a write without it. */
+export const WRITE_HEADER = { "X-Requested-With": "house-cost" };
+
+/**
+ * A request that failed: its HTTP status (0 when the server could not be reached) and the
+ * server's reason, which for the API's own refusals is a code such as "no_rule".
+ */
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -18,30 +53,116 @@ export class ApiError extends Error {
   }
 }
 
+type Query = Record<string, string | number | undefined | null>;
+
 export class Api {
   constructor(
     private readonly base = "/api",
     private readonly fetcher: typeof fetch = (...args) => fetch(...args),
   ) {}
 
-  /** Whether the server and its database answer, and the server's version. */
-  health(): Promise<Health> {
-    return this.get<Health>("/health");
+  // --- The app, setup and the session -------------------------------------------------------
+
+  health = () => this.request<Health>("GET", "/health");
+  setupState = () => this.request<{ required: boolean }>("GET", "/setup");
+  setUp = (body: SetupIn) => this.request<Me>("POST", "/setup", body);
+  logIn = (login: string, password: string) => this.request<Me>("POST", "/auth/login", { login, password });
+  logOut = () => this.request<void>("POST", "/auth/logout");
+  me = () => this.request<Me>("GET", "/auth/me");
+  updateMe = (body: MeUpdate) => this.request<Me>("PATCH", "/auth/me", body);
+  sessions = () => this.request<SessionOut[]>("GET", "/auth/sessions");
+  endSession = (id: number) => this.request<void>("DELETE", `/auth/sessions/${id}`);
+
+  // --- Households, people, categories and rules ---------------------------------------------
+
+  households = () => this.request<Household[]>("GET", "/households");
+  createHousehold = (body: HouseholdIn) => this.request<Household>("POST", "/households", body);
+  updateHousehold = (id: number, body: HouseholdIn) => this.request<Household>("PUT", `/households/${id}`, body);
+  people = () => this.request<Person[]>("GET", "/people");
+  createPerson = (body: PersonIn) => this.request<Person>("POST", "/people", body);
+  updatePerson = (id: number, body: PersonUpdate) => this.request<Person>("PUT", `/people/${id}`, body);
+  categories = () => this.request<Category[]>("GET", "/categories");
+  createCategory = (body: CategoryIn) => this.request<Category>("POST", "/categories", body);
+  updateCategory = (id: number, body: CategoryIn) => this.request<Category>("PUT", `/categories/${id}`, body);
+  rules = (categoryId?: number) => this.request<Rule[]>("GET", "/rules", undefined, { category_id: categoryId });
+  createRule = (body: RuleIn) => this.request<Rule>("POST", "/rules", body);
+  deleteRule = (id: number) => this.request<void>("DELETE", `/rules/${id}`);
+  splitPreview = (categoryId: number, on: string, amountCents: number) =>
+    this.request<SplitPreview>("GET", "/split-preview", undefined, {
+      category_id: categoryId,
+      on,
+      amount_cents: amountCents,
+    });
+
+  // --- Bills, settlements and attachments ---------------------------------------------------
+
+  bills = (query: Query = {}) => this.request<BillPage>("GET", "/bills", undefined, query);
+  bill = (id: number) => this.request<Bill>("GET", `/bills/${id}`);
+  createBill = (body: BillIn) => this.request<Bill>("POST", "/bills", body);
+  updateBill = (id: number, body: BillIn) => this.request<Bill>("PUT", `/bills/${id}`, body);
+  deleteBill = (id: number) => this.request<void>("DELETE", `/bills/${id}`);
+  settlements = (query: Query = {}) => this.request<Settlement[]>("GET", "/settlements", undefined, query);
+  createSettlement = (body: SettlementIn) => this.request<Settlement>("POST", "/settlements", body);
+  updateSettlement = (id: number, body: SettlementIn) => this.request<Settlement>("PUT", `/settlements/${id}`, body);
+  deleteSettlement = (id: number) => this.request<void>("DELETE", `/settlements/${id}`);
+  deleteAttachment = (id: number) => this.request<void>("DELETE", `/attachments/${id}`);
+
+  /** Attach a file to a bill or a settlement. */
+  attach(file: File, owner: { bill_id: number } | { settlement_id: number }): Promise<Attachment> {
+    const form = new FormData();
+    form.append("file", file);
+    for (const [key, value] of Object.entries(owner)) form.append(key, String(value));
+    return this.request<Attachment>("POST", "/attachments", form);
   }
 
-  private async get<T>(path: string): Promise<T> {
+  /** Where an attachment can be opened. */
+  attachmentUrl = (id: number) => `${this.base}/attachments/${id}`;
+  /** Where a year's bills can be downloaded as CSV. */
+  csvUrl = (year?: number) => `${this.base}/reports/bills.csv${year ? `?year=${year}` : ""}`;
+
+  // --- Overview and administration ----------------------------------------------------------
+
+  balances = () => this.request<Balances>("GET", "/balances");
+  summary = (year?: number) => this.request<Summary>("GET", "/reports/summary", undefined, { year });
+  audit = (query: Query = {}) => this.request<AuditPage>("GET", "/audit", undefined, query);
+  settings = () => this.request<AppSettings>("GET", "/settings");
+  updateSettings = (body: AppSettings) => this.request<AppSettings>("PUT", "/settings", body);
+  reconciliations = () => this.request<Reconciliation[]>("GET", "/reconciliations");
+  reconciliation = (id: number) => this.request<Reconciliation>("GET", `/reconciliations/${id}`);
+  createReconciliation = (body: ReconciliationIn) => this.request<Reconciliation>("POST", "/reconciliations", body);
+  updateReconciliation = (id: number, body: ReconciliationIn) =>
+    this.request<Reconciliation>("PUT", `/reconciliations/${id}`, body);
+  closeReconciliation = (id: number) => this.request<Reconciliation>("POST", `/reconciliations/${id}/close`);
+  deleteReconciliation = (id: number) => this.request<void>("DELETE", `/reconciliations/${id}`);
+
+  /** One request: JSON or a form in, JSON out, and any failure as an ApiError. */
+  async request<T>(method: string, path: string, body?: unknown, query: Query = {}): Promise<T> {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(query)) {
+      if (value !== undefined && value !== null && value !== "") params.set(key, String(value));
+    }
+    const search = params.size ? `?${params}` : "";
+    const headers: Record<string, string> = { Accept: "application/json" };
+    if (method !== "GET") Object.assign(headers, WRITE_HEADER);
+    let payload: BodyInit | undefined;
+    if (body instanceof FormData) payload = body;
+    else if (body !== undefined) {
+      headers["Content-Type"] = "application/json";
+      payload = JSON.stringify(body);
+    }
     let response: Response;
     try {
-      response = await this.fetcher(this.base + path, {
-        headers: { Accept: "application/json" },
+      response = await this.fetcher(this.base + path + search, {
+        method,
+        headers,
+        body: payload,
         credentials: "same-origin",
       });
     } catch (error) {
       throw new ApiError(0, error instanceof Error ? error.message : String(error));
     }
-    if (!response.ok) {
-      throw new ApiError(response.status, await detail(response));
-    }
+    if (!response.ok) throw new ApiError(response.status, await detail(response));
+    if (response.status === 204) return undefined as T;
     return (await response.json()) as T;
   }
 }
@@ -51,6 +172,7 @@ async function detail(response: Response): Promise<string> {
   try {
     const body = (await response.json()) as { detail?: unknown };
     if (typeof body.detail === "string") return body.detail;
+    if (Array.isArray(body.detail)) return "invalid";
   } catch {
     // Not JSON: fall through to the status text.
   }

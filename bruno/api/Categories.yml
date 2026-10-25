@@ -1,0 +1,23 @@
+info:
+  name: Categories
+  type: http
+  seq: 9
+
+http:
+  method: GET
+  url: "{{base_url}}/api/categories"
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.length
+      operator: eq
+      value: "2"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0
