@@ -1,0 +1,26 @@
+info:
+  name: Split preview
+  type: http
+  seq: 11
+
+http:
+  method: GET
+  url: "{{base_url}}/api/split-preview?category_id=1&on=2026-10-23&amount_cents=32269"
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.shares[0].amount_cents
+      operator: eq
+      value: "16135"
+    - expression: res.body.shares[1].amount_cents
+      operator: eq
+      value: "16134"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0

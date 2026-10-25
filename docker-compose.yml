@@ -25,6 +25,14 @@ services:
     environment:
       TZ: ${TZ:-UTC}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      # The address people open the app at behind your reverse proxy, such as
+      # https://costs.example.com. Writes from any other origin are refused.
+      PUBLIC_URL: ${PUBLIC_URL:-}
+      # The proxies whose X-Forwarded-For and X-Forwarded-Proto are believed: loopback, and Docker's
+      # bridge networks, which a proxy on this host reaches a published port through. The client
+      # address the login throttle counts is the last one an untrusted hop added, so "*" would let
+      # a client choose its own.
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1,172.16.0.0/12}
     ports:
       # Loopback, for a reverse proxy to publish. Until the first administrator is created, the
       # first person to open the interface becomes one, so finish setup before anyone else can

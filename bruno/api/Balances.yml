@@ -1,0 +1,34 @@
+info:
+  name: Balances
+  type: http
+  seq: 15
+
+http:
+  method: GET
+  url: "{{base_url}}/api/balances"
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.households[0].balance_cents
+      operator: eq
+      value: "-8635"
+    - expression: res.body.households[1].balance_cents
+      operator: eq
+      value: "8635"
+    - expression: res.body.transfers[0].amount_cents
+      operator: eq
+      value: "8635"
+
+docs:
+  content: |-
+    Graça paid the €100 road bill and owes 25% of it and half of the €322.69 electricity bill: she owes the owners €86.35.
+  type: text/markdown
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0

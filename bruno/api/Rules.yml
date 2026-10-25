@@ -1,0 +1,29 @@
+info:
+  name: Rules
+  type: http
+  seq: 10
+
+http:
+  method: GET
+  url: "{{base_url}}/api/rules"
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.length
+      operator: eq
+      value: "2"
+    - expression: res.body[0].in_use
+      operator: eq
+      value: "true"
+    - expression: res.body[1].shares[1].basis_points
+      operator: eq
+      value: "7500"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0

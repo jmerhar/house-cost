@@ -12,10 +12,23 @@ FastAPI backend over SQLite that also serves a Svelte interface.
 backend/src/house_cost/
   config.py        settings from the environment (pydantic-settings)
   db.py            async engine with SQLite's pragmas, the session factory, session_scope
-  models/          the tables; base.py holds Base, UtcDateTime and the naming convention
+  models/          base.py (Base, UtcDateTime, naming convention), people.py (households,
+                   people, sessions), ledger.py (categories, rules, bills, lines, shares,
+                   settlements, attachments), admin.py (audit log, settings, reconciliation)
+  money.py         allocate(): whole cents split by largest remainder, adding up exactly
+  splitting.py     the rule in force on a date, and a split by basis points
+  bills.py         set_lines (splitting a bill's lines, keeping unchanged ones), locked periods
+  balances.py      each household's balance, and settle(): the transfers that clear them
+  reconciliation.py  a period's bills split again by reconciled shares
+  auth.py          argon2 passwords, server-side sessions, the login throttle, the origin check
+  audit.py         record() for the audit log; the app's settings and their defaults
+  storage.py       uploaded files under their SHA-256, and recognising their type by content
   api/
-    app.py         create_app: routers under /api, the built interface and its SPA fallback
+    app.py         create_app: routers under /api, the write guard, the interface and its SPA
+                   fallback
     deps.py        Services (built once per process) and the request dependencies
+    schemas.py     every request and response model; the interface's types come from these
+    session_cookie.py  issuing and clearing the session cookie, and describing the person
     routers/       one module per resource
   healthcheck.py   `python -m house_cost.healthcheck`, the image's HEALTHCHECK
   __main__.py      `python -m house_cost [--reload]`
@@ -23,9 +36,16 @@ backend/alembic/   migrations; bin/entrypoint.sh runs them before the app starts
 backend/tests/     pytest; fixture_server.py serves the real app for the Bruno collection,
                    tooling/ tests the scripts in bin/ that have logic of their own
 frontend/          Svelte 5, Vite, TypeScript, Paraglide
+  src/App.svelte   setup, login, then the routed views
+  src/pages/       one component per view; BillForm.svelte enters and corrects a bill
   src/lib/api.ts   the API client; api-types.ts is generated from the API's schema (make openapi)
+  src/lib/format.ts  cents and basis points to and from text, dates, in the person's language
+  src/lib/router.svelte.ts  path routes over the history API, and in-app link handling
+  src/lib/state.svelte.ts   the person logged in, households and categories, shared by views
   src/lib/language.ts  which language: the person's choice, else the browser's, else English
-  messages/        en.json and pt-PT.json; Paraglide compiles them into src/paraglide (generated)
+  src/testing.ts   a stand-in API answering by method and path, and the agreement's examples
+  messages/        en.json and pt-PT.json; Paraglide compiles them into src/paraglide
+                   (generated); GLOSSARY.md fixes the words for the main ideas
   openapi.json     the API's schema, committed so `make contract` can prove it current
 bruno/             a request, with assertions, for every endpoint (bin/test-bruno.sh)
 bin/               every script the Makefile and CI run
@@ -34,6 +54,25 @@ CHANGELOG.md       every release's notes; new work goes under `## Unreleased`
 
 ## Things worth knowing before changing anything
 
+- **A bill line's split is stored when it is saved, never worked out on reading.** The shares
+  come from the rule in force on the bill's date (`splitting.rule_in_force`); a later rule,
+  even one back-dated, changes nothing already saved. Correcting a bill re-splits only the
+  lines whose category or amount changed, or all of them if the date did (`bills.set_lines`).
+- **Rules are never edited.** A change is a new rule from a later date, and a rule that has
+  split a line cannot be deleted. Shares are basis points adding up to 10 000; money is whole
+  cents, split by `money.allocate`, so shares always add up to the amount exactly.
+- **Every write goes through `audit.record`**, in the same transaction, with the API's view of
+  the record before and after. The activity log is open to everyone on purpose.
+- **Every write under /api needs the `X-Requested-With: house-cost` header, and any Origin must
+  be the app's own** (`app._guard_writes`). The interface's client sends it; so must any other.
+- **Routers are mounted public or protected in `app.py`.** A protected router needs a session for
+  every route; `test_every_route_but_the_public_ones_needs_a_session` sweeps the schema and
+  fails on any route that answers without one. Adding a public route means adding it to `PUBLIC`
+  in that test.
+- **Reconciliation is invisible while it is off**: its routes answer 404, Balances ignores
+  adjustments, and closed periods lock nothing.
+- **First-run setup is open to whoever arrives first** while no person exists, and closed for good
+  after; a new deployment stays unreachable from outside until it is set up.
 - **The interface's types come from the API's schema.** Changing a response model means running
   `make openapi` and committing `frontend/openapi.json` and `frontend/src/lib/api-types.ts`;
   `make contract` and CI fail otherwise.

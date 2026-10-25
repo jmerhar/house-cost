@@ -1,0 +1,26 @@
+info:
+  name: Summary
+  type: http
+  seq: 17
+
+http:
+  method: GET
+  url: "{{base_url}}/api/reports/summary?year=2026"
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.total_cents
+      operator: eq
+      value: "42269"
+    - expression: res.body.categories[0].name
+      operator: eq
+      value: "Electricity"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0

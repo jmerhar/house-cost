@@ -1,14 +1,20 @@
 """Request dependencies and the services the application holds for its lifetime."""
 
+import asyncio
 from collections.abc import AsyncIterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Annotated
 
-from fastapi import Depends, Request
+from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
+from ..auth import LoginThrottle, find_session
 from ..config import Settings
 from ..db import create_engine, create_sessionmaker, session_scope
+from ..models import Person, Session
+
+#: The cookie a browser's session token travels in.
+SESSION_COOKIE = "hc_session"
 
 
 @dataclass
@@ -18,12 +24,21 @@ class Services:
     settings: Settings
     engine: AsyncEngine
     sessionmaker: async_sessionmaker[AsyncSession]
+    throttle: LoginThrottle
+    #: Held while the first administrator is created, so two browsers racing through setup
+    #: cannot both become one.
+    setup_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
 
 def build_services(settings: Settings) -> Services:
     """Build the services for ``settings``. Opens no connection until one is used."""
     engine = create_engine(settings)
-    return Services(settings=settings, engine=engine, sessionmaker=create_sessionmaker(engine))
+    return Services(
+        settings=settings,
+        engine=engine,
+        sessionmaker=create_sessionmaker(engine),
+        throttle=LoginThrottle(settings.login_attempts_per_minute),
+    )
 
 
 def get_services(request: Request) -> Services:
@@ -39,3 +54,41 @@ async def get_db(request: Request) -> AsyncIterator[AsyncSession]:
 
 ServicesDep = Annotated[Services, Depends(get_services)]
 DbDep = Annotated[AsyncSession, Depends(get_db)]
+
+
+async def get_session(request: Request, db: DbDep) -> Session:
+    """The browser's live session; without one the request is refused with 401."""
+    token = request.cookies.get(SESSION_COOKIE)
+    session = await find_session(db, token) if token else None
+    if session is None:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "not_authenticated")
+    return session
+
+
+SessionDep = Annotated[Session, Depends(get_session)]
+
+
+async def get_person(session: SessionDep) -> Person:
+    """The person logged in."""
+    return session.person
+
+
+PersonDep = Annotated[Person, Depends(get_person)]
+
+
+async def get_admin(person: PersonDep) -> Person:
+    """The person logged in, who must be an administrator."""
+    if not person.is_admin:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "admin_only")
+    return person
+
+
+AdminDep = Annotated[Person, Depends(get_admin)]
+
+
+async def get_or_404[T](db: AsyncSession, model: type[T], ident: int) -> T:
+    """The row of ``model`` with primary key ``ident``, or a 404."""
+    row = await db.get(model, ident)
+    if row is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "not_found")
+    return row

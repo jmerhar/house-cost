@@ -4,6 +4,299 @@
  */
 
 export interface paths {
+    "/api/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload
+         * @description Attach a PDF or a photo (JPEG, PNG, WebP, HEIC) to a bill or a settlement.
+         */
+        post: operations["upload_api_attachments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/attachments/{attachment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download
+         * @description The attached file itself, shown in the browser where it can be.
+         *
+         *     Served with a sandboxing content security policy and no type sniffing, so even a file that
+         *     slipped past the type check cannot run script in the app's origin.
+         */
+        get: operations["download_api_attachments__attachment_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Remove
+         * @description Detach a file. Its bytes stay on disk, so the audit log's record of it still points at it.
+         */
+        delete: operations["remove_api_attachments__attachment_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Audit Log
+         * @description Who changed what, newest first; open to everyone, so every change is visible to all.
+         */
+        get: operations["audit_log_api_audit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Log In
+         * @description Log in with a login and password.
+         *
+         *     A wrong password and an unknown login are refused alike, and take as long, so the answer
+         *     does not reveal which logins exist. Too many failures from one address are refused with 429
+         *     for a minute.
+         */
+        post: operations["log_in_api_auth_login_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Log Out
+         * @description End this browser's session, if it has one.
+         */
+        post: operations["log_out_api_auth_logout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Me
+         * @description The person logged in.
+         */
+        get: operations["me_api_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Me
+         * @description Change one's own name, language or password.
+         *
+         *     A new password needs the current one, and ends every other session of this person.
+         */
+        patch: operations["update_me_api_auth_me_patch"];
+        trace?: never;
+    };
+    "/api/auth/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sessions
+         * @description Every browser this person is logged in on, most recently used first.
+         */
+        get: operations["sessions_api_auth_sessions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/sessions/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * End Session
+         * @description Log one of this person's other browsers out.
+         */
+        delete: operations["end_session_api_auth_sessions__session_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/balances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Balances
+         * @description Every household's balance, and the transfers that would settle them.
+         */
+        get: operations["get_balances_api_balances_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Bills
+         * @description Bills not deleted, newest first, optionally narrowed by year, category, payer or text.
+         */
+        get: operations["list_bills_api_bills_get"];
+        put?: never;
+        /**
+         * Create Bill
+         * @description Enter a bill. Each line is split by its category's rule in force on the bill's date.
+         */
+        post: operations["create_bill_api_bills_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bills/{bill_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Bill
+         * @description One bill, with its lines, their shares and its attachments.
+         */
+        get: operations["get_bill_api_bills__bill_id__get"];
+        /**
+         * Update Bill
+         * @description Correct a bill. Lines whose category, amount and date are unchanged keep their split.
+         */
+        put: operations["update_bill_api_bills__bill_id__put"];
+        post?: never;
+        /**
+         * Delete Bill
+         * @description Delete a bill. It is only marked, and stays in the audit log.
+         */
+        delete: operations["delete_bill_api_bills__bill_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Categories
+         * @description Every category, by name.
+         */
+        get: operations["list_categories_api_categories_get"];
+        put?: never;
+        /**
+         * Create Category
+         * @description Add a category. Nothing can be filed under it until it has a rule.
+         */
+        post: operations["create_category_api_categories_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/categories/{category_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Category
+         * @description Rename, describe or deactivate a category.
+         */
+        put: operations["update_category_api_categories__category_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -27,10 +320,590 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/households": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Households
+         * @description Every household, in their configured order.
+         */
+        get: operations["list_households_api_households_get"];
+        put?: never;
+        /**
+         * Create Household
+         * @description Add a household. It owes nothing until a rule gives it a share.
+         */
+        post: operations["create_household_api_households_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/households/{household_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Household
+         * @description Rename, reorder or deactivate a household. Its history stays as it is.
+         */
+        put: operations["update_household_api_households__household_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/people": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List People
+         * @description Everyone who can log in, by name.
+         */
+        get: operations["list_people_api_people_get"];
+        put?: never;
+        /**
+         * Create Person
+         * @description Give someone a login, with a first password they can change themselves.
+         */
+        post: operations["create_person_api_people_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/people/{person_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Person
+         * @description Change someone's details, role or household, deactivate them, or reset their password.
+         *
+         *     The last active admin cannot be demoted or deactivated, so the app always has one. A reset
+         *     password or a deactivation ends the person's sessions.
+         */
+        put: operations["update_person_api_people__person_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reconciliations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Reconciliations
+         * @description Every reconciliation, latest period first.
+         */
+        get: operations["list_reconciliations_api_reconciliations_get"];
+        put?: never;
+        /**
+         * Create Reconciliation
+         * @description Start a draft reconciliation of a period.
+         */
+        post: operations["create_reconciliation_api_reconciliations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reconciliations/{reconciliation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Reconciliation
+         * @description One reconciliation with each household's position; a draft's is worked out afresh.
+         */
+        get: operations["get_reconciliation_api_reconciliations__reconciliation_id__get"];
+        /**
+         * Update Reconciliation
+         * @description Change a draft's period, note or reconciled shares.
+         */
+        put: operations["update_reconciliation_api_reconciliations__reconciliation_id__put"];
+        post?: never;
+        /**
+         * Delete Reconciliation
+         * @description Discard a draft. A closed reconciliation is final.
+         */
+        delete: operations["delete_reconciliation_api_reconciliations__reconciliation_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reconciliations/{reconciliation_id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Close Reconciliation
+         * @description Close a draft: write each household's adjustment and lock the period's bills.
+         */
+        post: operations["close_reconciliation_api_reconciliations__reconciliation_id__close_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/bills.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Bills Csv
+         * @description Every bill line of a year (or of all years), one row each, with each household's share.
+         */
+        get: operations["bills_csv_api_reports_bills_csv_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Summary
+         * @description A year's costs by category and by month, each with every household's share.
+         *
+         *     Without a year, the latest year that has bills, or this one.
+         */
+        get: operations["summary_api_reports_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Rules
+         * @description Every rule, or one category's, oldest first.
+         */
+        get: operations["list_rules_api_rules_get"];
+        put?: never;
+        /**
+         * Create Rule
+         * @description Add a rule for a category from a date. Bills already split keep their split.
+         */
+        post: operations["create_rule_api_rules_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/rules/{rule_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Rule
+         * @description Remove a rule entered by mistake; one that has split a bill cannot be removed.
+         */
+        delete: operations["delete_rule_api_rules__rule_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Settings
+         * @description The app's settings.
+         */
+        get: operations["get_settings_api_settings_get"];
+        /**
+         * Put Settings
+         * @description Change the app's settings.
+         */
+        put: operations["put_settings_api_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settlements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Settlements
+         * @description Settlements not deleted, newest first.
+         */
+        get: operations["list_settlements_api_settlements_get"];
+        put?: never;
+        /**
+         * Create Settlement
+         * @description Record a transfer between two households.
+         */
+        post: operations["create_settlement_api_settlements_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settlements/{settlement_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Settlement
+         * @description Correct a recorded transfer.
+         */
+        put: operations["update_settlement_api_settlements__settlement_id__put"];
+        post?: never;
+        /**
+         * Delete Settlement
+         * @description Delete a recorded transfer. It is only marked, and stays in the audit log.
+         */
+        delete: operations["delete_settlement_api_settlements__settlement_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Setup State
+         * @description Whether the app still needs setting up.
+         */
+        get: operations["setup_state_api_setup_get"];
+        put?: never;
+        /**
+         * Set Up
+         * @description Create the first household and its administrator, and log them in.
+         */
+        post: operations["set_up_api_setup_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/split-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Split Preview
+         * @description How an amount in a category would be split on a date: what a bill line would get.
+         */
+        get: operations["split_preview_api_split_preview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AttachmentOut */
+        AttachmentOut: {
+            /** Content Type */
+            content_type: string;
+            /** Filename */
+            filename: string;
+            /** Id */
+            id: number;
+            /** Size */
+            size: number;
+        };
+        /** AuditOut */
+        AuditOut: {
+            /** Action */
+            action: string;
+            /** After */
+            after: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Before */
+            before: {
+                [key: string]: unknown;
+            } | null;
+            /** Entity */
+            entity: string;
+            /** Entity Id */
+            entity_id: number | null;
+            /** Id */
+            id: number;
+            /** Person Id */
+            person_id: number | null;
+            /** Person Name */
+            person_name: string | null;
+        };
+        /** AuditPage */
+        AuditPage: {
+            /** Items */
+            items: components["schemas"]["AuditOut"][];
+            /** Total */
+            total: number;
+        };
+        /** BalanceOut */
+        BalanceOut: {
+            /** Adjustment Cents */
+            adjustment_cents: number;
+            /** Balance Cents */
+            balance_cents: number;
+            /** Household Id */
+            household_id: number;
+            /** Name */
+            name: string;
+            /** Paid Cents */
+            paid_cents: number;
+            /** Received Cents */
+            received_cents: number;
+            /** Sent Cents */
+            sent_cents: number;
+            /** Share Cents */
+            share_cents: number;
+        };
+        /** Balances */
+        Balances: {
+            /** Households */
+            households: components["schemas"]["BalanceOut"][];
+            /** Transfers */
+            transfers: components["schemas"]["TransferOut"][];
+        };
+        /**
+         * BillIn
+         * @description A bill; its total is the sum of its lines.
+         */
+        BillIn: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /**
+             * Description
+             * @default
+             */
+            description?: string;
+            /** Due Date */
+            due_date?: string | null;
+            /** Invoice Number */
+            invoice_number?: string | null;
+            /** Lines */
+            lines: components["schemas"]["LineIn"][];
+            /**
+             * Notes
+             * @default
+             */
+            notes?: string;
+            /** Paid By Id */
+            paid_by_id: number;
+            /** Period End */
+            period_end?: string | null;
+            /** Period Start */
+            period_start?: string | null;
+            /**
+             * Supplier
+             * @default
+             */
+            supplier?: string;
+        };
+        /** BillOut */
+        BillOut: {
+            /** Attachments */
+            attachments: components["schemas"]["AttachmentOut"][];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Description */
+            description: string;
+            /** Due Date */
+            due_date: string | null;
+            /** Id */
+            id: number;
+            /** Invoice Number */
+            invoice_number: string | null;
+            /** Lines */
+            lines: components["schemas"]["LineOut"][];
+            /**
+             * Locked
+             * @default false
+             */
+            locked: boolean;
+            /** Notes */
+            notes: string;
+            /** Paid By Id */
+            paid_by_id: number;
+            /** Period End */
+            period_end: string | null;
+            /** Period Start */
+            period_start: string | null;
+            /** Supplier */
+            supplier: string;
+            /** Total Cents */
+            total_cents: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** BillPage */
+        BillPage: {
+            /** Items */
+            items: components["schemas"]["BillOut"][];
+            /** Total */
+            total: number;
+        };
+        /** Body_upload_api_attachments_post */
+        Body_upload_api_attachments_post: {
+            /** Bill Id */
+            bill_id?: number | null;
+            /** File */
+            file: string;
+            /** Settlement Id */
+            settlement_id?: number | null;
+        };
+        /** CategoryIn */
+        CategoryIn: {
+            /**
+             * Active
+             * @default true
+             */
+            active?: boolean;
+            /**
+             * Description
+             * @default
+             */
+            description?: string;
+            /** Name */
+            name: string;
+        };
+        /** CategoryOut */
+        CategoryOut: {
+            /** Active */
+            active: boolean;
+            /** Description */
+            description: string;
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+        };
+        /** CategoryTotal */
+        CategoryTotal: {
+            /** Category Id */
+            category_id: number;
+            /** Name */
+            name: string;
+            /** Shares */
+            shares: components["schemas"]["HouseholdAmount"][];
+            /** Total Cents */
+            total_cents: number;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
         /**
          * Health
          * @description The application's state as the health check sees it.
@@ -43,6 +916,477 @@ export interface components {
             /** Version */
             version: string;
         };
+        /** HouseholdAmount */
+        HouseholdAmount: {
+            /** Amount Cents */
+            amount_cents: number;
+            /** Household Id */
+            household_id: number;
+        };
+        /** HouseholdIn */
+        HouseholdIn: {
+            /**
+             * Active
+             * @default true
+             */
+            active?: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Position
+             * @default 0
+             */
+            position?: number;
+        };
+        /** HouseholdOut */
+        HouseholdOut: {
+            /** Active */
+            active: boolean;
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Position */
+            position: number;
+        };
+        /**
+         * LineIn
+         * @description A line of a bill. ``id`` names an existing line, whose split is kept if nothing that
+         *     decides it (the category, the amount, the bill's date) has changed.
+         */
+        LineIn: {
+            /** Amount Cents */
+            amount_cents: number;
+            /** Category Id */
+            category_id: number;
+            /**
+             * Description
+             * @default
+             */
+            description?: string;
+            /** Id */
+            id?: number | null;
+        };
+        /** LineOut */
+        LineOut: {
+            /** Amount Cents */
+            amount_cents: number;
+            /** Category Id */
+            category_id: number;
+            /** Description */
+            description: string;
+            /** Id */
+            id: number;
+            /** Rule Id */
+            rule_id: number;
+            /** Shares */
+            shares: components["schemas"]["LineShare"][];
+        };
+        /** LineShare */
+        LineShare: {
+            /** Amount Cents */
+            amount_cents: number;
+            /** Household Id */
+            household_id: number;
+        };
+        /** LoginIn */
+        LoginIn: {
+            /** Login */
+            login: string;
+            /** Password */
+            password: string;
+        };
+        /**
+         * Me
+         * @description The person logged in, with what the interface needs to know about the app.
+         */
+        Me: {
+            /** Active */
+            active: boolean;
+            /** Household Id */
+            household_id: number;
+            /** Household Name */
+            household_name: string;
+            /** Id */
+            id: number;
+            /** Language */
+            language: ("en" | "pt-PT") | null;
+            /** Login */
+            login: string;
+            /** Name */
+            name: string;
+            /** Reconciliation Enabled */
+            reconciliation_enabled: boolean;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "admin" | "member";
+        };
+        /**
+         * MeUpdate
+         * @description A person's change to themselves. A new password needs the current one.
+         */
+        MeUpdate: {
+            /** Current Password */
+            current_password?: string | null;
+            /** Language */
+            language?: ("en" | "pt-PT") | null;
+            /** Name */
+            name: string;
+            /** New Password */
+            new_password?: string | null;
+        };
+        /** MonthTotal */
+        MonthTotal: {
+            /** Month */
+            month: number;
+            /** Shares */
+            shares: components["schemas"]["HouseholdAmount"][];
+            /** Total Cents */
+            total_cents: number;
+        };
+        /** PersonIn */
+        PersonIn: {
+            /** Household Id */
+            household_id: number;
+            /** Language */
+            language?: ("en" | "pt-PT") | null;
+            /** Login */
+            login: string;
+            /** Name */
+            name: string;
+            /** Password */
+            password: string;
+            /**
+             * Role
+             * @default member
+             * @enum {string}
+             */
+            role?: "admin" | "member";
+        };
+        /** PersonOut */
+        PersonOut: {
+            /** Active */
+            active: boolean;
+            /** Household Id */
+            household_id: number;
+            /** Id */
+            id: number;
+            /** Language */
+            language: ("en" | "pt-PT") | null;
+            /** Login */
+            login: string;
+            /** Name */
+            name: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "admin" | "member";
+        };
+        /**
+         * PersonUpdate
+         * @description An admin's change to someone; a password given here resets theirs.
+         */
+        PersonUpdate: {
+            /** Active */
+            active: boolean;
+            /** Household Id */
+            household_id: number;
+            /** Language */
+            language?: ("en" | "pt-PT") | null;
+            /** Login */
+            login: string;
+            /** Name */
+            name: string;
+            /** Password */
+            password?: string | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "admin" | "member";
+        };
+        /** ReconciliationIn */
+        ReconciliationIn: {
+            /**
+             * Note
+             * @default
+             */
+            note?: string;
+            /**
+             * Period End
+             * Format: date
+             */
+            period_end: string;
+            /**
+             * Period Start
+             * Format: date
+             */
+            period_start: string;
+            /**
+             * Shares
+             * @default []
+             */
+            shares?: components["schemas"]["ReconciliationShareIn"][];
+        };
+        /**
+         * ReconciliationLine
+         * @description One household's position over a reconciliation's period.
+         */
+        ReconciliationLine: {
+            /** Adjustment Cents */
+            adjustment_cents: number;
+            /** Charged Cents */
+            charged_cents: number;
+            /** Household Id */
+            household_id: number;
+            /** Reconciled Cents */
+            reconciled_cents: number;
+        };
+        /** ReconciliationOut */
+        ReconciliationOut: {
+            /**
+             * Bill Count
+             * @default 0
+             */
+            bill_count: number;
+            /** Closed At */
+            closed_at: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Lines
+             * @default []
+             */
+            lines: components["schemas"]["ReconciliationLine"][];
+            /** Note */
+            note: string;
+            /**
+             * Period End
+             * Format: date
+             */
+            period_end: string;
+            /**
+             * Period Start
+             * Format: date
+             */
+            period_start: string;
+            /** Shares */
+            shares: components["schemas"]["ReconciliationShareIn"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "draft" | "closed";
+        };
+        /** ReconciliationShareIn */
+        ReconciliationShareIn: {
+            /** Basis Points */
+            basis_points: number;
+            /** Category Id */
+            category_id: number;
+            /** Household Id */
+            household_id: number;
+        };
+        /** RuleIn */
+        RuleIn: {
+            /** Category Id */
+            category_id: number;
+            /**
+             * Effective From
+             * Format: date
+             */
+            effective_from: string;
+            /**
+             * Note
+             * @default
+             */
+            note?: string;
+            /** Shares */
+            shares: components["schemas"]["RuleShare"][];
+        };
+        /** RuleOut */
+        RuleOut: {
+            /** Category Id */
+            category_id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Effective From
+             * Format: date
+             */
+            effective_from: string;
+            /** Id */
+            id: number;
+            /**
+             * In Use
+             * @default false
+             */
+            in_use: boolean;
+            /** Note */
+            note: string;
+            /** Shares */
+            shares: components["schemas"]["RuleShare"][];
+        };
+        /** RuleShare */
+        RuleShare: {
+            /** Basis Points */
+            basis_points: number;
+            /** Household Id */
+            household_id: number;
+        };
+        /** SessionOut */
+        SessionOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Current
+             * @default false
+             */
+            current: boolean;
+            /** Id */
+            id: number;
+            /**
+             * Last Seen At
+             * Format: date-time
+             */
+            last_seen_at: string;
+            /** User Agent */
+            user_agent: string;
+        };
+        /** SettingsIn */
+        SettingsIn: {
+            /** Reconciliation Enabled */
+            reconciliation_enabled: boolean;
+        };
+        /** SettingsOut */
+        SettingsOut: {
+            /** Reconciliation Enabled */
+            reconciliation_enabled: boolean;
+        };
+        /** SettlementIn */
+        SettlementIn: {
+            /** Amount Cents */
+            amount_cents: number;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** From Id */
+            from_id: number;
+            /**
+             * Note
+             * @default
+             */
+            note?: string;
+            /** To Id */
+            to_id: number;
+        };
+        /** SettlementOut */
+        SettlementOut: {
+            /** Amount Cents */
+            amount_cents: number;
+            /** Attachments */
+            attachments: components["schemas"]["AttachmentOut"][];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** From Id */
+            from_id: number;
+            /** Id */
+            id: number;
+            /** Note */
+            note: string;
+            /** To Id */
+            to_id: number;
+        };
+        /**
+         * SetupIn
+         * @description The first administrator and their household.
+         */
+        SetupIn: {
+            /** Household Name */
+            household_name: string;
+            /** Language */
+            language?: ("en" | "pt-PT") | null;
+            /** Login */
+            login: string;
+            /** Name */
+            name: string;
+            /** Password */
+            password: string;
+        };
+        /** SetupState */
+        SetupState: {
+            /** Required */
+            required: boolean;
+        };
+        /**
+         * SplitPreview
+         * @description How an amount in a category would be split on a date, and by which rule.
+         */
+        SplitPreview: {
+            /** Rule Id */
+            rule_id: number;
+            /** Shares */
+            shares: components["schemas"]["LineShare"][];
+        };
+        /**
+         * Summary
+         * @description A year's costs by category and by month, with each household's share.
+         */
+        Summary: {
+            /** Categories */
+            categories: components["schemas"]["CategoryTotal"][];
+            /** Months */
+            months: components["schemas"]["MonthTotal"][];
+            /** Shares */
+            shares: components["schemas"]["HouseholdAmount"][];
+            /** Total Cents */
+            total_cents: number;
+            /** Year */
+            year: number;
+            /** Years */
+            years: number[];
+        };
+        /** TransferOut */
+        TransferOut: {
+            /** Amount Cents */
+            amount_cents: number;
+            /** From Id */
+            from_id: number;
+            /** To Id */
+            to_id: number;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Context */
+            ctx?: Record<string, never>;
+            /** Input */
+            input?: unknown;
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -52,6 +1396,556 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    upload_api_attachments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_api_attachments_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_api_attachments__attachment_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attachment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_api_attachments__attachment_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attachment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    audit_log_api_audit_get: {
+        parameters: {
+            query?: {
+                entity?: string | null;
+                entity_id?: number | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    log_in_api_auth_login_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    log_out_api_auth_logout_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    me_api_auth_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
+                };
+            };
+        };
+    };
+    update_me_api_auth_me_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MeUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sessions_api_auth_sessions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionOut"][];
+                };
+            };
+        };
+    };
+    end_session_api_auth_sessions__session_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_balances_api_balances_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Balances"];
+                };
+            };
+        };
+    };
+    list_bills_api_bills_get: {
+        parameters: {
+            query?: {
+                year?: number | null;
+                category_id?: number | null;
+                paid_by_id?: number | null;
+                q?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_bill_api_bills_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_bill_api_bills__bill_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bill_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_bill_api_bills__bill_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bill_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_bill_api_bills__bill_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bill_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_categories_api_categories_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryOut"][];
+                };
+            };
+        };
+    };
+    create_category_api_categories_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_category_api_categories__category_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     health_api_health_get: {
         parameters: {
             query?: never;
@@ -68,6 +1962,782 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Health"];
+                };
+            };
+        };
+    };
+    list_households_api_households_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HouseholdOut"][];
+                };
+            };
+        };
+    };
+    create_household_api_households_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HouseholdIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HouseholdOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_household_api_households__household_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HouseholdIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HouseholdOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_people_api_people_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonOut"][];
+                };
+            };
+        };
+    };
+    create_person_api_people_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_person_api_people__person_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                person_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_reconciliations_api_reconciliations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationOut"][];
+                };
+            };
+        };
+    };
+    create_reconciliation_api_reconciliations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReconciliationIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_reconciliation_api_reconciliations__reconciliation_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reconciliation_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_reconciliation_api_reconciliations__reconciliation_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reconciliation_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReconciliationIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_reconciliation_api_reconciliations__reconciliation_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reconciliation_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    close_reconciliation_api_reconciliations__reconciliation_id__close_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reconciliation_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bills_csv_api_reports_bills_csv_get: {
+        parameters: {
+            query?: {
+                year?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    summary_api_reports_summary_get: {
+        parameters: {
+            query?: {
+                year?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Summary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_rules_api_rules_get: {
+        parameters: {
+            query?: {
+                category_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_rule_api_rules_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RuleIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuleOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_rule_api_rules__rule_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                rule_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_settings_api_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
+                };
+            };
+        };
+    };
+    put_settings_api_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettingsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_settlements_api_settlements_get: {
+        parameters: {
+            query?: {
+                year?: number | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettlementOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_settlement_api_settlements_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettlementIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettlementOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_settlement_api_settlements__settlement_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                settlement_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SettlementIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettlementOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_settlement_api_settlements__settlement_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                settlement_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    setup_state_api_setup_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SetupState"];
+                };
+            };
+        };
+    };
+    set_up_api_setup_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetupIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    split_preview_api_split_preview_get: {
+        parameters: {
+            query: {
+                category_id: number;
+                on: string;
+                amount_cents: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SplitPreview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
