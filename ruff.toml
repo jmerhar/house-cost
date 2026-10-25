@@ -1,0 +1,20 @@
+# Shared by the backend, its tests, and the scripts in bin/.
+line-length = 100
+target-version = "py314"
+
+[lint]
+# On top of the defaults (pyflakes and pycodestyle errors): unused arguments and imports,
+# comprehension and builtin misuse, and the bug-prone patterns in flake8-bugbear -- mutable
+# default arguments and `except` clauses that swallow everything among them.
+select = ["E", "F", "W", "I", "B", "C4", "UP", "ARG", "SIM"]
+
+[lint.per-file-ignores]
+# A pytest fixture is very often requested for what it does rather than for its value, and
+# naming it in the signature is the only way to ask for it.
+"**/tests/**" = ["ARG001", "ARG002"]
+# Written by `alembic revision --autogenerate`; reflowing them by hand would be undone by the next
+# generated migration.
+"backend/alembic/versions/*" = ["E501", "W291"]
+
+[lint.isort]
+known-first-party = ["house_cost"]

@@ -1,0 +1,4 @@
+name: example
+variables:
+  - name: base_url
+    value: https://house-cost.example.com

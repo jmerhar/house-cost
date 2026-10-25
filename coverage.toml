@@ -1,0 +1,23 @@
+# Coverage configuration for the shared tooling in jmerhar/coverage, which renders the CI summary
+# table, enforces the gates, and publishes the HTML reports.
+#
+# Two suites, each in its own tool's format: the backend (coverage.py) and the interface
+# (vitest/istanbul). The suites run in separate CI jobs, so the coverage job restores both reports
+# from artifacts to the paths below before any of this runs.
+#
+# Each gate sits just under its suite's measured line coverage. Raise them as coverage climbs;
+# never lower one to make a red build pass.
+
+[suites.backend]
+label = "Backend (Python)"
+format = "coveragepy"
+report = "backend/coverage.json"
+html = "backend/htmlcov"
+gate = 98.0
+
+[suites.frontend]
+label = "Interface (TypeScript)"
+format = "istanbul"
+report = "frontend/coverage/coverage-summary.json"
+html = "frontend/coverage/html"
+gate = 98.0

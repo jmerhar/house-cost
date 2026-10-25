@@ -1,0 +1,62 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "house-cost"
+version = "0.0.0"
+description = "Track a shared house's running costs and split them between households"
+requires-python = ">=3.14"
+license = "GPL-3.0-or-later"
+dependencies = [
+    "fastapi>=0.141,<0.142",
+    "uvicorn[standard]>=0.52",
+    "sqlalchemy[asyncio]>=2.0.52",
+    "aiosqlite>=0.22",
+    "alembic>=1.19",
+    "pydantic>=2.13",
+    "pydantic-settings>=2.15",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=9.1",
+    "pytest-asyncio>=1.4",
+    "pytest-cov>=7.1",
+    "httpx>=0.28",
+    "ruff>=0.16",
+]
+
+[project.urls]
+Homepage = "https://github.com/jmerhar/house-cost"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/house_cost"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+asyncio_default_test_loop_scope = "function"
+testpaths = ["tests"]
+filterwarnings = ["error"]
+
+[tool.coverage.run]
+# The package only: migrations and the module entrypoint carry no testable logic.
+source = ["house_cost"]
+# Async throughout. Coverage's sys.monitoring core (COVERAGE_CORE=sysmon, set in
+# bin/test-backend.sh and CI) traces lines after `await`, which the legacy C core under-reports.
+branch = true
+omit = [
+    "*/alembic/*",
+    "*/tests/*",
+    "*/__main__.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "@(abc\\.)?abstractmethod",
+    "if __name__ == .__main__.:",
+]

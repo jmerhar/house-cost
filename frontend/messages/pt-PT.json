@@ -1,0 +1,10 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "app_name": "Custos da casa",
+  "app_tagline": "Despesas da casa, divididas de forma justa entre agregados.",
+  "coming_soon": "Faturas, acertos e saldos estão a caminho.",
+  "language_label": "Idioma",
+  "language_browser": "Como o navegador",
+  "server_version": "Servidor {version}",
+  "server_unreachable": "Não foi possível contactar o servidor."
+}

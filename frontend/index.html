@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f6f2" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#17191b" />
+    <title>House costs</title>
+    <!-- An interface that fails to start says why, rather than staying blank. Once it has drawn,
+         errors are left to it. -->
+    <script>
+      (function () {
+        function show(text) {
+          var app = document.getElementById("app");
+          if (!app || app.firstChild) return;
+          var box = document.createElement("pre");
+          box.className = "page-error";
+          box.textContent = "The page could not start: " + text;
+          app.appendChild(box);
+        }
+        window.addEventListener("error", function (e) {
+          show(e.message + (e.filename ? " (" + e.filename + ":" + e.lineno + ")" : ""));
+        });
+        window.addEventListener("unhandledrejection", function (e) {
+          var r = e.reason;
+          show(String((r && (r.stack || r.message)) || r));
+        });
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
