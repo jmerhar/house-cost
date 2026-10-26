@@ -375,18 +375,20 @@
 
 <section>
   <h2>{m.settings_title()}</h2>
-  <form class="inline title-form" onsubmit={saveTitle}>
-    <label class="grow">
-      {m.setting_site_title()}
-      <input bind:value={siteTitle} maxlength="60" placeholder={m.app_name()} />
-      <small>{m.setting_site_title_hint({ name: m.app_name() })}</small>
-    </label>
-    <button type="submit">{m.setting_site_title_save()}</button>
+  <form class="setting" onsubmit={saveTitle}>
+    <label for="site-title">{m.setting_site_title()}</label>
+    <div class="field-row">
+      <input id="site-title" bind:value={siteTitle} maxlength="60" placeholder={m.app_name()} />
+      <button type="submit">{m.setting_site_title_save()}</button>
+    </div>
+    <small class="hint">{m.setting_site_title_hint({ name: m.app_name() })}</small>
+    {#if titleSaved}<p class="note">{m.saved()}</p>{/if}
   </form>
-  {#if titleSaved}<p class="note">{m.saved()}</p>{/if}
-  <label class="check">
-    <input type="checkbox" checked={reconciliation} onchange={toggleReconciliation} />
-    {m.setting_reconciliation()}
-  </label>
-  <p class="muted">{m.setting_reconciliation_hint()}</p>
+  <div class="setting">
+    <label class="check">
+      <input type="checkbox" checked={reconciliation} onchange={toggleReconciliation} />
+      {m.setting_reconciliation()}
+    </label>
+    <small class="hint">{m.setting_reconciliation_hint()}</small>
+  </div>
 </section>

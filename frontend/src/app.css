@@ -132,7 +132,7 @@ nav.pages {
   gap: 0.25rem 1rem;
 }
 
-nav.pages a,
+nav.pages > a,
 .menu-button {
   display: inline-flex;
   align-items: center;
@@ -149,7 +149,7 @@ nav.pages a,
   white-space: nowrap;
 }
 
-nav.pages a[aria-current="page"],
+nav.pages > a[aria-current="page"],
 .menu-button.current {
   color: var(--fg);
   font-weight: 600;
@@ -234,7 +234,7 @@ nav.pages a[aria-current="page"],
     border-top: 1px solid var(--line);
   }
 
-  nav.pages a,
+  nav.pages > a,
   nav.pages .menu-button {
     flex-direction: column;
     justify-content: center;
@@ -246,14 +246,15 @@ nav.pages a[aria-current="page"],
     font-size: 0.72rem;
   }
 
-  nav.pages a span,
+  nav.pages > a span,
   nav.pages .menu-button span {
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  nav.pages .lucide {
+  nav.pages > a .lucide,
+  nav.pages .menu-button .lucide {
     width: 1.5rem;
     height: 1.5rem;
   }
@@ -262,7 +263,7 @@ nav.pages a[aria-current="page"],
     display: none;
   }
 
-  nav.pages a[aria-current="page"],
+  nav.pages > a[aria-current="page"],
   nav.pages .menu-button.current {
     color: var(--accent);
   }
@@ -271,20 +272,18 @@ nav.pages a[aria-current="page"],
     position: static;
   }
 
+  /* Above the More tab, at the right edge, as wide as its entries. */
   nav.pages .menu-panel {
     top: auto;
     bottom: calc(100% + 0.4rem);
-    left: 0.5rem;
+    left: auto;
     right: 0.5rem;
   }
 
   .account .name {
-    position: absolute;
-    width: 1px;
-    height: 1px;
+    max-width: 9rem;
     overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   .account .menu-button .lucide {
@@ -803,12 +802,31 @@ footer {
   color: var(--danger);
 }
 
-.title-form {
-  align-items: flex-end;
+/* One app-wide setting: its control, a line saying what it does, and room before the next. */
+.setting {
+  margin-bottom: 1.5rem;
 }
 
-.title-form .grow {
+.setting > label {
+  margin-bottom: 0.35rem;
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.field-row input {
   flex: 1;
+  min-width: 0;
+}
+
+.hint {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-size: 0.85rem;
 }
 
 /* The account menu's light, dark and automatic choice. */
