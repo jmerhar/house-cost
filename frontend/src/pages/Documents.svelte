@@ -1,4 +1,8 @@
 <script lang="ts">
+  import Pencil from "@lucide/svelte/icons/pencil";
+  import Sparkles from "@lucide/svelte/icons/sparkles";
+  import Trash2 from "@lucide/svelte/icons/trash-2";
+  import Upload from "@lucide/svelte/icons/upload";
   import { onMount } from "svelte";
   import type { AnswerOut, DocumentMatch, DocumentUpdate, Service, ServiceIn, Supplier, Terms } from "../lib/api";
   import { useApp } from "../lib/context";
@@ -224,7 +228,7 @@
 <div class="heading">
   <h1>{m.documents_title()}</h1>
   <label class="button">
-    {m.document_add()}
+    <Upload />{m.document_add()}
     <input type="file" accept="application/pdf,image/*" class="file-input" onchange={pick} />
   </label>
 </div>
@@ -286,7 +290,7 @@
       <button type="button" class="secondary" onclick={() => (form = null)}>{m.cancel()}</button>
       {#if form.id !== null}
         {@const id = form.id}
-        <button type="button" class="danger" onclick={() => remove(id)}>{m.delete()}</button>
+        <button type="button" class="danger" onclick={() => remove(id)}><Trash2 />{m.delete()}</button>
       {/if}
     </div>
   </form>
@@ -365,9 +369,9 @@
           {#if !document.has_text && document.content_type === "application/pdf"}<small>{m.document_no_text()}</small>{/if}
         </span>
         {#if app.me?.claude_enabled}
-          <button type="button" class="link" onclick={() => open(document)}>{m.study_open()}</button>
+          <button type="button" class="link" onclick={() => open(document)}><Sparkles />{m.study_open()}</button>
         {/if}
-        <button type="button" class="link" onclick={() => edit(document)}>{m.edit()}</button>
+        <button type="button" class="link" onclick={() => edit(document)}><Pencil />{m.edit()}</button>
       </li>
     {/each}
   </ul>

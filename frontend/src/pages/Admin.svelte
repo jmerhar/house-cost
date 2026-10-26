@@ -1,4 +1,11 @@
 <script lang="ts">
+  import ArrowUp from "@lucide/svelte/icons/arrow-up";
+  import CircleOff from "@lucide/svelte/icons/circle-off";
+  import Pencil from "@lucide/svelte/icons/pencil";
+  import Percent from "@lucide/svelte/icons/percent";
+  import Plus from "@lucide/svelte/icons/plus";
+  import RotateCcw from "@lucide/svelte/icons/rotate-ccw";
+  import Trash2 from "@lucide/svelte/icons/trash-2";
   import { onMount } from "svelte";
   import type { Category, Household, Person, Rule } from "../lib/api";
   import { useApp } from "../lib/context";
@@ -205,18 +212,18 @@
           <strong>{household.name} {#if !household.active}<small class="tag">{m.status_inactive()}</small>{/if}</strong>
         </span>
         <span class="row-actions">
-          <button type="button" class="link" onclick={() => renameHousehold(household)}>{m.edit()}</button>
+          <button type="button" class="link" onclick={() => renameHousehold(household)}><Pencil />{m.edit()}</button>
           {#if index > 0}
             <button
               type="button"
               class="link"
               aria-label={m.move_up_label({ name: household.name })}
               title={m.move_up_label({ name: household.name })}
-              onclick={() => saveHousehold(household, { position: app.households[index - 1].position - 1 })}>↑ {m.move_up()}</button
+              onclick={() => saveHousehold(household, { position: app.households[index - 1].position - 1 })}><ArrowUp />{m.move_up()}</button
             >
           {/if}
           <button type="button" class="link" class:danger={household.active} onclick={() => toggleHousehold(household)}>
-            {household.active ? m.deactivate() : m.reactivate()}
+            {#if household.active}<CircleOff />{:else}<RotateCcw />{/if}{household.active ? m.deactivate() : m.reactivate()}
           </button>
         </span>
       </li>
@@ -224,7 +231,7 @@
   </ul>
   <form class="inline" onsubmit={addHousehold}>
     <input bind:value={householdName} required maxlength="100" aria-label={m.household_add()} placeholder={m.household_add()} />
-    <button type="submit">{m.add()}</button>
+    <button type="submit"><Plus />{m.add()}</button>
   </form>
 </section>
 
@@ -240,7 +247,7 @@
             {#if !person.active}· {m.person_cannot_log_in()}{/if}
           </small>
         </span>
-        <button type="button" class="link" onclick={() => editPerson(person)}>{m.edit()}</button>
+        <button type="button" class="link" onclick={() => editPerson(person)}><Pencil />{m.edit()}</button>
       </li>
     {/each}
   </ul>
@@ -289,7 +296,7 @@
       </div>
     </form>
   {:else}
-    <button type="button" class="secondary" onclick={newPerson}>{m.person_add()}</button>
+    <button type="button" class="secondary" onclick={newPerson}><Plus />{m.person_add()}</button>
   {/if}
 </section>
 
@@ -302,9 +309,9 @@
       <div class="heading">
         <h3>{category.name} {#if !category.active}<small class="tag">{m.status_inactive()}</small>{/if}</h3>
         <span class="row-actions">
-          <button type="button" class="link" onclick={() => newRule(category)}>{m.rule_add()}</button>
+          <button type="button" class="link" onclick={() => newRule(category)}><Percent />{m.rule_add()}</button>
           <button type="button" class="link" class:danger={category.active} onclick={() => toggleCategory(category)}>
-            {category.active ? m.deactivate() : m.reactivate()}
+            {#if category.active}<CircleOff />{:else}<RotateCcw />{/if}{category.active ? m.deactivate() : m.reactivate()}
           </button>
         </span>
       </div>
@@ -320,7 +327,7 @@
             {#if rule.in_use}
               <small class="tag">{m.rule_in_use()}</small>
             {:else}
-              <button type="button" class="link danger" onclick={() => deleteRule(rule)}>{m.rule_delete()}</button>
+              <button type="button" class="link danger" onclick={() => deleteRule(rule)}><Trash2 />{m.rule_delete()}</button>
             {/if}
           </li>
         {/each}
@@ -348,7 +355,7 @@
   {/each}
   <form class="inline" onsubmit={addCategory}>
     <input bind:value={categoryName} required maxlength="100" aria-label={m.category_add()} placeholder={m.category_add()} />
-    <button type="submit">{m.add()}</button>
+    <button type="submit"><Plus />{m.add()}</button>
   </form>
 </section>
 

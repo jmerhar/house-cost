@@ -319,7 +319,6 @@
   "logging_in": "Logging in…",
   "saved": "Saved.",
   "nif_value": "NIF {nif}",
-  "login_passkey_hint": "Uses a passkey saved on this device; it may ask for your PIN instead. On a phone, it may also appear when you tap the Username box.",
   "login_or_password": "or with your password",
   "passkey_offer": "Log in faster next time with your fingerprint or face?",
   "passkey_offer_accept": "Set it up",

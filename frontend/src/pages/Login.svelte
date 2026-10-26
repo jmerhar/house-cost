@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { useApp } from "../lib/context";
+  import FingerprintPattern from "@lucide/svelte/icons/fingerprint-pattern";
   import { errorMessage } from "../lib/errors";
   import { dismissed, passkeyOfferDeclined, passkeyUsedHere, rememberPasskeyUsed } from "../lib/passkeys";
   import { m } from "../paraglide/messages.js";
@@ -105,7 +106,10 @@
   <h1>{m.app_name()}</h1>
   <h2>{m.login_title()}</h2>
   {#if passkeyFirst}
-    <button type="button" class="wide-button" disabled={busy} onclick={withPasskey}>{m.login_passkey()}</button>
+    <button type="button" class="wide-button" disabled={busy} onclick={withPasskey}>
+      <FingerprintPattern />
+      {m.login_passkey()}
+    </button>
     <p class="muted or"><small>{m.login_or_password()}</small></p>
   {/if}
   <label>
@@ -116,9 +120,10 @@
   {#if error}<p role="alert">{error}</p>{/if}
   <div class="actions">
     <button type="submit" class:secondary={passkeyFirst} disabled={busy}>{busy ? m.logging_in() : m.login_submit()}</button>
-    {#if passkeys && !passkeyFirst}
-      <button type="button" class="secondary" disabled={busy} onclick={withPasskey}>{m.login_passkey()}</button>
-    {/if}
   </div>
-  {#if passkeys}<p class="muted"><small>{m.login_passkey_hint()}</small></p>{/if}
+  {#if passkeys && !passkeyFirst}
+    <p class="other-login">
+      <button type="button" class="link" disabled={busy} onclick={withPasskey}>{m.login_passkey()}</button>
+    </p>
+  {/if}
 </form>

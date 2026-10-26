@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Download from "@lucide/svelte/icons/download";
   import { onMount } from "svelte";
   import type { ReadingPoint, Summary } from "../lib/api";
   import { useApp } from "../lib/context";
@@ -49,7 +50,7 @@
 <div class="heading">
   <h1>{m.reports_title()}</h1>
   {#if summary}
-    <a class="button secondary" href={app.api.csvUrl(summary.year)} download>{m.download_csv()}</a>
+    <a class="button secondary" href={app.api.csvUrl(summary.year)} download><Download />{m.download_csv()}</a>
   {/if}
 </div>
 

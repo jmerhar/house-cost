@@ -103,6 +103,7 @@ nav {
 }
 
 nav .nav-action {
+  gap: 0.3rem;
   background: none;
   border: none;
   min-height: 0;
@@ -112,6 +113,9 @@ nav .nav-action {
 }
 
 nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   color: var(--muted);
   text-decoration: none;
   white-space: nowrap;
@@ -336,6 +340,8 @@ button.danger,
 
 button.link,
 label.link {
+  align-items: center;
+  gap: 0.3rem;
   background: none;
   border: none;
   color: var(--accent);
@@ -566,6 +572,23 @@ tfoot td {
 .or {
   text-align: center;
   margin: 0.75rem 0;
+}
+
+/* A way of logging in for those who know they want it, kept quiet beside the main one. */
+.other-login {
+  margin: 0.5rem 0 0;
+}
+
+/* Lucide's icons, sized to the text beside them and drawn in its colour. */
+.lucide {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+}
+
+.wide-button .lucide {
+  width: 1.5em;
+  height: 1.5em;
 }
 
 footer {

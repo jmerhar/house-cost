@@ -319,7 +319,6 @@
   "logging_in": "A entrar…",
   "saved": "Guardado.",
   "nif_value": "NIF {nif}",
-  "login_passkey_hint": "Funciona com uma chave de acesso guardada neste dispositivo. O dispositivo pode pedir o PIN em vez disso. No telemóvel, também pode aparecer ao tocar no campo «Nome de utilizador».",
   "login_or_password": "ou com a palavra-passe",
   "passkey_offer": "Quer entrar mais depressa da próxima vez com a impressão digital ou o rosto?",
   "passkey_offer_accept": "Configurar",

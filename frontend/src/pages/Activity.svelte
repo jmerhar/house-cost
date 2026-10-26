@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import { onMount } from "svelte";
   import type { AuditEntry } from "../lib/api";
   import { useApp } from "../lib/context";
@@ -98,6 +99,6 @@
     {/each}
   </ul>
   {#if entries.length < total}
-    <button type="button" class="secondary" onclick={() => load(true)}>{m.show_more()}</button>
+    <button type="button" class="secondary" onclick={() => load(true)}><ChevronDown />{m.show_more()}</button>
   {/if}
 {/if}

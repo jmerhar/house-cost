@@ -1,4 +1,8 @@
 <script lang="ts">
+  import Paperclip from "@lucide/svelte/icons/paperclip";
+  import Pencil from "@lucide/svelte/icons/pencil";
+  import Plus from "@lucide/svelte/icons/plus";
+  import Trash2 from "@lucide/svelte/icons/trash-2";
   import { onMount } from "svelte";
   import type { Attachment, Settlement } from "../lib/api";
   import { useApp } from "../lib/context";
@@ -109,7 +113,7 @@
 
 <div class="heading">
   <h1>{m.settlements_title()}</h1>
-  {#if !open}<button type="button" onclick={() => start()}>{m.settlement_new()}</button>{/if}
+  {#if !open}<button type="button" onclick={() => start()}><Plus />{m.settlement_new()}</button>{/if}
 </div>
 
 {#if open}
@@ -144,7 +148,7 @@
       <button type="submit" disabled={busy}>{busy ? m.saving() : m.save()}</button>
       <button type="button" class="secondary" onclick={() => (open = false)}>{m.cancel()}</button>
       {#if editing}
-        <button type="button" class="danger" onclick={() => editing && remove(editing)}>{m.delete()}</button>
+        <button type="button" class="danger" onclick={() => editing && remove(editing)}><Trash2 />{m.delete()}</button>
       {/if}
     </div>
   </form>
@@ -170,9 +174,9 @@
         </span>
         <span class="amount">{euros(settlement.amount_cents)}</span>
         <span class="row-actions">
-          <button type="button" class="link" onclick={() => edit(settlement)}>{m.edit()}</button>
+          <button type="button" class="link" onclick={() => edit(settlement)}><Pencil />{m.edit()}</button>
           <label class="link">
-            {m.files_add()}
+            <Paperclip />{m.files_add()}
             <input type="file" accept="application/pdf,image/*" class="file-input" onchange={(event) => attach(settlement, event)} />
           </label>
         </span>

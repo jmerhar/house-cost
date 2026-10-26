@@ -111,7 +111,20 @@ describe("logging in with a passkey", () => {
 
     const buttons = screen.getAllByRole("button").map((button) => button.textContent?.trim());
     expect(buttons).toEqual(["Log in with fingerprint or face", "Log in"]);
+    expect(screen.getByRole("button", { name: "Log in with fingerprint or face" }).querySelector("svg")).not.toBeNull();
     expect(screen.getByText("or with your password")).toBeInTheDocument();
+  });
+
+  it("is a quiet link after the password, without an icon, where none has been used", () => {
+    const { api } = fakeApi({});
+    renderPage(Login, appFor(api, ADMIN, fakeAuthenticator()), { onDone: vi.fn() });
+
+    const buttons = screen.getAllByRole("button").map((button) => button.textContent?.trim());
+    expect(buttons).toEqual(["Log in", "Log in with fingerprint or face"]);
+    const passkey = screen.getByRole("button", { name: "Log in with fingerprint or face" });
+    expect(passkey).toHaveClass("link");
+    expect(passkey.querySelector("svg")).toBeNull();
+    expect(screen.queryByText(/passkey saved on this device/)).not.toBeInTheDocument();
   });
 });
 

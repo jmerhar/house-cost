@@ -1,4 +1,8 @@
 <script lang="ts">
+  import Paperclip from "@lucide/svelte/icons/paperclip";
+  import Plus from "@lucide/svelte/icons/plus";
+  import Trash2 from "@lucide/svelte/icons/trash-2";
+  import X from "@lucide/svelte/icons/x";
   import { onMount } from "svelte";
   import type { Attachment, Bill, BillIn, Reading, Service, ServiceIn, Supplier } from "../lib/api";
   import { takeDraft } from "../lib/draft";
@@ -365,13 +369,13 @@
             {/if}
             {#if lines.length > 1}
               <button type="button" class="link" onclick={() => (lines = lines.filter((_, i) => i !== index))}>
-                {m.line_remove()}
+                <X />{m.line_remove()}
               </button>
             {/if}
           </li>
         {/each}
       </ol>
-      <button type="button" class="secondary" onclick={() => (lines = [...lines, blankLine()])}>{m.line_add()}</button>
+      <button type="button" class="secondary" onclick={() => (lines = [...lines, blankLine()])}><Plus />{m.line_add()}</button>
       <p class="total">{m.total_label()}: <strong>{euros(totalCents)}</strong></p>
 
       {#if readings.length}
@@ -403,7 +407,7 @@
         <button type="submit" disabled={busy}>{busy ? m.saving() : m.save()}</button>
         <a class="button secondary" href="/bills">{m.cancel()}</a>
         {#if id !== undefined}
-          <button type="button" class="danger apart" onclick={remove}>{m.delete()}</button>
+          <button type="button" class="danger apart" onclick={remove}><Trash2 />{m.delete()}</button>
         {/if}
       </div>
     {/if}
@@ -420,14 +424,14 @@
             <a href={app.api.attachmentUrl(attachment.id)} target="_blank" rel="noopener">{attachment.filename}</a>
             <small class="muted">{fileSize(attachment.size)}</small>
             {#if !locked}
-              <button type="button" class="link" onclick={() => detach(attachment)}>{m.file_remove()}</button>
+              <button type="button" class="link" onclick={() => detach(attachment)}><X />{m.file_remove()}</button>
             {/if}
           </li>
         {/each}
       </ul>
       {#if !locked}
         <label class="button secondary">
-          {m.files_add()}
+          <Paperclip />{m.files_add()}
           <input type="file" accept="application/pdf,image/*" multiple class="file-input" onchange={attach} />
         </label>
       {/if}
