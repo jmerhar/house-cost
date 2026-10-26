@@ -35,6 +35,7 @@ export type Summary = Schemas["Summary"];
 export type AuditPage = Schemas["AuditPage"];
 export type AuditEntry = Schemas["AuditOut"];
 export type AppSettings = Schemas["SettingsOut"];
+export type SettingsChange = Schemas["SettingsIn"];
 export type Reconciliation = Schemas["ReconciliationOut"];
 export type ReconciliationIn = Schemas["ReconciliationIn"];
 export type Passkey = Schemas["PasskeyOut"];
@@ -77,7 +78,7 @@ export class Api {
   // --- The app, setup and the session -------------------------------------------------------
 
   health = () => this.request<Health>("GET", "/health");
-  setupState = () => this.request<{ required: boolean }>("GET", "/setup");
+  setupState = () => this.request<Schemas["SetupState"]>("GET", "/setup");
   setUp = (body: SetupIn) => this.request<Me>("POST", "/setup", body);
   logIn = (login: string, password: string) => this.request<Me>("POST", "/auth/login", { login, password });
   logOut = () => this.request<void>("POST", "/auth/logout");
@@ -181,7 +182,7 @@ export class Api {
   summary = (year?: number) => this.request<Summary>("GET", "/reports/summary", undefined, { year });
   audit = (query: Query = {}) => this.request<AuditPage>("GET", "/audit", undefined, query);
   settings = () => this.request<AppSettings>("GET", "/settings");
-  updateSettings = (body: AppSettings) => this.request<AppSettings>("PUT", "/settings", body);
+  updateSettings = (body: SettingsChange) => this.request<AppSettings>("PUT", "/settings", body);
   reconciliations = () => this.request<Reconciliation[]>("GET", "/reconciliations");
   reconciliation = (id: number) => this.request<Reconciliation>("GET", `/reconciliations/${id}`);
   createReconciliation = (body: ReconciliationIn) => this.request<Reconciliation>("POST", "/reconciliations", body);

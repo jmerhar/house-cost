@@ -77,55 +77,200 @@ h3 {
 .bar {
   position: sticky;
   top: 0;
-  z-index: 1;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.25rem 1rem;
+  z-index: 2;
   padding: max(0.5rem, env(safe-area-inset-top)) 1rem 0.5rem;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
+}
+
+/* As wide as the page's content (main's 52rem less its padding), so the menu lines up with it. */
+.bar-inner {
+  max-width: 50rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
 }
 
 .brand {
   font-weight: 700;
   color: var(--accent);
   text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Wraps rather than scrolls, so every item stays in sight on a phone. */
-nav {
+nav.pages {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.25rem 0.9rem;
-  max-width: 100%;
+  gap: 0.25rem 1rem;
 }
 
-nav .nav-action {
-  gap: 0.3rem;
-  background: none;
-  border: none;
-  min-height: 0;
-  padding: 0.25rem 0;
-  color: var(--muted);
-  font-size: 1rem;
-}
-
-nav a {
+nav.pages a,
+.menu-button {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
+  padding: 0.3rem 0;
+  min-height: 0;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: none;
   color: var(--muted);
+  font-size: 1rem;
   text-decoration: none;
   white-space: nowrap;
-  padding: 0.25rem 0;
 }
 
-nav a[aria-current="page"] {
+nav.pages a[aria-current="page"],
+.menu-button.current {
   color: var(--fg);
   font-weight: 600;
-  border-bottom: 2px solid var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.menu {
+  position: relative;
+}
+
+.menu .chevron {
+  width: 0.9em;
+  height: 0.9em;
+}
+
+.account {
+  margin-left: auto;
+}
+
+.menu-panel {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  z-index: 3;
+  min-width: 13rem;
+  margin: 0;
+  padding: 0.35rem;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+
+.account .menu-panel {
+  left: auto;
+  right: 0;
+}
+
+.menu-panel a,
+.menu-panel button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.7rem;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--fg);
+  font-size: 1rem;
+  text-decoration: none;
+}
+
+.menu-panel a:hover,
+.menu-panel button:hover {
+  background: var(--bg);
+  filter: none;
+}
+
+.menu-panel a[aria-current="page"] {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* On a phone the pages are a tab bar along the bottom, and "More" opens upwards from it; the
+   account menu stays in the top bar, by the app's name. */
+@media (max-width: 47.99rem) {
+  nav.pages {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    padding: 0.25rem 0.25rem calc(0.25rem + env(safe-area-inset-bottom));
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+  }
+
+  nav.pages a,
+  nav.pages .menu-button {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.15rem;
+    width: 100%;
+    min-width: 0;
+    padding: 0.3rem 0.1rem;
+    border-bottom: none;
+    font-size: 0.72rem;
+  }
+
+  nav.pages a span,
+  nav.pages .menu-button span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  nav.pages .lucide {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  nav.pages .chevron {
+    display: none;
+  }
+
+  nav.pages a[aria-current="page"],
+  nav.pages .menu-button.current {
+    color: var(--accent);
+  }
+
+  nav.pages .menu {
+    position: static;
+  }
+
+  nav.pages .menu-panel {
+    top: auto;
+    bottom: calc(100% + 0.4rem);
+    left: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .account .name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .account .menu-button .lucide {
+    width: 1.6rem;
+    height: 1.6rem;
+  }
+
+  main,
+  footer {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+  }
 }
 
 main {
@@ -605,4 +750,12 @@ footer {
   white-space: pre-wrap;
   padding: 1rem;
   color: var(--danger);
+}
+
+.title-form {
+  align-items: flex-end;
+}
+
+.title-form .grow {
+  flex: 1;
 }

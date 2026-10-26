@@ -11,6 +11,7 @@ from helpers import PASSWORD, ok
 from house_cost import __version__
 from house_cost.api.app import IMMUTABLE, create_app
 from house_cost.config import Settings
+from house_cost.models import Base
 
 
 async def test_health_reports_the_database_and_version(client: httpx.AsyncClient) -> None:
@@ -56,6 +57,8 @@ def web(data_dir: Path) -> Path:
 async def web_client(data_dir: Path, web: Path) -> AsyncIterator[httpx.AsyncClient]:
     app = create_app(Settings(data_dir=data_dir, static_dir=web))
     async with app.router.lifespan_context(app):
+        async with app.state.services.engine.begin() as connection:
+            await connection.run_sync(Base.metadata.create_all)
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(transport=transport, base_url="http://house-cost.test") as c:
             yield c

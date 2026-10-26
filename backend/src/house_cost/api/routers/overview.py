@@ -8,6 +8,7 @@ from datetime import date
 from fastapi import APIRouter, Query
 from fastapi.responses import Response
 from sqlalchemy import extract, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...audit import get_setting, record, set_setting
 from ...balances import balances, settle
@@ -221,17 +222,25 @@ async def audit_log(
     )
 
 
+async def _settings(db: AsyncSession) -> SettingsOut:
+    return SettingsOut(
+        reconciliation_enabled=await get_setting(db, "reconciliation_enabled"),
+        site_title=await get_setting(db, "site_title"),
+    )
+
+
 @router.get("/settings")
 async def get_settings(db: DbDep) -> SettingsOut:
     """The app's settings."""
-    return SettingsOut(reconciliation_enabled=await get_setting(db, "reconciliation_enabled"))
+    return await _settings(db)
 
 
 @router.put("/settings")
 async def put_settings(body: SettingsIn, admin: AdminDep, db: DbDep) -> SettingsOut:
-    """Change the app's settings."""
-    before = SettingsOut(reconciliation_enabled=await get_setting(db, "reconciliation_enabled"))
-    await set_setting(db, "reconciliation_enabled", body.reconciliation_enabled)
-    after = SettingsOut(reconciliation_enabled=body.reconciliation_enabled)
+    """Change the app's settings; those left out keep their value."""
+    before = await _settings(db)
+    for key, value in body.model_dump(exclude_none=True).items():
+        await set_setting(db, key, value)
+    after = await _settings(db)
     record(db, admin, "update", "settings", None, before=before, after=after)
     return after

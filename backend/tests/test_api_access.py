@@ -25,7 +25,7 @@ PUBLIC = {
 
 class TestSetup:
     async def test_needed_until_someone_exists(self, client: httpx.AsyncClient) -> None:
-        assert (await ok(client.get("/api/setup"))) == {"required": True}
+        assert (await ok(client.get("/api/setup"))) == {"required": True, "title": None}
 
     async def test_creates_the_admin_and_their_household_and_logs_them_in(
         self, client: httpx.AsyncClient, admin: dict
@@ -34,7 +34,7 @@ class TestSetup:
         assert admin["household_name"] == "Lúcia"
         assert admin["reconciliation_enabled"] is False
         assert (await ok(client.get("/api/auth/me")))["login"] == "lucia"
-        assert (await ok(client.get("/api/setup"))) == {"required": False}
+        assert (await ok(client.get("/api/setup"))) == {"required": False, "title": None}
 
     async def test_is_closed_for_good_once_done(
         self, client: httpx.AsyncClient, admin: dict, new_client

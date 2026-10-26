@@ -174,11 +174,31 @@ class TestSettings:
     async def test_reconciliation_is_off_until_an_admin_turns_it_on(
         self, client, member, admin
     ) -> None:
-        assert await ok(member.get("/api/settings")) == {"reconciliation_enabled": False}
+        assert await ok(member.get("/api/settings")) == {
+            "reconciliation_enabled": False,
+            "site_title": "",
+        }
         await ok(client.put("/api/settings", json={"reconciliation_enabled": True}))
 
-        assert await ok(member.get("/api/settings")) == {"reconciliation_enabled": True}
+        assert (await ok(member.get("/api/settings")))["reconciliation_enabled"] is True
         assert (await ok(member.get("/api/auth/me")))["reconciliation_enabled"] is True
+
+    async def test_the_apps_name_is_set_by_an_admin_and_shown_before_login(
+        self, client, admin, new_client
+    ) -> None:
+        saved = await ok(client.put("/api/settings", json={"site_title": "  Oliveiras  "}))
+        stranger = new_client()
+
+        assert saved == {"reconciliation_enabled": False, "site_title": "Oliveiras"}
+        assert (await ok(stranger.get("/api/setup")))["title"] == "Oliveiras"
+        manifest = (await stranger.get("/manifest.webmanifest")).json()
+        assert (manifest["name"], manifest["short_name"]) == ("Oliveiras", "Oliveiras")
+
+        await ok(client.put("/api/settings", json={"site_title": ""}))
+        assert (await ok(stranger.get("/api/setup")))["title"] is None
+        assert (await stranger.get("/manifest.webmanifest")).json()["name"] == "House costs"
+        too_long = await client.put("/api/settings", json={"site_title": "x" * 61})
+        assert too_long.status_code == 422
 
 
 async def test_only_known_settings_can_be_stored(app) -> None:

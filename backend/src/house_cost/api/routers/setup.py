@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException, Request, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...audit import record
+from ...audit import get_setting, record
 from ...auth import hash_password, open_session
 from ...models import Household, Person, Role
 from .. import session_cookie
@@ -28,8 +28,10 @@ async def setup_required(db: AsyncSession) -> bool:
 
 @router.get("/setup")
 async def setup_state(db: DbDep) -> SetupState:
-    """Whether the app still needs setting up."""
-    return SetupState(required=await setup_required(db))
+    """Whether the app still needs setting up, and the name it goes by."""
+    return SetupState(
+        required=await setup_required(db), title=await get_setting(db, "site_title") or None
+    )
 
 
 @router.post("/setup", status_code=status.HTTP_201_CREATED)

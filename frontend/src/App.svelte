@@ -1,17 +1,8 @@
 <script lang="ts">
-  import ArrowLeftRight from "@lucide/svelte/icons/arrow-left-right";
-  import CalendarCheck from "@lucide/svelte/icons/calendar-check";
-  import ChartColumn from "@lucide/svelte/icons/chart-column";
-  import FileText from "@lucide/svelte/icons/file-text";
-  import History from "@lucide/svelte/icons/history";
-  import Plug from "@lucide/svelte/icons/plug";
-  import Receipt from "@lucide/svelte/icons/receipt";
-  import Scale from "@lucide/svelte/icons/scale";
-  import Settings from "@lucide/svelte/icons/settings";
-  import User from "@lucide/svelte/icons/user";
-  import LogOut from "@lucide/svelte/icons/log-out";
   import Flash from "./lib/Flash.svelte";
   import Footer from "./lib/Footer.svelte";
+  import Navigation from "./lib/Navigation.svelte";
+  import { namePage } from "./lib/page";
   import PasskeyOffer from "./lib/PasskeyOffer.svelte";
   import { onMount } from "svelte";
   import { Api, ApiError } from "./lib/api";
@@ -50,7 +41,10 @@
 
   async function start(): Promise<void> {
     try {
-      if ((await api.setupState()).required) {
+      const site = await api.setupState();
+      app.title = site.title;
+      namePage(app.appName);
+      if (site.required) {
         stage = "setup";
         return;
       }
@@ -105,23 +99,6 @@
     };
   });
 
-  const NAV = $derived([
-    { href: "/", label: m.nav_balances(), icon: Scale },
-    { href: "/bills", label: m.nav_bills(), icon: Receipt },
-    { href: "/settlements", label: m.nav_settlements(), icon: ArrowLeftRight },
-    { href: "/reports", label: m.nav_reports(), icon: ChartColumn },
-    { href: "/services", label: m.nav_services(), icon: Plug },
-    { href: "/documents", label: m.nav_documents(), icon: FileText },
-    { href: "/activity", label: m.nav_activity(), icon: History },
-    ...(app.isAdmin ? [{ href: "/admin", label: m.nav_admin(), icon: Settings }] : []),
-    ...(app.me?.reconciliation_enabled ? [{ href: "/reconciliation", label: m.reconciliations_title(), icon: CalendarCheck }] : []),
-    { href: "/account", label: m.nav_account(), icon: User },
-  ]);
-
-  function current(href: string, path: string): boolean {
-    return href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`);
-  }
-
   const billId = $derived(match("/bills/:id", route.path)?.id);
 </script>
 
@@ -135,15 +112,7 @@
   {:else if stage === "login"}
     <Login onDone={loggedIn} />
   {:else}
-    <header class="bar">
-      <a class="brand" href="/">{m.app_name()}</a>
-      <nav aria-label={m.app_name()}>
-        {#each NAV as item (item.href)}
-          <a href={item.href} aria-current={current(item.href, route.path) ? "page" : undefined}><item.icon />{item.label}</a>
-        {/each}
-        <button type="button" class="nav-action" onclick={logOut}><LogOut />{m.nav_log_out()}</button>
-      </nav>
-    </header>
+    <Navigation onLogOut={logOut} />
     <main>
       <PasskeyOffer />
       <Flash />

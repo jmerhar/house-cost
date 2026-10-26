@@ -561,6 +561,27 @@ describe("Admin", () => {
     });
   }
 
+  it("names the app, and clears the name back to the default", async () => {
+    let saved = "Oliveiras";
+    const { api, calls } = adminApi({ "PUT /settings": () => ({ reconciliation_enabled: false, site_title: saved }) });
+    const app = appFor(api);
+    renderPage(Admin, app);
+    const field = await screen.findByLabelText(/^App name/);
+    expect(field).toHaveAttribute("placeholder", "House costs");
+
+    await fireEvent.input(field, { target: { value: "Oliveiras" } });
+    await fireEvent.click(screen.getByRole("button", { name: "Save name" }));
+    expect(await screen.findByText("Saved.")).toBeInTheDocument();
+    expect(calls.find((c) => c.method === "PUT")!.body).toEqual({ site_title: "Oliveiras" });
+    expect([app.title, app.appName, document.title]).toEqual(["Oliveiras", "Oliveiras", "Oliveiras"]);
+
+    saved = "";
+    await fireEvent.input(field, { target: { value: "" } });
+    await fireEvent.click(screen.getByRole("button", { name: "Save name" }));
+    await waitFor(() => expect(app.title).toBeNull());
+    expect(app.appName).toBe("House costs");
+  });
+
   it("lists households, people and each category's rules", async () => {
     const { api } = adminApi();
     renderPage(Admin, appFor(api));

@@ -5,6 +5,9 @@ from typing import Annotated
 from fastapi import APIRouter, Header, Response
 from fastapi.responses import JSONResponse
 
+from ..audit import get_setting
+from .deps import DbDep
+
 router = APIRouter()
 
 #: The app's name and description in each language the interface has.
@@ -29,9 +32,10 @@ def language(accept_language: str | None) -> str:
     return "en"
 
 
-def manifest(lang: str) -> dict[str, object]:
-    """The manifest, its words in ``lang``."""
+def manifest(lang: str, title: str = "") -> dict[str, object]:
+    """The manifest, its words in ``lang``, and named ``title`` when the app has one set."""
     name, description = WORDS[lang]
+    name = title or name
     icon = "/icons/icon-{size}.png"
     return {
         "name": name,
@@ -68,12 +72,14 @@ def manifest(lang: str) -> dict[str, object]:
 
 
 @router.get("/manifest.webmanifest", include_in_schema=False)
-async def get_manifest(accept_language: Annotated[str | None, Header()] = None) -> Response:
+async def get_manifest(
+    db: DbDep, accept_language: Annotated[str | None, Header()] = None
+) -> Response:
     """The manifest, in the browser's language, since the browser fetches it itself and sends no
     session or account language with it."""
     lang = language(accept_language)
     return JSONResponse(
-        manifest(lang),
+        manifest(lang, await get_setting(db, "site_title")),
         media_type="application/manifest+json",
         headers={
             "Cache-Control": "public, max-age=3600",

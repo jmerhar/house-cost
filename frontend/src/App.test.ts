@@ -37,15 +37,20 @@ describe("App", () => {
     await fireEvent.click(screen.getByRole("button", { name: "Log in" }));
 
     expect(await screen.findByRole("heading", { name: "Balances" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Admin" })).not.toBeInTheDocument();
+    await fireEvent.click(screen.getByRole("button", { name: "Tiago" }));
+    expect(screen.getByRole("link", { name: "Account" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Settings" })).not.toBeInTheDocument();
   });
 
   it("shows an admin the admin pages, and the reconciliation page when it is on", async () => {
     const { api } = fakeApi({ ...LOGGED_IN, "GET /auth/me": { ...ADMIN, reconciliation_enabled: true } });
     render(App, { api });
 
-    expect(await screen.findByRole("link", { name: "Admin" })).toBeInTheDocument();
+    await fireEvent.click(await screen.findByRole("button", { name: "Lúcia" }));
+    expect(screen.getByRole("link", { name: "Settings" })).toBeInTheDocument();
+    await fireEvent.click(screen.getByRole("button", { name: "More" }));
     expect(screen.getByRole("link", { name: "Reconciliation" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Settings" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Balances" })).toHaveAttribute("aria-current", "page");
   });
 
@@ -64,7 +69,7 @@ describe("App", () => {
     ["/reports", "Reports"],
     ["/activity", "Activity"],
     ["/account", "Your account"],
-    ["/admin", "Admin"],
+    ["/admin", "Settings"],
   ])("routes %s", async (path, heading) => {
     const { api } = fakeApi({
       ...LOGGED_IN,
@@ -96,10 +101,19 @@ describe("App", () => {
     expect(await screen.findByText("This page does not exist.")).toBeInTheDocument();
   });
 
+  it("goes by the name it was given, from the login page on", async () => {
+    const { api } = fakeApi({ ...LOGGED_IN, "GET /setup": { required: false, title: "Oliveiras" }, "GET /auth/me": refuse(401, "not_authenticated") });
+    render(App, { api });
+
+    expect(await screen.findByRole("heading", { name: "Oliveiras" })).toBeInTheDocument();
+    expect(document.title).toBe("Oliveiras");
+  });
+
   it("logs out", async () => {
     const { api, calls } = fakeApi({ ...LOGGED_IN, "GET /auth/me": ADMIN, "POST /auth/logout": () => undefined });
     render(App, { api });
-    await fireEvent.click(await screen.findByRole("button", { name: "Log out" }));
+    await fireEvent.click(await screen.findByRole("button", { name: "Lúcia" }));
+    await fireEvent.click(screen.getByRole("button", { name: "Log out" }));
 
     expect(await screen.findByRole("heading", { name: "Log in" })).toBeInTheDocument();
     expect(calls.some((c) => c.method === "POST" && c.path === "/auth/logout")).toBe(true);

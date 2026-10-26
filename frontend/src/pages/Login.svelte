@@ -103,7 +103,7 @@
 </script>
 
 <form class="card narrow" onsubmit={submit}>
-  <h1>{m.app_name()}</h1>
+  <h1>{app.appName}</h1>
   <h2>{m.login_title()}</h2>
   {#if passkeyFirst}
     <button type="button" class="wide-button" disabled={busy} onclick={withPasskey}>

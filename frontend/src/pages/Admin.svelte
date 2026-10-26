@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { namePage } from "../lib/page";
   import ArrowUp from "@lucide/svelte/icons/arrow-up";
   import CircleOff from "@lucide/svelte/icons/circle-off";
   import Pencil from "@lucide/svelte/icons/pencil";
@@ -191,6 +192,19 @@
   }
 
   // --- Settings ---
+  let siteTitle = $state(app.title ?? "");
+  let titleSaved = $state(false);
+  async function saveTitle(event: SubmitEvent): Promise<void> {
+    event.preventDefault();
+    titleSaved = false;
+    let saved: { site_title: string } | undefined;
+    if (await attempt(async () => (saved = await app.api.updateSettings({ site_title: siteTitle })))) {
+      app.title = saved?.site_title || null;
+      siteTitle = app.title ?? "";
+      namePage(app.appName);
+      titleSaved = true;
+    }
+  }
   async function toggleReconciliation(): Promise<void> {
     const wanted = !reconciliation;
     if (await attempt(() => app.api.updateSettings({ reconciliation_enabled: wanted }))) {
@@ -361,6 +375,15 @@
 
 <section>
   <h2>{m.settings_title()}</h2>
+  <form class="inline title-form" onsubmit={saveTitle}>
+    <label class="grow">
+      {m.setting_site_title()}
+      <input bind:value={siteTitle} maxlength="60" placeholder={m.app_name()} />
+      <small>{m.setting_site_title_hint({ name: m.app_name() })}</small>
+    </label>
+    <button type="submit">{m.setting_site_title_save()}</button>
+  </form>
+  {#if titleSaved}<p class="note">{m.saved()}</p>{/if}
   <label class="check">
     <input type="checkbox" checked={reconciliation} onchange={toggleReconciliation} />
     {m.setting_reconciliation()}

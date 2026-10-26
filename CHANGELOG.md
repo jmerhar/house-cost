@@ -14,6 +14,11 @@ what under **Upgrading**. Before 1.0, a minor release may.
   offers it among the saved logins; on a device that has used it, a "Log in with fingerprint or
   face" button with a fingerprint comes first, and elsewhere it is a quiet link under the password;
   and after a password login on a device that can, the app offers to set it up in one tap.
+- A new menu: the everyday pages (Balances, Bills, Settlements, Reports) and "More" for the rest,
+  with an account menu for Account, Settings and Log out. On a computer it is one bar, lined up
+  with the page; on a phone the pages are a tab bar along the bottom.
+- The app's name can be set under Settings; it is shown in the menu, on the login page, in the
+  browser tab and on a phone's home screen. Left empty, it is "House costs" in each language.
 - Icons throughout, from Lucide: in the menu, and on the actions on every page (add, upload,
   attach, edit, delete, download and the like), so each kind of action looks the same everywhere.
 - The footer shows the version installed and, for an image built by CI, the commit it was built
@@ -22,6 +27,7 @@ what under **Upgrading**. Before 1.0, a minor release may.
 ### Changed
 
 - The icon shows a euro sign.
+- The administration page is called Settings, and its own settings section General.
 
 ### Fixed
 

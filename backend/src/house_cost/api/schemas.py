@@ -152,7 +152,11 @@ class SessionOut(Out):
 
 
 class SetupState(BaseModel):
+    """What the page needs before anyone logs in: whether setup is due, and the app's name, or
+    None for the interface's own."""
+
     required: bool
+    title: str | None
 
 
 class SetupIn(BaseModel):
@@ -621,10 +625,17 @@ class AuditPage(BaseModel):
 
 class SettingsOut(BaseModel):
     reconciliation_enabled: bool
+    site_title: str
+
+
+SiteTitle = Annotated[str, StringConstraints(strip_whitespace=True, max_length=60)]
 
 
 class SettingsIn(BaseModel):
-    reconciliation_enabled: bool
+    """A change to the app's settings; a setting left out stays as it is."""
+
+    reconciliation_enabled: bool | None = None
+    site_title: SiteTitle | None = None
 
 
 class ReconciliationShareIn(BaseModel):

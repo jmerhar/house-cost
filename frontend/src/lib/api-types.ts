@@ -915,7 +915,7 @@ export interface paths {
         get: operations["get_settings_api_settings_get"];
         /**
          * Put Settings
-         * @description Change the app's settings.
+         * @description Change the app's settings; those left out keep their value.
          */
         put: operations["put_settings_api_settings_put"];
         post?: never;
@@ -982,7 +982,7 @@ export interface paths {
         };
         /**
          * Setup State
-         * @description Whether the app still needs setting up.
+         * @description Whether the app still needs setting up, and the name it goes by.
          */
         get: operations["setup_state_api_setup_get"];
         put?: never;
@@ -2055,15 +2055,22 @@ export interface components {
             /** User Agent */
             user_agent: string;
         };
-        /** SettingsIn */
+        /**
+         * SettingsIn
+         * @description A change to the app's settings; a setting left out stays as it is.
+         */
         SettingsIn: {
             /** Reconciliation Enabled */
-            reconciliation_enabled: boolean;
+            reconciliation_enabled?: boolean | null;
+            /** Site Title */
+            site_title?: string | null;
         };
         /** SettingsOut */
         SettingsOut: {
             /** Reconciliation Enabled */
             reconciliation_enabled: boolean;
+            /** Site Title */
+            site_title: string;
         };
         /** SettlementIn */
         SettlementIn: {
@@ -2125,10 +2132,16 @@ export interface components {
             /** Password */
             password: string;
         };
-        /** SetupState */
+        /**
+         * SetupState
+         * @description What the page needs before anyone logs in: whether setup is due, and the app's name, or
+         *     None for the interface's own.
+         */
         SetupState: {
             /** Required */
             required: boolean;
+            /** Title */
+            title: string | null;
         };
         /**
          * SplitPreview

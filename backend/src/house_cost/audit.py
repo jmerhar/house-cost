@@ -8,7 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .models import AppSetting, AuditEvent, Person
 
 #: The settings the app keeps, and their values until someone changes them.
-DEFAULTS: dict[str, Any] = {"reconciliation_enabled": False}
+DEFAULTS: dict[str, Any] = {
+    "reconciliation_enabled": False,
+    # The app's name in the menu, the browser tab and on a home screen; "" means the interface's
+    # own, in each person's language.
+    "site_title": "",
+}
 
 
 def snapshot(model: BaseModel | None) -> dict | None:
@@ -54,3 +59,5 @@ async def set_setting(db: AsyncSession, key: str, value: Any) -> None:
         db.add(AppSetting(key=key, value=value))
     else:
         row.value = value
+    # Flushed so the request reads back what it stored: sessions here do not autoflush.
+    await db.flush()

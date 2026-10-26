@@ -18,7 +18,7 @@
   "nav_settlements": "Acertos",
   "nav_reports": "Relatórios",
   "nav_activity": "Atividade",
-  "nav_admin": "Administração",
+  "nav_admin": "Definições",
   "nav_account": "Conta",
   "nav_log_out": "Terminar sessão",
   "not_found": "Esta página não existe.",
@@ -137,7 +137,7 @@
   "entity_category": "uma categoria",
   "entity_settings": "as definições",
   "entity_reconciliation": "um acerto anual",
-  "admin_title": "Administração",
+  "admin_title": "Definições",
   "households_title": "Famílias",
   "household_add": "Adicionar família",
   "people_title": "Pessoas",
@@ -160,7 +160,7 @@
   "rule_delete": "Eliminar regra",
   "confirm_delete_rule": "Eliminar esta regra?",
   "rule_hint": "As faturas já divididas mantêm a sua divisão. Uma regra nunca é editada: acrescente uma nova a partir de uma data posterior.",
-  "settings_title": "Definições",
+  "settings_title": "Geral",
   "setting_reconciliation": "Acerto anual",
   "setting_reconciliation_hint": "No fim de um período, voltar a dividir as faturas pelas percentagens então acordadas e acertar a diferença.",
   "reconciliations_title": "Acerto anual",
@@ -323,5 +323,10 @@
   "passkey_offer": "Quer entrar mais depressa da próxima vez com a impressão digital ou o rosto?",
   "passkey_offer_accept": "Configurar",
   "passkey_offer_later": "Agora não",
-  "passkey_offer_done": "Pronto. Da próxima vez, pode entrar com a impressão digital ou o rosto."
+  "passkey_offer_done": "Pronto. Da próxima vez, pode entrar com a impressão digital ou o rosto.",
+  "nav_more": "Mais",
+  "nav_main": "Menu principal",
+  "setting_site_title": "Nome da aplicação",
+  "setting_site_title_hint": "Aparece no menu, no separador do navegador e no ecrã principal do telemóvel. Deixe em branco para usar «{name}».",
+  "setting_site_title_save": "Guardar nome"
 }

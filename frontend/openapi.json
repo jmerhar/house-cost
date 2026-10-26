@@ -2799,15 +2799,32 @@
         "type": "object"
       },
       "SettingsIn": {
+        "description": "A change to the app's settings; a setting left out stays as it is.",
         "properties": {
           "reconciliation_enabled": {
-            "title": "Reconciliation Enabled",
-            "type": "boolean"
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reconciliation Enabled"
+          },
+          "site_title": {
+            "anyOf": [
+              {
+                "maxLength": 60,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Site Title"
           }
         },
-        "required": [
-          "reconciliation_enabled"
-        ],
         "title": "SettingsIn",
         "type": "object"
       },
@@ -2816,10 +2833,15 @@
           "reconciliation_enabled": {
             "title": "Reconciliation Enabled",
             "type": "boolean"
+          },
+          "site_title": {
+            "title": "Site Title",
+            "type": "string"
           }
         },
         "required": [
-          "reconciliation_enabled"
+          "reconciliation_enabled",
+          "site_title"
         ],
         "title": "SettingsOut",
         "type": "object"
@@ -2967,14 +2989,27 @@
         "type": "object"
       },
       "SetupState": {
+        "description": "What the page needs before anyone logs in: whether setup is due, and the app's name, or\nNone for the interface's own.",
         "properties": {
           "required": {
             "title": "Required",
             "type": "boolean"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
           }
         },
         "required": [
-          "required"
+          "required",
+          "title"
         ],
         "title": "SetupState",
         "type": "object"
@@ -5746,7 +5781,7 @@
         ]
       },
       "put": {
-        "description": "Change the app's settings.",
+        "description": "Change the app's settings; those left out keep their value.",
         "operationId": "put_settings_api_settings_put",
         "requestBody": {
           "content": {
@@ -5981,7 +6016,7 @@
     },
     "/api/setup": {
       "get": {
-        "description": "Whether the app still needs setting up.",
+        "description": "Whether the app still needs setting up, and the name it goes by.",
         "operationId": "setup_state_api_setup_get",
         "responses": {
           "200": {

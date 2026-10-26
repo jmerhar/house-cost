@@ -5,6 +5,7 @@
 
 import type { Api, Category, Household, Me } from "./api";
 import { browserAuthenticator, type Authenticator } from "./passkeys";
+import { m } from "../paraglide/messages.js";
 
 export class AppState {
   me = $state<Me | null>(null);
@@ -13,6 +14,8 @@ export class AppState {
   /** A message for the page an action leads to, such as "Bill saved." after saving; it is shown
    *  on that page only, and cleared when the person moves on. */
   flash = $state<{ text: string; problem: boolean; path: string } | null>(null);
+  /** The name an administrator gave the app, or null for the interface's own. */
+  title = $state<string | null>(null);
   /** Whether to offer setting up a passkey, after a password login on a device that can. */
   offerPasskey = $state(false);
 
@@ -41,6 +44,11 @@ export class AppState {
   /** Show ``text`` on the page at ``path``, the one about to be opened. */
   say(text: string, path: string, problem = false): void {
     this.flash = { text, problem, path };
+  }
+
+  /** The app's name as people see it: the one it was given, else "House costs" in their language. */
+  get appName(): string {
+    return this.title || m.app_name();
   }
 
   get isAdmin(): boolean {

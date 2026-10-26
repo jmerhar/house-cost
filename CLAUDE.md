@@ -61,7 +61,10 @@ frontend/          Svelte 5, Vite, TypeScript, Paraglide
   src/lib/api.ts   the API client; api-types.ts is generated from the API's schema (make openapi)
   src/lib/format.ts  cents and basis points to and from text, dates, in the person's language
   src/lib/router.svelte.ts  path routes over the history API, and in-app link handling
-  src/lib/state.svelte.ts   the person logged in, households and categories, shared by views
+  src/lib/state.svelte.ts   the person logged in, households and categories, shared by views,
+                   and the app's name (an admin setting, else "House costs" in each language)
+  src/lib/Navigation.svelte  the menu: the everyday pages, More and the account menu; a centred
+                   top bar on a computer, a bottom tab bar on a phone, from one markup by CSS
   src/lib/language.ts  which language: the person's choice, else the browser's, else English
   src/lib/passkeys.ts  the browser's half of the passkey ceremonies, replaceable in tests
   src/testing.ts   a stand-in API answering by method and path, and the agreement's examples

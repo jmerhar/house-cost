@@ -18,7 +18,7 @@
   "nav_settlements": "Settlements",
   "nav_reports": "Reports",
   "nav_activity": "Activity",
-  "nav_admin": "Admin",
+  "nav_admin": "Settings",
   "nav_account": "Account",
   "nav_log_out": "Log out",
   "not_found": "This page does not exist.",
@@ -137,7 +137,7 @@
   "entity_category": "a category",
   "entity_settings": "the settings",
   "entity_reconciliation": "a reconciliation",
-  "admin_title": "Admin",
+  "admin_title": "Settings",
   "households_title": "Households",
   "household_add": "Add a household",
   "people_title": "People",
@@ -160,7 +160,7 @@
   "rule_delete": "Delete rule",
   "confirm_delete_rule": "Delete this rule?",
   "rule_hint": "Bills already split keep their split. A rule is never edited: add a new one from a later date.",
-  "settings_title": "Settings",
+  "settings_title": "General",
   "setting_reconciliation": "Annual reconciliation",
   "setting_reconciliation_hint": "At the end of a period, split its bills again by the shares agreed then, and settle the difference.",
   "reconciliations_title": "Reconciliation",
@@ -323,5 +323,10 @@
   "passkey_offer": "Log in faster next time with your fingerprint or face?",
   "passkey_offer_accept": "Set it up",
   "passkey_offer_later": "Not now",
-  "passkey_offer_done": "All set. Next time you can log in with your fingerprint or face."
+  "passkey_offer_done": "All set. Next time you can log in with your fingerprint or face.",
+  "nav_more": "More",
+  "nav_main": "Main menu",
+  "setting_site_title": "App name",
+  "setting_site_title_hint": "Shown in the menu, in the browser tab and on a phone's home screen. Leave blank to use ‘{name}’.",
+  "setting_site_title_save": "Save name"
 }
