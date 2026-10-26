@@ -8,10 +8,10 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import Connection
+from sqlalchemy import Connection, event
 
 from house_cost.config import get_settings
-from house_cost.db import create_engine
+from house_cost.db import create_engine, wants_sqlite_pragmas
 from house_cost.models import Base, UtcDateTime
 
 config = context.config
@@ -50,6 +50,25 @@ def _run(connection: Connection) -> None:
     )
     with context.begin_transaction():
         context.run_migrations()
+    if connection.dialect.name == "sqlite":
+        dangling = connection.exec_driver_sql("PRAGMA foreign_key_check").fetchall()
+        if dangling:
+            raise RuntimeError(f"the migrations left rows pointing at nothing: {dangling}")
+
+
+def _without_foreign_keys(dbapi_connection: object, _record: object) -> None:
+    """Turn SQLite's foreign keys off for the migrations.
+
+    Batch mode rebuilds a table by copying it, dropping the original and renaming the copy. With
+    foreign keys on, dropping the original runs every ON DELETE rule that points at it: rebuilding
+    ``person`` would delete everyone's passkeys and sessions and empty the audit log's actors.
+    The check after the migrations stands in for the enforcement left off during them.
+    """
+    cursor = dbapi_connection.cursor()  # type: ignore[attr-defined]
+    try:
+        cursor.execute("PRAGMA foreign_keys=OFF")
+    finally:
+        cursor.close()
 
 
 async def run_migrations_online() -> None:
@@ -57,6 +76,9 @@ async def run_migrations_online() -> None:
     settings = get_settings()
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     engine = create_engine(settings)
+    if wants_sqlite_pragmas(settings.resolved_database_url):
+        # After the application's own pragmas, which turn foreign keys on for every connection.
+        event.listen(engine.sync_engine, "connect", _without_foreign_keys)
     try:
         async with engine.connect() as connection:
             await connection.run_sync(_run)
