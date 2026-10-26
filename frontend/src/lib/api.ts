@@ -36,6 +36,13 @@ export type AppSettings = Schemas["SettingsOut"];
 export type Reconciliation = Schemas["ReconciliationOut"];
 export type ReconciliationIn = Schemas["ReconciliationIn"];
 export type Passkey = Schemas["PasskeyOut"];
+export type Supplier = Schemas["SupplierOut"];
+export type SupplierIn = Schemas["SupplierIn"];
+export type Service = Schemas["ServiceOut"];
+export type ServiceIn = Schemas["ServiceIn"];
+export type DocumentInfo = Schemas["DocumentOut"];
+export type DocumentMatch = Schemas["DocumentMatch"];
+export type DocumentUpdate = Schemas["DocumentUpdate"];
 
 /** The header every write carries; the API refuses a write without it. */
 export const WRITE_HEADER = { "X-Requested-With": "house-cost" };
@@ -123,6 +130,28 @@ export class Api {
     return this.request<Attachment>("POST", "/attachments", form);
   }
 
+  suppliers = () => this.request<Supplier[]>("GET", "/suppliers");
+  createSupplier = (body: SupplierIn) => this.request<Supplier>("POST", "/suppliers", body);
+  updateSupplier = (id: number, body: SupplierIn) => this.request<Supplier>("PUT", `/suppliers/${id}`, body);
+  services = () => this.request<Service[]>("GET", "/services");
+  createService = (body: ServiceIn) => this.request<Service>("POST", "/services", body);
+  updateService = (id: number, body: ServiceIn) => this.request<Service>("PUT", `/services/${id}`, body);
+  documents = (query: Query = {}) => this.request<DocumentMatch[]>("GET", "/documents", undefined, query);
+  updateDocument = (id: number, body: DocumentUpdate) => this.request<DocumentInfo>("PUT", `/documents/${id}`, body);
+  deleteDocument = (id: number) => this.request<void>("DELETE", `/documents/${id}`);
+
+  /** Keep a file in the document library, with its details. */
+  addDocument(file: File, details: DocumentUpdate): Promise<DocumentInfo> {
+    const form = new FormData();
+    form.append("file", file);
+    for (const [key, value] of Object.entries(details)) {
+      if (value !== null && value !== undefined && value !== "") form.append(key, String(value));
+    }
+    return this.request<DocumentInfo>("POST", "/documents", form);
+  }
+
+  /** Where a library document's file can be opened. */
+  documentUrl = (id: number) => `${this.base}/documents/${id}/file`;
   /** Where an attachment can be opened. */
   attachmentUrl = (id: number) => `${this.base}/attachments/${id}`;
   /** Where a year's bills can be downloaded as CSV. */

@@ -25,6 +25,7 @@ const BY_CODE: Record<string, () => string> = {
   passkey_unknown: m.error_passkey_unknown,
   passkey_expired: m.error_passkey_expired,
   passkey_exists: m.error_passkey_exists,
+  supplier_exists: m.error_supplier_exists,
 };
 
 /** A failure as a sentence: the API's own reason where it has one this interface knows. */

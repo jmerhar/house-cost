@@ -225,6 +225,7 @@ class BillOut(Out):
     due_date: date | None
     total_cents: int
     paid_by_id: int
+    service_id: int | None
     notes: str
     lines: list[LineOut]
     attachments: list[AttachmentOut]
@@ -256,6 +257,7 @@ class BillIn(BaseModel):
     period_end: date | None = None
     due_date: date | None = None
     paid_by_id: int
+    service_id: int | None = None
     notes: Text = ""
     lines: list[LineIn] = Field(min_length=1, max_length=50)
 
@@ -297,6 +299,106 @@ class SettlementIn(BaseModel):
         if self.from_id == self.to_id:
             raise ValueError("a settlement is between two different households")
         return self
+
+
+# --- Suppliers, services and documents ----------------------------------------------------------
+
+#: A Portuguese tax number, as invoices print it; spaces are dropped.
+Nif = Annotated[str, StringConstraints(strip_whitespace=True, pattern=r"^\d{9}$")]
+
+
+class SupplierOut(Out):
+    id: int
+    name: str
+    nif: str | None
+    default_category_id: int | None
+    notes: str
+    active: bool
+
+
+class SupplierIn(BaseModel):
+    name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
+    nif: Nif | None = None
+    default_category_id: int | None = None
+    notes: Text = ""
+    active: bool = True
+
+    @field_validator("nif", mode="before")
+    @classmethod
+    def _digits(cls, value: object) -> object:
+        """A NIF typed with spaces, as invoices print it ("506 743 357"), or left empty."""
+        if isinstance(value, str):
+            value = value.replace(" ", "")
+            return value or None
+        return value
+
+
+class ServiceOut(Out):
+    id: int
+    supplier_id: int
+    name: str
+    identifiers: dict[str, str]
+    default_category_id: int | None
+    starts_on: date | None
+    ends_on: date | None
+    renews_automatically: bool
+    lock_in_until: date | None
+    notice_days: int | None
+    billed_every_days: int | None
+    notes: str
+    active: bool
+
+
+class ServiceIn(BaseModel):
+    supplier_id: int
+    name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
+    identifiers: dict[
+        Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50)],
+        Annotated[str, StringConstraints(strip_whitespace=True, max_length=100)],
+    ] = Field(default_factory=dict, max_length=20)
+    default_category_id: int | None = None
+    starts_on: date | None = None
+    ends_on: date | None = None
+    renews_automatically: bool = True
+    lock_in_until: date | None = None
+    notice_days: Annotated[int, Field(ge=0, le=3650)] | None = None
+    billed_every_days: Annotated[int, Field(ge=1, le=3650)] | None = None
+    notes: Text = ""
+    active: bool = True
+
+
+DocumentKind = Literal["contract", "terms", "agreement", "bill", "info", "other"]
+
+
+class DocumentOut(Out):
+    id: int
+    title: str
+    kind: DocumentKind
+    dated: date | None
+    supplier_id: int | None
+    service_id: int | None
+    notes: str
+    filename: str
+    content_type: str
+    size: int
+    pages: int | None
+    has_text: bool
+    created_at: datetime
+
+
+class DocumentUpdate(BaseModel):
+    title: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=300)]
+    kind: DocumentKind = "other"
+    dated: date | None = None
+    supplier_id: int | None = None
+    service_id: int | None = None
+    notes: Text = ""
+
+
+class DocumentMatch(DocumentOut):
+    """A document found by a search, with the text around the first match."""
+
+    excerpt: str
 
 
 # --- Balances and reports -----------------------------------------------------------------------
