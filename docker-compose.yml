@@ -9,7 +9,7 @@
 services:
   house-cost:
     # The release line: every release that keeps these settings and the stored data working.
-    image: ghcr.io/jmerhar/house-cost:0.6
+    image: ghcr.io/jmerhar/house-cost:0.7
     container_name: house-cost
     restart: unless-stopped
     # Runs as an ordinary user so the files under ./data belong to a real account on the host.
