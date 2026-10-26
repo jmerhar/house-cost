@@ -1,6 +1,7 @@
 <script lang="ts">
   import { useApp } from "../lib/context";
   import { errorMessage } from "../lib/errors";
+  import { dismissed } from "../lib/passkeys";
   import { m } from "../paraglide/messages.js";
 
   let { onDone }: { onDone: () => void } = $props();
@@ -24,6 +25,20 @@
       busy = false;
     }
   }
+
+  async function withPasskey(): Promise<void> {
+    busy = true;
+    error = "";
+    try {
+      const options = await app.api.passkeyLoginOptions();
+      app.me = await app.api.passkeyLogIn(await app.authenticator.authenticate(options));
+      onDone();
+    } catch (failure) {
+      if (!dismissed(failure)) error = errorMessage(failure);
+    } finally {
+      busy = false;
+    }
+  }
 </script>
 
 <form class="card narrow" onsubmit={submit}>
@@ -33,4 +48,7 @@
   <label>{m.field_password()}<input type="password" bind:value={password} required autocomplete="current-password" /></label>
   {#if error}<p role="alert">{error}</p>{/if}
   <button type="submit" disabled={busy}>{m.login_submit()}</button>
+  {#if app.authenticator.supported()}
+    <button type="button" class="secondary" disabled={busy} onclick={withPasskey}>{m.login_passkey()}</button>
+  {/if}
 </form>

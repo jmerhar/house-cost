@@ -12,6 +12,7 @@ from ..auth import LoginThrottle, find_session
 from ..config import Settings
 from ..db import create_engine, create_sessionmaker, session_scope
 from ..models import Person, Session
+from ..passkeys import Ceremonies
 
 #: The cookie a browser's session token travels in.
 SESSION_COOKIE = "hc_session"
@@ -25,6 +26,8 @@ class Services:
     engine: AsyncEngine
     sessionmaker: async_sessionmaker[AsyncSession]
     throttle: LoginThrottle
+    #: Passkey challenges waiting for the authenticator's answer.
+    ceremonies: Ceremonies = field(default_factory=Ceremonies)
     #: Held while the first administrator is created, so two browsers racing through setup
     #: cannot both become one.
     setup_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
