@@ -80,9 +80,9 @@ def test_upgrading_a_database_that_has_people_keeps_them(data_dir: Path) -> None
         alembic("upgrade", "head")
         with engine.connect() as connection:
             row = connection.exec_driver_sql(
-                "SELECT login, apprise_urls, notify_on FROM person"
+                "SELECT login, email, phone, notify_on FROM person"
             ).one()
     finally:
         engine.dispose()
 
-    assert tuple(row) == ("p", "", "{}")
+    assert tuple(row) == ("p", "", "", "{}")

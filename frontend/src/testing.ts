@@ -62,14 +62,17 @@ export const ADMIN: Me = {
   household_name: LUCIA.name,
   reconciliation_enabled: false,
   claude_enabled: false,
-  apprise_urls: "",
+  email: "",
+  phone: "",
+  notify_channels: ["email", "signal"],
+  phone_country_code: "351",
   notify_on: { new_bill: true, price_change: true, contract: true, missing_bill: true },
 };
 export const MEMBER: Me = { ...ADMIN, id: 2, name: "Tiago", login: "tiago", role: "member", household_id: OWNERS.id, household_name: OWNERS.name };
 
 export const PEOPLE: Person[] = [
-  { id: 1, name: "Lúcia", login: "lucia", role: "admin", language: null, household_id: LUCIA.id, active: true },
-  { id: 2, name: "Tiago", login: "tiago", role: "member", language: "en", household_id: OWNERS.id, active: true },
+  { id: 1, name: "Lúcia", login: "lucia", role: "admin", language: null, household_id: LUCIA.id, active: true, email: null, phone: null },
+  { id: 2, name: "Tiago", login: "tiago", role: "member", language: "en", household_id: OWNERS.id, active: true, email: null, phone: null },
 ];
 
 export const RULES: Rule[] = [

@@ -17,6 +17,7 @@ from ...notify.messages import language, render
 from .. import session_cookie
 from ..deps import SESSION_COOKIE, DbDep, PersonDep, ServicesDep, SessionDep
 from ..schemas import LoginIn, Me, MeUpdate, PersonOut, SessionOut, TestSent
+from .people import set_contacts
 
 router = APIRouter(prefix="/auth", tags=["account"])
 
@@ -51,7 +52,13 @@ async def log_in(
     services.throttle.succeeded(address)
     token = await open_session(db, person, request.headers.get("user-agent", ""))
     session_cookie.issue(response, request, services.settings, token)
-    return await session_cookie.describe(db, person, services.claude is not None)
+    return await session_cookie.describe(
+        db,
+        person,
+        services.claude is not None,
+        services.notifier.channels,
+        services.settings.phone_country_code,
+    )
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
@@ -69,7 +76,13 @@ async def log_out(request: Request, db: DbDep, services: ServicesDep) -> Respons
 @router.get("/me")
 async def me(person: PersonDep, db: DbDep, services: ServicesDep) -> Me:
     """The person logged in."""
-    return await session_cookie.describe(db, person, services.claude is not None)
+    return await session_cookie.describe(
+        db,
+        person,
+        services.claude is not None,
+        services.notifier.channels,
+        services.settings.phone_country_code,
+    )
 
 
 @router.patch("/me")
@@ -82,8 +95,7 @@ async def update_me(body: MeUpdate, session: SessionDep, db: DbDep, services: Se
     before = PersonOut.model_validate(person)
     person.name = body.name
     person.language = body.language
-    if body.apprise_urls is not None:
-        person.apprise_urls = body.apprise_urls.strip()
+    set_contacts(person, body.email, body.phone, services.settings.phone_country_code)
     if body.notify_on is not None:
         person.notify_on = dict(body.notify_on)
     if body.new_password is not None:
@@ -102,16 +114,23 @@ async def update_me(body: MeUpdate, session: SessionDep, db: DbDep, services: Se
         before=before,
         after=PersonOut.model_validate(person),
     )
-    return await session_cookie.describe(db, person, services.claude is not None)
+    return await session_cookie.describe(
+        db,
+        person,
+        services.claude is not None,
+        services.notifier.channels,
+        services.settings.phone_country_code,
+    )
 
 
 @router.post("/me/test-notification")
 async def test_notification(person: PersonDep, services: ServicesDep) -> TestSent:
-    """Send a test notification to this person's own URLs."""
-    if not person.urls:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "no_urls")
+    """Send a test notification to this person's own email address and phone."""
+    urls = services.notifier.destinations(person)
+    if not urls:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "no_contact")
     title, body = render("test", language(person.language))
-    return TestSent(sent=await services.sender.send(person.urls, title, body))
+    return TestSent(sent=await services.notifier.sender.send(urls, title, body))
 
 
 @router.get("/sessions")

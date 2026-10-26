@@ -24,9 +24,12 @@ backend/src/house_cost/
   auth.py          argon2 passwords, server-side sessions, the login throttle, the origin check
   passkeys.py      the relying party for a request, and WebAuthn challenges waiting for answers
   audit.py         record() for the audit log; the app's settings and their defaults
-  notify/          Apprise delivery (AppriseSender, behind the Sender protocol), send_to and
-                   once(); messages.py is the catalogue in each language; events.py decides who
-                   hears of a new bill, a price change, a contract ending or a missing bill
+  notify/          Notifier: the channels the deployment configures (NOTIFY_EMAIL_URL,
+                   NOTIFY_SIGNAL_URL) made into each person's Apprise URLs, and send_to;
+                   AppriseSender delivers, behind the Sender protocol; once(); messages.py is the
+                   catalogue in each language; events.py decides who hears of a new bill, a
+                   price change, a contract ending or a missing bill
+  contacts.py      checking an email address, and a phone number into international form
   scheduler.py     the in-process loop: the daily VACUUM INTO backup and the daily reminders,
                    each tick() testable with a given time
   claude.py        the optional Claude client: read_bill, read_terms, ask; the schemas its
@@ -114,11 +117,13 @@ CHANGELOG.md       every release's notes; new work goes under `## Unreleased`
 - **The lockfile records only the public npm registry.** Regenerate it with `make lockfile`, never
   a plain `npm install`; `bin/check-lockfile.sh` guards it.
 - **Notifications are sent after the request, never inside it.** A new bill is committed before
-  its notification is scheduled, and `notify.events` logs its own failures, so a broken Apprise URL
+  its notification is scheduled, and `notify.events` logs its own failures, so a failed delivery
   cannot fail a save. Scheduled ones are sent once each, keyed in `sent_notification` by what
   they are about (`notify.once`).
-- **Apprise URLs carry passwords and tokens.** They are returned only to their owner (`Me`),
-  never in `PersonOut` or the audit log, and never logged.
+- **A person's email address and phone number are seen only by admins and themselves.**
+  `PersonDetail` carries them (None for anyone else); `PersonOut`, which the audit log records,
+  never does. The channels' URLs can hold credentials and stay in the environment, never in the
+  database or the logs.
 - **Notification text lives in `notify/messages.py`, not Paraglide**, since the server sends it;
   every key needs both languages with the same placeholders, which a test checks.
 - **Claude only fills gaps and only proposes.** In bill reading it is asked when no parser knows

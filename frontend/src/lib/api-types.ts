@@ -152,7 +152,7 @@ export interface paths {
         put?: never;
         /**
          * Test Notification
-         * @description Send a test notification to this person's own URLs.
+         * @description Send a test notification to this person's own email address and phone.
          */
         post: operations["test_notification_api_auth_me_test_notification_post"];
         delete?: never;
@@ -1530,10 +1530,10 @@ export interface components {
         Me: {
             /** Active */
             active: boolean;
-            /** Apprise Urls */
-            apprise_urls: string;
             /** Claude Enabled */
             claude_enabled: boolean;
+            /** Email */
+            email: string;
             /** Household Id */
             household_id: number;
             /** Household Name */
@@ -1546,10 +1546,16 @@ export interface components {
             login: string;
             /** Name */
             name: string;
+            /** Notify Channels */
+            notify_channels: ("email" | "signal")[];
             /** Notify On */
             notify_on: {
                 [key: string]: boolean;
             };
+            /** Phone */
+            phone: string;
+            /** Phone Country Code */
+            phone_country_code: string;
             /** Reconciliation Enabled */
             reconciliation_enabled: boolean;
             /**
@@ -1564,10 +1570,10 @@ export interface components {
          *     settings left out stay as they are.
          */
         MeUpdate: {
-            /** Apprise Urls */
-            apprise_urls?: string | null;
             /** Current Password */
             current_password?: string | null;
+            /** Email */
+            email?: string | null;
             /** Language */
             language?: ("en" | "pt-PT") | null;
             /** Name */
@@ -1578,6 +1584,8 @@ export interface components {
             notify_on?: {
                 [key: string]: boolean;
             } | null;
+            /** Phone */
+            phone?: string | null;
         };
         /** MonthTotal */
         MonthTotal: {
@@ -1621,8 +1629,41 @@ export interface components {
             /** Last Used At */
             last_used_at: string | null;
         };
+        /**
+         * PersonDetail
+         * @description A person with their contacts, which only an admin and the person themselves see; None
+         *     for anyone else. The audit log records the plain ``PersonOut``, without them.
+         */
+        PersonDetail: {
+            /** Active */
+            active: boolean;
+            /** Email */
+            email: string | null;
+            /** Household Id */
+            household_id: number;
+            /** Id */
+            id: number;
+            /** Language */
+            language: ("en" | "pt-PT") | null;
+            /** Login */
+            login: string;
+            /** Name */
+            name: string;
+            /** Phone */
+            phone: string | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "admin" | "member";
+        };
         /** PersonIn */
         PersonIn: {
+            /**
+             * Email
+             * @default
+             */
+            email?: string;
             /** Household Id */
             household_id: number;
             /** Language */
@@ -1634,31 +1675,16 @@ export interface components {
             /** Password */
             password: string;
             /**
+             * Phone
+             * @default
+             */
+            phone?: string;
+            /**
              * Role
              * @default member
              * @enum {string}
              */
             role?: "admin" | "member";
-        };
-        /** PersonOut */
-        PersonOut: {
-            /** Active */
-            active: boolean;
-            /** Household Id */
-            household_id: number;
-            /** Id */
-            id: number;
-            /** Language */
-            language: ("en" | "pt-PT") | null;
-            /** Login */
-            login: string;
-            /** Name */
-            name: string;
-            /**
-             * Role
-             * @enum {string}
-             */
-            role: "admin" | "member";
         };
         /**
          * PersonUpdate
@@ -1667,6 +1693,8 @@ export interface components {
         PersonUpdate: {
             /** Active */
             active: boolean;
+            /** Email */
+            email?: string | null;
             /** Household Id */
             household_id: number;
             /** Language */
@@ -1677,6 +1705,8 @@ export interface components {
             name: string;
             /** Password */
             password?: string | null;
+            /** Phone */
+            phone?: string | null;
             /**
              * Role
              * @enum {string}
@@ -3362,7 +3392,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PersonOut"][];
+                    "application/json": components["schemas"]["PersonDetail"][];
                 };
             };
         };
@@ -3386,7 +3416,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PersonOut"];
+                    "application/json": components["schemas"]["PersonDetail"];
                 };
             };
             /** @description Validation Error */
@@ -3421,7 +3451,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PersonOut"];
+                    "application/json": components["schemas"]["PersonDetail"];
                 };
             };
             /** @description Validation Error */

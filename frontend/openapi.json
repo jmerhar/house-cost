@@ -1282,13 +1282,13 @@
             "title": "Active",
             "type": "boolean"
           },
-          "apprise_urls": {
-            "title": "Apprise Urls",
-            "type": "string"
-          },
           "claude_enabled": {
             "title": "Claude Enabled",
             "type": "boolean"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
           },
           "household_id": {
             "title": "Household Id",
@@ -1325,6 +1325,17 @@
             "title": "Name",
             "type": "string"
           },
+          "notify_channels": {
+            "items": {
+              "enum": [
+                "email",
+                "signal"
+              ],
+              "type": "string"
+            },
+            "title": "Notify Channels",
+            "type": "array"
+          },
           "notify_on": {
             "additionalProperties": {
               "type": "boolean"
@@ -1339,6 +1350,14 @@
             },
             "title": "Notify On",
             "type": "object"
+          },
+          "phone": {
+            "title": "Phone",
+            "type": "string"
+          },
+          "phone_country_code": {
+            "title": "Phone Country Code",
+            "type": "string"
           },
           "reconciliation_enabled": {
             "title": "Reconciliation Enabled",
@@ -1364,7 +1383,10 @@
           "household_name",
           "reconciliation_enabled",
           "claude_enabled",
-          "apprise_urls",
+          "email",
+          "phone",
+          "notify_channels",
+          "phone_country_code",
           "notify_on"
         ],
         "title": "Me",
@@ -1373,18 +1395,6 @@
       "MeUpdate": {
         "description": "A person's change to themselves. A new password needs the current one; notification\nsettings left out stay as they are.",
         "properties": {
-          "apprise_urls": {
-            "anyOf": [
-              {
-                "maxLength": 4000,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Apprise Urls"
-          },
           "current_password": {
             "anyOf": [
               {
@@ -1395,6 +1405,18 @@
               }
             ],
             "title": "Current Password"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "maxLength": 254,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
           },
           "language": {
             "anyOf": [
@@ -1451,6 +1473,19 @@
               }
             ],
             "title": "Notify On"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "maxLength": 30,
+                "pattern": "^[+\\d\\s().\\-/]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
           }
         },
         "required": [
@@ -1558,8 +1593,97 @@
         "title": "PasskeyOut",
         "type": "object"
       },
+      "PersonDetail": {
+        "description": "A person with their contacts, which only an admin and the person themselves see; None\nfor anyone else. The audit log records the plain ``PersonOut``, without them.",
+        "properties": {
+          "active": {
+            "title": "Active",
+            "type": "boolean"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "household_id": {
+            "title": "Household Id",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "enum": [
+                  "en",
+                  "pt-PT"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "login": {
+            "title": "Login",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "role": {
+            "enum": [
+              "admin",
+              "member"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "login",
+          "role",
+          "language",
+          "household_id",
+          "active",
+          "email",
+          "phone"
+        ],
+        "title": "PersonDetail",
+        "type": "object"
+      },
       "PersonIn": {
         "properties": {
+          "email": {
+            "default": "",
+            "maxLength": 254,
+            "title": "Email",
+            "type": "string"
+          },
           "household_id": {
             "title": "Household Id",
             "type": "integer"
@@ -1597,6 +1721,13 @@
             "title": "Password",
             "type": "string"
           },
+          "phone": {
+            "default": "",
+            "maxLength": 30,
+            "pattern": "^[+\\d\\s().\\-/]*$",
+            "title": "Phone",
+            "type": "string"
+          },
           "role": {
             "default": "member",
             "enum": [
@@ -1616,70 +1747,24 @@
         "title": "PersonIn",
         "type": "object"
       },
-      "PersonOut": {
-        "properties": {
-          "active": {
-            "title": "Active",
-            "type": "boolean"
-          },
-          "household_id": {
-            "title": "Household Id",
-            "type": "integer"
-          },
-          "id": {
-            "title": "Id",
-            "type": "integer"
-          },
-          "language": {
-            "anyOf": [
-              {
-                "enum": [
-                  "en",
-                  "pt-PT"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Language"
-          },
-          "login": {
-            "title": "Login",
-            "type": "string"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "role": {
-            "enum": [
-              "admin",
-              "member"
-            ],
-            "title": "Role",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "login",
-          "role",
-          "language",
-          "household_id",
-          "active"
-        ],
-        "title": "PersonOut",
-        "type": "object"
-      },
       "PersonUpdate": {
         "description": "An admin's change to someone; a password given here resets theirs.",
         "properties": {
           "active": {
             "title": "Active",
             "type": "boolean"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "maxLength": 254,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
           },
           "household_id": {
             "title": "Household Id",
@@ -1724,6 +1809,19 @@
               }
             ],
             "title": "Password"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "maxLength": 30,
+                "pattern": "^[+\\d\\s().\\-/]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
           },
           "role": {
             "enum": [
@@ -3563,7 +3661,7 @@
     },
     "/api/auth/me/test-notification": {
       "post": {
-        "description": "Send a test notification to this person's own URLs.",
+        "description": "Send a test notification to this person's own email address and phone.",
         "operationId": "test_notification_api_auth_me_test_notification_post",
         "responses": {
           "200": {
@@ -4872,7 +4970,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/PersonOut"
+                    "$ref": "#/components/schemas/PersonDetail"
                   },
                   "title": "Response List People Api People Get",
                   "type": "array"
@@ -4905,7 +5003,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PersonOut"
+                  "$ref": "#/components/schemas/PersonDetail"
                 }
               }
             },
@@ -4958,7 +5056,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PersonOut"
+                  "$ref": "#/components/schemas/PersonDetail"
                 }
               }
             },

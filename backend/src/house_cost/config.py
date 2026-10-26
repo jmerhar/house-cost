@@ -45,6 +45,14 @@ class Settings(BaseSettings):
     scheduler_enabled: bool = True
     scheduler_tick_seconds: int = 600
 
+    # How notifications are sent, by Apprise URLs without a recipient: a person's email address
+    # is added to the mail URL as its "to", their phone number to the Signal URL's path. A
+    # channel left unset is not offered.
+    notify_email_url: str | None = None
+    notify_signal_url: str | None = None
+    # The country a phone number typed without one is in: "912 345 678" is +351 912 345 678.
+    phone_country_code: str = Field("351", pattern=r"^\d{1,3}$")
+
     # Claude, for reading bills no parser knows, contracts' terms and questions about documents.
     # Off without a key; the key can also be read from a file, such as a Docker secret.
     anthropic_api_key: str | None = None
@@ -85,6 +93,8 @@ class Settings(BaseSettings):
             "public_url",
             "anthropic_api_key",
             "anthropic_api_key_file",
+            "notify_email_url",
+            "notify_signal_url",
         ):
             value = getattr(self, field)
             if value is not None and str(value).strip() in ("", "."):

@@ -68,4 +68,10 @@ async def set_up(
         await db.commit()
     logger.info("set up: %s is the first administrator", person.login)
     session_cookie.issue(response, request, services.settings, token)
-    return await session_cookie.describe(db, person, services.claude is not None)
+    return await session_cookie.describe(
+        db,
+        person,
+        services.claude is not None,
+        services.notifier.channels,
+        services.settings.phone_country_code,
+    )

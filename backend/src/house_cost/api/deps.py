@@ -13,7 +13,7 @@ from ..claude import Claude
 from ..config import Settings
 from ..db import create_engine, create_sessionmaker, session_scope
 from ..models import Person, Session
-from ..notify import AppriseSender, Sender
+from ..notify import AppriseSender, Notifier
 from ..passkeys import Ceremonies
 from ..scheduler import Scheduler
 
@@ -29,7 +29,7 @@ class Services:
     engine: AsyncEngine
     sessionmaker: async_sessionmaker[AsyncSession]
     throttle: LoginThrottle
-    sender: Sender
+    notifier: Notifier
     scheduler: Scheduler
     #: Present only when an Anthropic API key is set.
     claude: Claude | None = None
@@ -44,14 +44,16 @@ def build_services(settings: Settings) -> Services:
     """Build the services for ``settings``. Opens no connection until one is used."""
     engine = create_engine(settings)
     sessionmaker = create_sessionmaker(engine)
-    sender = AppriseSender()
+    notifier = Notifier(
+        AppriseSender(), email_url=settings.notify_email_url, signal_url=settings.notify_signal_url
+    )
     return Services(
         settings=settings,
         engine=engine,
         sessionmaker=sessionmaker,
         throttle=LoginThrottle(settings.login_attempts_per_minute),
-        sender=sender,
-        scheduler=Scheduler(settings, engine, sessionmaker, sender),
+        notifier=notifier,
+        scheduler=Scheduler(settings, engine, sessionmaker, notifier),
         claude=Claude(key, settings.claude_model) if (key := settings.claude_key) else None,
     )
 

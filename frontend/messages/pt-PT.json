@@ -265,8 +265,6 @@
   "error_read_timeout": "A leitura do ficheiro demorou demasiado. Registe a fatura manualmente.",
   "error_unreadable": "Não foi possível ler esse ficheiro.",
   "notify_title": "Notificações",
-  "notify_urls": "Para onde as enviar",
-  "notify_urls_hint": "Um URL do Apprise por linha, como mailto://nome@exemplo.pt ou tgram://token-do-bot/id-do-chat. Só são visíveis para si.",
   "notify_when": "Avisar-me de",
   "notify_new_bill": "Faturas adicionadas por outra família",
   "notify_price_change": "Alterações de preço numa fatura",
@@ -275,8 +273,7 @@
   "notify_saved": "Definições de notificação guardadas.",
   "notify_test": "Enviar teste",
   "notify_test_sent": "Teste enviado. Confirme que chegou.",
-  "notify_test_failed": "Não foi possível entregar o teste. Verifique os URLs.",
-  "error_no_urls": "Adicione primeiro um URL para onde enviar as notificações.",
+  "notify_test_failed": "Não foi possível entregar o teste. Verifique o email e o número.",
   "notify_save": "Guardar notificações",
   "read_claude": "O Claude leu parte da fatura, porque a aplicação não conhece o formato desta fatura. Confirme esses campos no ficheiro.",
   "read_claude_failed": "O Claude não conseguiu ler esta fatura, por isso só está preenchido o que a aplicação leu.",
@@ -297,5 +294,12 @@
   "terms_apply": "Atualizar {service} com estes dados",
   "terms_applied": "{service}: dados atualizados.",
   "terms_no_service": "Associe este documento a um serviço para o atualizar com estes dados.",
-  "close": "Fechar"
+  "close": "Fechar",
+  "notify_intro": "Receba uma mensagem por email ou pelo Signal quando algo precisar da sua atenção.",
+  "field_email": "Email",
+  "field_phone": "Telemóvel (Signal)",
+  "field_phone_hint": "Use um número registado no Signal. Um número sem indicativo é tratado como +{code}.",
+  "error_no_contact": "Adicione primeiro um email ou um número de telemóvel.",
+  "error_invalid_email": "Esse email não é válido.",
+  "error_invalid_phone": "Esse número de telemóvel não é válido."
 }

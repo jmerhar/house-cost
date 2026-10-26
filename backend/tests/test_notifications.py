@@ -8,11 +8,12 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from zoneinfo import ZoneInfo
 
 import pytest
+from conftest import MAIL_URL, SIGNAL_URL
 from helpers import PASSWORD, Agreement, bill, ok
 
 from house_cost.config import Settings
 from house_cost.db import session_scope
-from house_cost.notify import AppriseSender, send_to
+from house_cost.notify import AppriseSender, Notifier, with_recipient, with_target
 from house_cost.notify.events import bill_added, contract_reminders, missing_bills
 from house_cost.notify.messages import (
     CATALOGUE,
@@ -46,8 +47,13 @@ class Recorder:
 @pytest.fixture
 def recorder(app) -> Recorder:
     recorder = Recorder()
-    app.state.services.sender = recorder
+    app.state.services.notifier.sender = recorder
     return recorder
+
+
+def mail(name: str) -> str:
+    """The Apprise URL a person whose address is ``name``@example.com is mailed at."""
+    return f"{MAIL_URL}&to={name}@example.com"
 
 
 async def _person(client, agreement: Agreement, login: str, household: int, **fields) -> dict:
@@ -66,12 +72,13 @@ async def _person(client, agreement: Agreement, login: str, household: int, **fi
     )
 
 
-async def _notify_me(browser, urls: str, **notify_on) -> dict:
+async def _notify_me(browser, email: str = "", phone: str = "", **notify_on) -> dict:
     me = await ok(browser.get("/api/auth/me"))
     body = {
         "name": me["name"],
         "language": me["language"],
-        "apprise_urls": urls,
+        "email": email,
+        "phone": phone,
         "notify_on": notify_on,
     }
     return await ok(browser.patch("/api/auth/me", json=body))
@@ -106,10 +113,13 @@ class TestMessages:
 
 
 class TestAccount:
-    async def test_a_person_sets_where_and_what_they_are_notified(self, client, admin) -> None:
-        me = await _notify_me(client, " mailto://me@example.com \n", new_bill=False)
+    async def test_a_person_gives_an_address_a_number_and_what_to_hear_of(
+        self, client, admin
+    ) -> None:
+        me = await _notify_me(client, " lucia@example.com ", "912 345 678", new_bill=False)
 
-        assert me["apprise_urls"] == "mailto://me@example.com"
+        assert (me["email"], me["phone"]) == ("lucia@example.com", "+351912345678")
+        assert (me["notify_channels"], me["phone_country_code"]) == (["email", "signal"], "351")
         assert me["notify_on"] == {
             "new_bill": False,
             "price_change": True,
@@ -117,26 +127,67 @@ class TestAccount:
             "missing_bill": True,
         }
         unchanged = await ok(client.patch("/api/auth/me", json={"name": "Lúcia"}))
-        assert unchanged["apprise_urls"] == "mailto://me@example.com"
+        assert (unchanged["email"], unchanged["phone"]) == ("lucia@example.com", "+351912345678")
 
-    async def test_others_do_not_see_a_persons_urls(self, client, member, admin) -> None:
-        await _notify_me(client, "tgram://secret-token/123")
-        assert "secret-token" not in (await member.get("/api/people")).text
+    @pytest.mark.parametrize(
+        ("field", "value", "code"),
+        [("email", "not an address", "invalid_email"), ("phone", "12", "invalid_phone")],
+    )
+    async def test_what_cannot_be_an_address_or_a_number_is_refused(
+        self, client, admin, field, value, code
+    ) -> None:
+        refused = await client.patch("/api/auth/me", json={"name": "Lúcia", field: value})
+        assert (refused.status_code, refused.json()["detail"]) == (422, code)
+
+    async def test_only_admins_and_the_person_see_their_contacts(
+        self, client, member, admin
+    ) -> None:
+        await _notify_me(client, "lucia@example.com", "+351 912 345 678")
+        await _notify_me(member, "tiago@example.com")
+
+        as_member = {p["login"]: p for p in await ok(member.get("/api/people"))}
+        assert (as_member["lucia"]["email"], as_member["lucia"]["phone"]) == (None, None)
+        assert as_member["tiago"]["email"] == "tiago@example.com"
+        as_admin = {p["login"]: p for p in await ok(client.get("/api/people"))}
+        assert as_admin["tiago"]["email"] == "tiago@example.com"
         audit = await ok(member.get("/api/audit"))
         assert any(entry["entity"] == "person" for entry in audit["items"])
-        assert "secret-token" not in str(audit)
+        assert "example.com" not in str(audit) and "912" not in str(audit)
 
-    async def test_a_test_notification_goes_to_their_own_urls(
-        self, client, admin, recorder
-    ) -> None:
+    async def test_an_admin_sets_someones_contacts(self, client, agreement, member) -> None:
+        marta = await _person(
+            client,
+            agreement,
+            "marta",
+            agreement.owners,
+            email="a@example.com",
+            phone="0044 20 7946 0000",
+        )
+        assert (marta["email"], marta["phone"]) == ("a@example.com", "+442079460000")
+
+        people = {p["login"]: p for p in await ok(client.get("/api/people"))}
+        tiago = people["tiago"]
+        update = {
+            k: tiago[k] for k in ("name", "login", "role", "language", "household_id", "active")
+        }
+        changed = await ok(
+            client.put(f"/api/people/{tiago['id']}", json={**update, "phone": "910000000"})
+        )
+        kept = await ok(client.put(f"/api/people/{tiago['id']}", json=update))
+        refused = await client.put(f"/api/people/{tiago['id']}", json={**update, "email": "x@"})
+
+        assert changed["phone"] == kept["phone"] == "+351910000000"
+        assert (refused.status_code, refused.json()["detail"]) == (422, "invalid_email")
+
+    async def test_a_test_notification_goes_to_every_contact(self, client, admin, recorder) -> None:
         refused = await client.post("/api/auth/me/test-notification")
-        assert (refused.status_code, refused.json()["detail"]) == (422, "no_urls")
+        assert (refused.status_code, refused.json()["detail"]) == (422, "no_contact")
 
-        await _notify_me(client, "json://example.test")
+        await _notify_me(client, "lucia@example.com", "912345678")
         assert await ok(client.post("/api/auth/me/test-notification")) == {"sent": True}
         assert recorder.sent == [
             (
-                ["json://example.test"],
+                [mail("lucia"), f"{SIGNAL_URL}/+351912345678"],
                 "Test notification",
                 "Notifications from House costs reach you here.",
             )
@@ -147,16 +198,16 @@ class TestNewBill:
     async def test_the_other_households_hear_of_it_in_their_language(
         self, client, agreement: Agreement, member, recorder, new_client
     ) -> None:
-        await _notify_me(member, "json://tiago.test")
+        await _notify_me(member, "tiago@example.com")
         marta = new_client()
         await _person(client, agreement, "marta", agreement.owners, language="pt-PT")
         await ok(marta.post("/api/auth/login", json={"login": "marta", "password": PASSWORD}))
-        await _notify_me(marta, "json://marta.test")
+        await _notify_me(marta, "marta@example.com")
         quiet = new_client()
         await _person(client, agreement, "quiet", agreement.owners)
         await ok(quiet.post("/api/auth/login", json={"login": "quiet", "password": PASSWORD}))
-        await _notify_me(quiet, "json://quiet.test", new_bill=False)
-        await _notify_me(client, "json://lucia.test")
+        await _notify_me(quiet, "quiet@example.com", new_bill=False)
+        await _notify_me(client, "lucia@example.com")
 
         await ok(
             client.post(
@@ -169,24 +220,24 @@ class TestNewBill:
         )
 
         assert sorted(urls[0] for urls, _, _ in recorder.sent) == [
-            "json://marta.test",
-            "json://tiago.test",
+            mail("marta"),
+            mail("tiago"),
         ]
-        english = next(s for s in recorder.sent if s[0] == ["json://tiago.test"])
+        english = next(s for s in recorder.sent if s[0] == [mail("tiago")])
         assert english[1:] == (
             "New bill: Gravel Lda, €100.00",
             "Lúcia added a bill from Gravel Lda dated 5 Oct 2026: €100.00, "
             "of which your household's share is €60.00.",
         )
-        portuguese = next(s for s in recorder.sent if s[0] == ["json://marta.test"])
+        portuguese = next(s for s in recorder.sent if s[0] == [mail("marta")])
         assert portuguese[1] == "Nova fatura: Gravel Lda, 100,00 €"
         assert "05/10/2026" in portuguese[2] and "60,00 €" in portuguese[2]
 
     async def test_a_failed_delivery_does_not_stop_the_others_or_the_bill(
         self, client, agreement, member, app
     ) -> None:
-        app.state.services.sender = Recorder(fail=True)
-        await _notify_me(member, "json://tiago.test")
+        app.state.services.notifier.sender = Recorder(fail=True)
+        await _notify_me(member, "tiago@example.com")
         created = await client.post(
             "/api/bills", json=bill("2026-10-05", agreement.lucia, (agreement.road, 100))
         )
@@ -194,7 +245,7 @@ class TestNewBill:
         assert created.status_code == 201
 
     async def test_a_bill_gone_by_the_time_of_sending_sends_nothing(self, app, recorder) -> None:
-        await bill_added(app.state.services.sessionmaker, recorder, 999, 999)
+        await bill_added(app.state.services.sessionmaker, app.state.services.notifier, 999, 999)
         assert recorder.sent == []
 
     async def test_a_broken_database_is_logged_not_raised(self, recorder, caplog) -> None:
@@ -202,7 +253,7 @@ class TestNewBill:
             def __call__(self):
                 raise RuntimeError("no database")
 
-        await bill_added(Broken(), recorder, 1, 1)
+        await bill_added(Broken(), Notifier(recorder), 1, 1)
         assert "notifying of bill 1 failed" in caplog.text
 
 
@@ -233,7 +284,7 @@ class TestPriceChange:
     async def test_a_new_unit_price_is_told_once(
         self, client, agreement, electricity, recorder
     ) -> None:
-        await _notify_me(client, "json://lucia.test", new_bill=False)
+        await _notify_me(client, "lucia@example.com", new_bill=False)
         for on, unit_price in (
             ("2026-09-21", 0.2052),
             ("2026-10-18", 0.2052),
@@ -265,7 +316,7 @@ class TestPriceChange:
     async def test_the_same_bill_seen_twice_is_told_once(
         self, client, agreement, electricity, app, recorder
     ) -> None:
-        await _notify_me(client, "json://lucia.test", new_bill=False)
+        await _notify_me(client, "lucia@example.com", new_bill=False)
         for on, unit_price in (("2026-09-21", 0.2052), ("2026-10-18", 0.1525)):
             created = await ok(
                 client.post(
@@ -280,14 +331,16 @@ class TestPriceChange:
                 ),
                 201,
             )
-        await bill_added(app.state.services.sessionmaker, recorder, created["id"], 1)
+        await bill_added(
+            app.state.services.sessionmaker, app.state.services.notifier, created["id"], 1
+        )
 
         assert len(recorder.sent) == 1
 
     async def test_bills_without_a_service_are_not_compared(
         self, client, agreement, recorder
     ) -> None:
-        await _notify_me(client, "json://lucia.test", new_bill=False)
+        await _notify_me(client, "lucia@example.com", new_bill=False)
         for unit_price in (0.1, 0.2):
             await ok(
                 client.post(
@@ -307,12 +360,12 @@ class TestPriceChange:
 class TestReminders:
     async def _run(self, app, recorder, today: date, kind) -> None:
         async with session_scope(app.state.services.sessionmaker) as db:
-            await kind(db, recorder, today)
+            await kind(db, app.state.services.notifier, today)
 
     async def test_a_contract_ending_is_reminded_30_and_7_days_ahead_once_each(
         self, client, admin, electricity, app, recorder
     ) -> None:
-        await _notify_me(client, "json://lucia.test")
+        await _notify_me(client, "lucia@example.com")
         for today in (
             date(2026, 11, 10),
             date(2026, 11, 13),
@@ -332,7 +385,7 @@ class TestReminders:
     async def test_a_service_first_seen_inside_a_week_gets_one_reminder(
         self, client, admin, electricity, app, recorder
     ) -> None:
-        await _notify_me(client, "json://lucia.test")
+        await _notify_me(client, "lucia@example.com")
         await self._run(app, recorder, date(2027, 7, 25), contract_reminders)
         await self._run(app, recorder, date(2027, 7, 26), contract_reminders)
 
@@ -342,7 +395,7 @@ class TestReminders:
         self, client, admin, electricity, app, recorder
     ) -> None:
         me = await ok(client.get("/api/auth/me"))
-        body = {"name": me["name"], "language": "pt-PT", "apprise_urls": "json://lucia.test"}
+        body = {"name": me["name"], "language": "pt-PT", "email": "lucia@example.com"}
         await ok(client.patch("/api/auth/me", json=body))
         await ok(
             client.put(f"/api/services/{electricity['id']}", json={**electricity, "notice_days": 1})
@@ -360,7 +413,7 @@ class TestReminders:
     async def test_a_contract_that_ends_without_notice_on_file(
         self, client, admin, electricity, app, recorder
     ) -> None:
-        await _notify_me(client, "json://lucia.test")
+        await _notify_me(client, "lucia@example.com")
         await ok(
             client.put(
                 f"/api/services/{electricity['id']}",
@@ -382,7 +435,7 @@ class TestReminders:
     async def test_a_missing_bill_is_pointed_out_once_per_gap(
         self, client, agreement, electricity, app, recorder
     ) -> None:
-        await _notify_me(client, "json://lucia.test", new_bill=False)
+        await _notify_me(client, "lucia@example.com", new_bill=False)
         await ok(
             client.post(
                 "/api/bills",
@@ -418,7 +471,7 @@ class TestScheduler:
     def _scheduler(self, app, recorder, **overrides) -> Scheduler:
         services = app.state.services
         settings = services.settings.model_copy(update=overrides)
-        return Scheduler(settings, services.engine, services.sessionmaker, recorder)
+        return Scheduler(settings, services.engine, services.sessionmaker, services.notifier)
 
     async def test_the_days_backup_waits_for_its_time_and_is_taken_once(
         self, client, admin, app, recorder
@@ -452,7 +505,7 @@ class TestScheduler:
     async def test_reminders_run_once_a_day(
         self, client, admin, electricity, app, recorder
     ) -> None:
-        await _notify_me(client, "json://lucia.test")
+        await _notify_me(client, "lucia@example.com")
         scheduler = self._scheduler(app, recorder, backup_time="23:59")
         utc = ZoneInfo("UTC")
         await scheduler.tick(datetime(2026, 11, 20, 8, 0, tzinfo=utc))
@@ -526,29 +579,45 @@ class TestAppriseSender:
         assert asyncio.run(AppriseSender().send(["not a url"], "T", "B")) is False
 
 
-async def test_send_to_skips_those_who_do_not_want_it(app) -> None:
-    from house_cost.models import Person
+class TestNotifier:
+    async def test_sends_only_to_those_who_want_it_and_can_get_it(self) -> None:
+        from house_cost.models import Person
 
-    people = [
-        Person(name="A", apprise_urls="json://a", notify_on={}, active=True, language=None),
-        Person(name="B", apprise_urls="", notify_on={}, active=True, language=None),
-        Person(
-            name="C",
-            apprise_urls="json://c",
-            notify_on={"contract": False},
-            active=True,
-            language=None,
-        ),
-        Person(name="D", apprise_urls="json://d", notify_on={}, active=False, language=None),
-    ]
-    recorder = Recorder()
+        def person(name: str, **fields) -> Person:
+            values = {"email": "", "phone": "", "notify_on": {}, "active": True, "language": None}
+            return Person(name=name, **(values | fields))
 
-    assert await send_to(recorder, people, "contract", "test", lambda _p, _l: {}) == 1
-    assert [urls for urls, _, _ in recorder.sent] == [["json://a"]]
+        people = [
+            person("A", email="a@example.com"),
+            person("B"),
+            person("C", email="c@example.com", notify_on={"contract": False}),
+            person("D", email="d@example.com", active=False),
+            person("E", phone="+351910000000"),
+        ]
+        recorder = Recorder()
+        email_only = Notifier(recorder, email_url=MAIL_URL)
 
-    class Undelivered(Recorder):
-        async def send(self, urls: list[str], title: str, body: str) -> bool:
-            await super().send(urls, title, body)
-            return False
+        assert await email_only.send_to(people, "contract", "test", lambda _p, _l: {}) == 1
+        assert [urls for urls, _, _ in recorder.sent] == [[mail("a")]]
+        assert email_only.channels == ["email"]
 
-    assert await send_to(Undelivered(), people, "contract", "test", lambda _p, _l: {}) == 0
+        class Undelivered(Recorder):
+            async def send(self, urls: list[str], title: str, body: str) -> bool:
+                await super().send(urls, title, body)
+                return False
+
+        assert (
+            await Notifier(Undelivered(), MAIL_URL).send_to(
+                people, "contract", "test", lambda _p, _l: {}
+            )
+            == 0
+        )
+        assert Notifier(recorder).channels == []
+
+    def test_urls_are_addressed_to_the_person(self) -> None:
+        assert with_recipient("mailto://host:25", "a+b@example.com") == (
+            "mailto://host:25?to=a+b@example.com"
+        )
+        assert with_target("signal://signal:8080/+351210000000/?batch=no", "+351910000000") == (
+            "signal://signal:8080/+351210000000/+351910000000?batch=no"
+        )

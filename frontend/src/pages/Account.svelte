@@ -31,7 +31,9 @@
   ] as const;
   type Event = (typeof EVENTS)[number][0];
 
-  let appriseUrls = $state(app.me?.apprise_urls ?? "");
+  let email = $state(app.me?.email ?? "");
+  let phone = $state(app.me?.phone ?? "");
+  const channels = $derived(app.me?.notify_channels ?? []);
   let notifyOn = $state<Record<Event, boolean>>({
     new_bill: true,
     price_change: true,
@@ -125,10 +127,12 @@
       app.me = await app.api.updateMe({
         name: app.me?.name ?? name,
         language: app.me?.language ?? null,
-        apprise_urls: appriseUrls,
+        email,
+        phone,
         notify_on: { ...notifyOn },
       });
-      appriseUrls = app.me.apprise_urls;
+      email = app.me.email;
+      phone = app.me.phone;
       notifyNotice = m.notify_saved();
     } catch (failure) {
       notifyError = errorMessage(failure);
@@ -188,28 +192,38 @@
   <button type="submit" disabled={busy}>{busy ? m.saving() : m.save()}</button>
 </form>
 
-<h2>{m.notify_title()}</h2>
-<form class="card" onsubmit={saveNotifications}>
-  <label>
-    {m.notify_urls()}
-    <textarea bind:value={appriseUrls} rows="3" maxlength="4000" spellcheck="false" placeholder="mailto://…"></textarea>
-    <small>{m.notify_urls_hint()}</small>
-  </label>
-  <fieldset>
-    <legend>{m.notify_when()}</legend>
-    {#each EVENTS as [key, label] (key)}
-      <label class="check"><input type="checkbox" bind:checked={notifyOn[key]} /> {label()}</label>
-    {/each}
-  </fieldset>
-  {#if notifyError}<p role="alert">{notifyError}</p>{/if}
-  {#if notifyNotice}<p class="note">{notifyNotice}</p>{/if}
-  <div class="actions">
-    <button type="submit" disabled={notifyBusy}>{notifyBusy ? m.saving() : m.notify_save()}</button>
-    {#if app.me?.apprise_urls}
-      <button type="button" class="secondary" onclick={sendTest}>{m.notify_test()}</button>
-    {/if}
-  </div>
-</form>
+{#if channels.length}
+  <h2>{m.notify_title()}</h2>
+  <form class="card" onsubmit={saveNotifications}>
+    <p class="muted">{m.notify_intro()}</p>
+    <div class="grid">
+      {#if channels.includes("email")}
+        <label>{m.field_email()}<input type="email" bind:value={email} maxlength="254" autocomplete="email" /></label>
+      {/if}
+      {#if channels.includes("signal")}
+        <label>
+          {m.field_phone()}
+          <input type="tel" bind:value={phone} maxlength="30" autocomplete="tel" />
+          <small>{m.field_phone_hint({ code: app.me?.phone_country_code ?? "" })}</small>
+        </label>
+      {/if}
+    </div>
+    <fieldset>
+      <legend>{m.notify_when()}</legend>
+      {#each EVENTS as [key, label] (key)}
+        <label class="check"><input type="checkbox" bind:checked={notifyOn[key]} /> {label()}</label>
+      {/each}
+    </fieldset>
+    {#if notifyError}<p role="alert">{notifyError}</p>{/if}
+    {#if notifyNotice}<p class="note">{notifyNotice}</p>{/if}
+    <div class="actions">
+      <button type="submit" disabled={notifyBusy}>{notifyBusy ? m.saving() : m.notify_save()}</button>
+      {#if app.me?.email || app.me?.phone}
+        <button type="button" class="secondary" onclick={sendTest}>{m.notify_test()}</button>
+      {/if}
+    </div>
+  </form>
+{/if}
 
 <h2>{m.passkeys_title()}</h2>
 <p class="muted">{m.passkeys_intro()}</p>
