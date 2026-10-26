@@ -503,6 +503,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/documents/{document_id}/ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask
+         * @description An answer from the document to a question, with the passages and pages it rests on.
+         */
+        post: operations["ask_api_documents__document_id__ask_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/documents/{document_id}/file": {
         parameters: {
             query?: never;
@@ -518,6 +538,27 @@ export interface paths {
         get: operations["download_api_documents__document_id__file_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/{document_id}/terms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Read Terms
+         * @description A contract's dates, lock-in, notice and a summary, as Claude reads them. Nothing is saved:
+         *     the interface offers the dates for the document's service.
+         */
+        post: operations["read_terms_api_documents__document_id__terms_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1024,6 +1065,13 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AnswerOut */
+        AnswerOut: {
+            /** Citations */
+            citations: components["schemas"]["CitationOut"][];
+            /** Text */
+            text: string;
+        };
         /** AttachmentOut */
         AttachmentOut: {
             /** Content Type */
@@ -1272,6 +1320,16 @@ export interface components {
             total_cents: number;
         };
         /**
+         * CitationOut
+         * @description A passage an answer rests on, and its page where the document has pages.
+         */
+        CitationOut: {
+            /** Page */
+            page: number | null;
+            /** Quote */
+            quote: string;
+        };
+        /**
          * DocumentMatch
          * @description A document found by a search, with the text around the first match.
          */
@@ -1474,6 +1532,8 @@ export interface components {
             active: boolean;
             /** Apprise Urls */
             apprise_urls: string;
+            /** Claude Enabled */
+            claude_enabled: boolean;
             /** Household Id */
             household_id: number;
             /** Household Name */
@@ -1628,7 +1688,8 @@ export interface components {
          * @description A bill as read from its file, to be checked and corrected before it is saved.
          *
          *     ``sources`` says where each value came from: "qr" for the invoice's fiscal QR code, "text" for
-         *     the PDF's own text, "ocr" for text read from the image of a page.
+         *     the PDF's own text, "ocr" for text read from the image of a page, "claude" for what Claude
+         *     read where the others found nothing.
          */
         Proposal: {
             /** Date */
@@ -1678,6 +1739,11 @@ export interface components {
             category_id: number | null;
             /** Description */
             description: string;
+        };
+        /** QuestionIn */
+        QuestionIn: {
+            /** Question */
+            question: string;
         };
         /**
          * ReadingIn
@@ -2093,6 +2159,30 @@ export interface components {
             nif: string | null;
             /** Notes */
             notes: string;
+        };
+        /**
+         * Terms
+         * @description A contract's terms as Claude read them, for a person to check before using any.
+         */
+        Terms: {
+            /** Billed Every Days */
+            billed_every_days: number | null;
+            /** Ends On */
+            ends_on: string | null;
+            /** Lock In Until */
+            lock_in_until: string | null;
+            /** Notice Days */
+            notice_days: number | null;
+            /** Renews Automatically */
+            renews_automatically: boolean | null;
+            /** Service Name */
+            service_name: string | null;
+            /** Starts On */
+            starts_on: string | null;
+            /** Summary */
+            summary: string;
+            /** Supplier Name */
+            supplier_name: string | null;
         };
         /** TestSent */
         TestSent: {
@@ -3054,6 +3144,41 @@ export interface operations {
             };
         };
     };
+    ask_api_documents__document_id__ask_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuestionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     download_api_documents__document_id__file_get: {
         parameters: {
             query?: never;
@@ -3071,6 +3196,37 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_terms_api_documents__document_id__terms_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Terms"];
+                };
             };
             /** @description Validation Error */
             422: {

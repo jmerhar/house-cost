@@ -51,7 +51,7 @@ async def log_in(
     services.throttle.succeeded(address)
     token = await open_session(db, person, request.headers.get("user-agent", ""))
     session_cookie.issue(response, request, services.settings, token)
-    return await session_cookie.describe(db, person)
+    return await session_cookie.describe(db, person, services.claude is not None)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
@@ -67,13 +67,13 @@ async def log_out(request: Request, db: DbDep, services: ServicesDep) -> Respons
 
 
 @router.get("/me")
-async def me(person: PersonDep, db: DbDep) -> Me:
+async def me(person: PersonDep, db: DbDep, services: ServicesDep) -> Me:
     """The person logged in."""
-    return await session_cookie.describe(db, person)
+    return await session_cookie.describe(db, person, services.claude is not None)
 
 
 @router.patch("/me")
-async def update_me(body: MeUpdate, session: SessionDep, db: DbDep) -> Me:
+async def update_me(body: MeUpdate, session: SessionDep, db: DbDep, services: ServicesDep) -> Me:
     """Change one's own name, language or password.
 
     A new password needs the current one, and ends every other session of this person.
@@ -102,7 +102,7 @@ async def update_me(body: MeUpdate, session: SessionDep, db: DbDep) -> Me:
         before=before,
         after=PersonOut.model_validate(person),
     )
-    return await session_cookie.describe(db, person)
+    return await session_cookie.describe(db, person, services.claude is not None)
 
 
 @router.post("/me/test-notification")

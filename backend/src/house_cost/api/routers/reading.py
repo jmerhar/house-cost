@@ -10,7 +10,8 @@ from fastapi import APIRouter, HTTPException, UploadFile, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...extraction.pipeline import Extraction, extract
+from ...claude import ClaudeFailed
+from ...extraction.pipeline import Extraction, extract, merge_claude, worth_asking_claude
 from ...models import Attachment, Bill, BillReading, Service, Supplier
 from ...storage import TooLarge, save, sniff
 from ..deps import DbDep, ServicesDep
@@ -118,6 +119,14 @@ async def read_bill(file: UploadFile, db: DbDep, services: ServicesDep) -> Propo
         except pdfium.PdfiumError, OSError, ValueError:
             # A file that passed the type check but cannot be opened: refused, not a crash.
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "unreadable") from None
+        if services.claude is not None and worth_asking_claude(extraction):
+            try:
+                read = await services.claude.read_bill(path.read_bytes(), content_type)
+            except ClaudeFailed as failure:
+                # What was read locally still stands; the person is told Claude added nothing.
+                extraction.warnings.append(failure.code)
+            else:
+                merge_claude(extraction, read)
 
     findings = extraction.findings
     supplier = next((s for s in suppliers if s.nif and s.nif == extraction.issuer_nif), None)
@@ -135,7 +144,7 @@ async def read_bill(file: UploadFile, db: DbDep, services: ServicesDep) -> Propo
         ]
     return Proposal(
         supplier_id=supplier.id if supplier else None,
-        supplier_name=supplier.name if supplier else None,
+        supplier_name=supplier.name if supplier else extraction.supplier_name,
         issuer_nif=extraction.issuer_nif,
         service_id=service.id if service else None,
         date=findings.on,

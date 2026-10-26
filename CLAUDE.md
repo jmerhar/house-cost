@@ -29,6 +29,8 @@ backend/src/house_cost/
                    hears of a new bill, a price change, a contract ending or a missing bill
   scheduler.py     the in-process loop: the daily VACUUM INTO backup and the daily reminders,
                    each tick() testable with a given time
+  claude.py        the optional Claude client: read_bill, read_terms, ask; the schemas its
+                   answers are parsed into, and turning its dates and euros into values
   storage.py       uploaded files under their SHA-256, and recognising their type by content;
                    attachments and library documents share it (attachments.held)
   extraction/      reading bills: pdf.py (a PDF's text layer), atcud.py (the fiscal QR code),
@@ -115,6 +117,11 @@ CHANGELOG.md       every release's notes; new work goes under `## Unreleased`
   never in `PersonOut` or the audit log, and never logged.
 - **Notification text lives in `notify/messages.py`, not Paraglide**, since the server sends it;
   every key needs both languages with the same placeholders, which a test checks.
+- **Claude only fills gaps and only proposes.** In bill reading it is asked when no parser knows
+  the issuer or a core field is missing, and `pipeline.merge_claude` never replaces what the QR
+  code or the page gave. Without a key `Services.claude` is None, the routes answer 404
+  `claude_off`, and `Me.claude_enabled` hides the interface. Tests drive the real SDK through
+  `httpx2.MockTransport` (tests/test_claude.py); the SDK uses httpx2, so respx cannot see it.
 - **Real bills and contracts never enter the repository.** They hold names, tax numbers and bank
   details; `samples/` is ignored for local runs only.
 

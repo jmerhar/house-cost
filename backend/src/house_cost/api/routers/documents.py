@@ -13,11 +13,21 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...audit import record
+from ...claude import ClaudeFailed, day_or_none
 from ...extraction.pdf import read_text
 from ...models import Document, Service, Supplier
 from ...storage import TooLarge, path_for, save, sniff
-from ..deps import DbDep, PersonDep, ServicesDep, get_or_404
-from ..schemas import DocumentKind, DocumentMatch, DocumentOut, DocumentUpdate
+from ..deps import ClaudeDep, DbDep, PersonDep, Services, ServicesDep, get_or_404
+from ..schemas import (
+    AnswerOut,
+    CitationOut,
+    DocumentKind,
+    DocumentMatch,
+    DocumentOut,
+    DocumentUpdate,
+    QuestionIn,
+    Terms,
+)
 from .attachments import SANDBOX, clean_name, held
 
 logger = logging.getLogger(__name__)
@@ -177,6 +187,69 @@ async def download(document_id: int, db: DbDep, services: ServicesDep) -> FileRe
             "X-Content-Type-Options": "nosniff",
             "Cache-Control": "private, max-age=3600",
         },
+    )
+
+
+async def _file(db: AsyncSession, services: Services, document_id: int) -> tuple[bytes, str]:
+    """A document's bytes and type, for Claude to read."""
+    document = await get_or_404(db, Document, document_id)
+    path = path_for(services.settings.files_dir, document.sha256)
+    if not path.is_file():
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "file_missing")
+    return await asyncio.to_thread(path.read_bytes), document.content_type
+
+
+def _days(value: int | None) -> int | None:
+    """A number of days Claude read, unless it is none at all."""
+    return value if value is not None and value > 0 else None
+
+
+def _refused(failure: ClaudeFailed) -> HTTPException:
+    return HTTPException(status.HTTP_502_BAD_GATEWAY, failure.code)
+
+
+@router.post("/{document_id}/terms")
+async def read_terms(
+    document_id: int, person: PersonDep, db: DbDep, services: ServicesDep, claude: ClaudeDep
+) -> Terms:
+    """A contract's dates, lock-in, notice and a summary, as Claude reads them. Nothing is saved:
+    the interface offers the dates for the document's service."""
+    data, content_type = await _file(db, services, document_id)
+    try:
+        read = await claude.read_terms(data, content_type, person.language or "en")
+    except ClaudeFailed as failure:
+        raise _refused(failure) from None
+    return Terms(
+        service_name=read.service_name,
+        supplier_name=read.supplier_name,
+        starts_on=day_or_none(read.starts_on),
+        ends_on=day_or_none(read.ends_on),
+        renews_automatically=read.renews_automatically,
+        lock_in_until=day_or_none(read.lock_in_until),
+        notice_days=_days(read.notice_days),
+        billed_every_days=_days(read.billed_every_days),
+        summary=read.summary.strip(),
+    )
+
+
+@router.post("/{document_id}/ask")
+async def ask(
+    document_id: int,
+    body: QuestionIn,
+    person: PersonDep,
+    db: DbDep,
+    services: ServicesDep,
+    claude: ClaudeDep,
+) -> AnswerOut:
+    """An answer from the document to a question, with the passages and pages it rests on."""
+    data, content_type = await _file(db, services, document_id)
+    try:
+        answer = await claude.ask(data, content_type, body.question, person.language or "en")
+    except ClaudeFailed as failure:
+        raise _refused(failure) from None
+    return AnswerOut(
+        text=answer.text,
+        citations=[CitationOut(page=c.page, quote=c.quote) for c in answer.citations],
     )
 
 

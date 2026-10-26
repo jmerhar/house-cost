@@ -21,6 +21,9 @@ runtime:
     - expression: res.body.notify_on.new_bill
       operator: eq
       value: "true"
+    - expression: res.body.claude_enabled
+      operator: eq
+      value: "false"
 
 settings:
   encodeUrl: true

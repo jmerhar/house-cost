@@ -1,6 +1,27 @@
 {
   "components": {
     "schemas": {
+      "AnswerOut": {
+        "properties": {
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/CitationOut"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "citations"
+        ],
+        "title": "AnswerOut",
+        "type": "object"
+      },
       "AttachmentOut": {
         "properties": {
           "content_type": {
@@ -706,6 +727,32 @@
         "title": "CategoryTotal",
         "type": "object"
       },
+      "CitationOut": {
+        "description": "A passage an answer rests on, and its page where the document has pages.",
+        "properties": {
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "quote": {
+            "title": "Quote",
+            "type": "string"
+          }
+        },
+        "required": [
+          "page",
+          "quote"
+        ],
+        "title": "CitationOut",
+        "type": "object"
+      },
       "DocumentMatch": {
         "description": "A document found by a search, with the text around the first match.",
         "properties": {
@@ -1239,6 +1286,10 @@
             "title": "Apprise Urls",
             "type": "string"
           },
+          "claude_enabled": {
+            "title": "Claude Enabled",
+            "type": "boolean"
+          },
           "household_id": {
             "title": "Household Id",
             "type": "integer"
@@ -1312,6 +1363,7 @@
           "active",
           "household_name",
           "reconciliation_enabled",
+          "claude_enabled",
           "apprise_urls",
           "notify_on"
         ],
@@ -1693,7 +1745,7 @@
         "type": "object"
       },
       "Proposal": {
-        "description": "A bill as read from its file, to be checked and corrected before it is saved.\n\n``sources`` says where each value came from: \"qr\" for the invoice's fiscal QR code, \"text\" for\nthe PDF's own text, \"ocr\" for text read from the image of a page.",
+        "description": "A bill as read from its file, to be checked and corrected before it is saved.\n\n``sources`` says where each value came from: \"qr\" for the invoice's fiscal QR code, \"text\" for\nthe PDF's own text, \"ocr\" for text read from the image of a page, \"claude\" for what Claude\nread where the others found nothing.",
         "properties": {
           "date": {
             "anyOf": [
@@ -1911,6 +1963,21 @@
           "category_id"
         ],
         "title": "ProposedLine",
+        "type": "object"
+      },
+      "QuestionIn": {
+        "properties": {
+          "question": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "QuestionIn",
         "type": "object"
       },
       "ReadingIn": {
@@ -2974,6 +3041,119 @@
           "active"
         ],
         "title": "SupplierOut",
+        "type": "object"
+      },
+      "Terms": {
+        "description": "A contract's terms as Claude read them, for a person to check before using any.",
+        "properties": {
+          "billed_every_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Billed Every Days"
+          },
+          "ends_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends On"
+          },
+          "lock_in_until": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lock In Until"
+          },
+          "notice_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notice Days"
+          },
+          "renews_automatically": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Renews Automatically"
+          },
+          "service_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Name"
+          },
+          "starts_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starts On"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "supplier_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supplier Name"
+          }
+        },
+        "required": [
+          "service_name",
+          "supplier_name",
+          "starts_on",
+          "ends_on",
+          "renews_automatically",
+          "lock_in_until",
+          "notice_days",
+          "billed_every_days",
+          "summary"
+        ],
+        "title": "Terms",
         "type": "object"
       },
       "TestSent": {
@@ -4409,6 +4589,59 @@
         ]
       }
     },
+    "/api/documents/{document_id}/ask": {
+      "post": {
+        "description": "An answer from the document to a question, with the passages and pages it rests on.",
+        "operationId": "ask_api_documents__document_id__ask_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "title": "Document Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ask",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
     "/api/documents/{document_id}/file": {
       "get": {
         "description": "The document's file, shown in the browser where it can be, under the same sandbox as an\nattachment.",
@@ -4440,6 +4673,49 @@
           }
         },
         "summary": "Download",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/documents/{document_id}/terms": {
+      "post": {
+        "description": "A contract's dates, lock-in, notice and a summary, as Claude reads them. Nothing is saved:\nthe interface offers the dates for the document's service.",
+        "operationId": "read_terms_api_documents__document_id__terms_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "title": "Document Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Terms"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Terms",
         "tags": [
           "documents"
         ]

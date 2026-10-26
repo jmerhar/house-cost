@@ -43,8 +43,8 @@ def clear(response: Response, request: Request, settings: Settings) -> None:
     )
 
 
-async def describe(db: AsyncSession, person: Person) -> Me:
-    """The person logged in, as the interface sees them."""
+async def describe(db: AsyncSession, person: Person, claude_enabled: bool) -> Me:
+    """The person logged in, as the interface sees them, and what the app can do for them."""
     return Me(
         id=person.id,
         name=person.name,
@@ -55,6 +55,7 @@ async def describe(db: AsyncSession, person: Person) -> Me:
         active=person.active,
         household_name=person.household.name,
         reconciliation_enabled=await get_setting(db, "reconciliation_enabled"),
+        claude_enabled=claude_enabled,
         apprise_urls=person.apprise_urls or "",
         notify_on={event: person.notify_on.get(event, True) for event in EVENTS},
     )

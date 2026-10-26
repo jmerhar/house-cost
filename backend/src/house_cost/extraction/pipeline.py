@@ -9,8 +9,9 @@ from pathlib import Path
 
 from PIL import Image, UnidentifiedImageError
 
+from ..claude import BillRead, cents_or_none, day_or_none
 from . import atcud, ocr
-from .parsers import Findings, parse
+from .parsers import BY_NIF, Findings, parse
 from .text import nifs
 
 #: Pages rendered for the QR code (it is on the first page or two) and read by OCR.
@@ -31,6 +32,8 @@ class Extraction:
     sources: dict[str, str] = field(default_factory=dict)
     #: Disagreements worth a look: "total_mismatch" when the QR code and the page differ.
     warnings: list[str] = field(default_factory=list)
+    #: The issuer's name, when only Claude gave one.
+    supplier_name: str | None = None
 
 
 def _pdf_pages(path: Path, scale: float, count: int) -> list[Image.Image]:
@@ -137,3 +140,48 @@ def _balance(extraction: Extraction) -> None:
         return
     description, amount = findings.lines[0]
     findings.lines[0] = (description, amount + gap)
+
+
+#: The fields Claude may fill in, by Findings attribute and BillRead attribute.
+CLAUDE_DATES = {"on": "date", "period_start": "period_start", "period_end": "period_end",
+                "due_date": "due_date"}  # fmt: skip
+
+
+def worth_asking_claude(extraction: Extraction) -> bool:
+    """Whether Claude could add to what was read: no supplier's parser knows the issuer, or the
+    date, number or total is missing."""
+    findings = extraction.findings
+    known = extraction.issuer_nif in BY_NIF
+    return not known or None in (findings.on, findings.invoice_number, findings.total_cents)
+
+
+def merge_claude(extraction: Extraction, read: BillRead) -> None:
+    """Fill what the QR code and the page left empty with what Claude read, marked "claude".
+
+    Nothing already read is replaced: the QR code is vouched for, and the page is what a person
+    can check against the file.
+    """
+    findings = extraction.findings
+    sources = extraction.sources
+    if findings.invoice_number is None and read.invoice_number:
+        findings.invoice_number = read.invoice_number.strip()
+        sources["invoice_number"] = "claude"
+    if findings.total_cents is None and (total := cents_or_none(read.total)) is not None:
+        findings.total_cents = total
+        sources["total_cents"] = "claude"
+    for name, field_name in CLAUDE_DATES.items():
+        value = day_or_none(getattr(read, field_name))
+        if getattr(findings, name) is None and value is not None:
+            setattr(findings, name, value)
+            sources[name] = "claude"
+    nif = (read.supplier_nif or "").replace(" ", "")
+    if extraction.issuer_nif is None and len(nif) == 9 and nif.isdigit():
+        extraction.issuer_nif = nif
+        sources["issuer_nif"] = "claude"
+    if read.supplier_name:
+        extraction.supplier_name = read.supplier_name.strip()
+    lines = [(line.description.strip(), cents_or_none(line.amount)) for line in read.lines]
+    if not findings.lines and lines and all(amount is not None for _, amount in lines):
+        findings.lines = [(description, amount) for description, amount in lines if amount]
+        sources["lines"] = "claude"
+        _balance(extraction)
