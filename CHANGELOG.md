@@ -10,6 +10,8 @@ what under **Upgrading**. Before 1.0, a minor release may.
 
 - The app can be added to a phone's home screen and opens as an app of its own, named in the
   phone's language, with its own icon.
+- The footer shows the version installed and, for an image built by CI, the commit it was built
+  from, linked to its source; `/api/health` reports it as `revision`.
 
 ### Changed
 

@@ -1,5 +1,6 @@
 <script lang="ts">
   import Flash from "./lib/Flash.svelte";
+  import Footer from "./lib/Footer.svelte";
   import { onMount } from "svelte";
   import { Api, ApiError } from "./lib/api";
   import { provideApp } from "./lib/context";
@@ -164,4 +165,5 @@
       {/if}
     </main>
   {/if}
+  {#if stage !== "loading"}<Footer />{/if}
 </div>

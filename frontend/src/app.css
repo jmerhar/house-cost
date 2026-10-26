@@ -558,6 +558,16 @@ tfoot td {
   min-width: 2px;
 }
 
+footer {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
 .page-error {
   white-space: pre-wrap;
   padding: 1rem;

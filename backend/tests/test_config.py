@@ -25,6 +25,14 @@ class TestBlankMeansUnset:
         monkeypatch.setenv("COOKIE_SECURE", "false")
         assert Settings().cookie_secure is False
 
+    def test_the_images_commit_is_read_and_blank_is_none(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("HOUSE_COST_REVISION", "0048894")
+        assert Settings().revision == "0048894"
+        monkeypatch.setenv("HOUSE_COST_REVISION", "")
+        assert Settings().revision is None
+
     def test_the_time_zone_is_read_from_tz(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("TZ", "Europe/Lisbon")
         assert Settings().timezone == "Europe/Lisbon"
