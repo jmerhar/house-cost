@@ -4,7 +4,11 @@ import { ADMIN, MEMBER, appFor, fakeApi, renderPage } from "../testing";
 import Navigation from "./Navigation.svelte";
 import { navigate } from "./router.svelte";
 
-afterEach(() => navigate("/", { replace: true }));
+afterEach(() => {
+  navigate("/", { replace: true });
+  localStorage.clear();
+  delete document.documentElement.dataset.theme;
+});
 
 function show(me = ADMIN, path = "/") {
   navigate(path, { replace: true });
@@ -69,6 +73,21 @@ describe("Navigation", () => {
 
     await fireEvent.click(screen.getByRole("button", { name: "More" }));
     expect(screen.getByRole("link", { name: "Reconciliation" })).toBeInTheDocument();
+  });
+
+  it("chooses light, dark or the device's own look from the account menu", async () => {
+    show();
+    await fireEvent.click(screen.getByRole("button", { name: "Lúcia" }));
+    expect(screen.getByRole("button", { name: "Same as this device" })).toHaveAttribute("aria-pressed", "true");
+
+    await fireEvent.click(screen.getByRole("button", { name: "Dark" }));
+    expect(screen.getByRole("button", { name: "Dark" })).toHaveAttribute("aria-pressed", "true");
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(localStorage.getItem("house-cost:theme")).toBe("dark");
+    expect(screen.getByRole("button", { name: "Lúcia" })).toHaveAttribute("aria-expanded", "true");
+
+    await fireEvent.click(screen.getByRole("button", { name: "Same as this device" }));
+    expect(document.documentElement.dataset.theme).toBeUndefined();
   });
 
   it("uses the name the app was given", () => {

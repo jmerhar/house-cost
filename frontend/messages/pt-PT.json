@@ -328,5 +328,9 @@
   "nav_main": "Menu principal",
   "setting_site_title": "Nome da aplicação",
   "setting_site_title_hint": "Aparece no menu, no separador do navegador e no ecrã principal do telemóvel. Deixe em branco para usar «{name}».",
-  "setting_site_title_save": "Guardar nome"
+  "setting_site_title_save": "Guardar nome",
+  "theme_label": "Aspeto",
+  "theme_auto": "Como neste dispositivo",
+  "theme_light": "Claro",
+  "theme_dark": "Escuro"
 }

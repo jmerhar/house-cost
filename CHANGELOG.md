@@ -19,6 +19,8 @@ what under **Upgrading**. Before 1.0, a minor release may.
   with the page; on a phone the pages are a tab bar along the bottom.
 - The app's name can be set under Settings; it is shown in the menu, on the login page, in the
   browser tab and on a phone's home screen. Left empty, it is "House costs" in each language.
+- Light and dark appearance can be chosen in the account menu, or left to follow the device; the
+  choice is kept on each browser.
 - The activity log shows each entry's kind of record as an icon, tinted for additions and
   deletions.
 - Icons throughout, from Lucide: in the menu, and on the actions on every page (add, upload,

@@ -26,8 +26,10 @@
   -webkit-text-size-adjust: 100%;
 }
 
+/* Dark colours: from the device's setting, unless the person chose light; or chosen outright.
+   The choice is kept on the browser (lib/theme.ts) and set on <html> before the page draws. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #17191b;
     --surface: #212427;
     --fg: #e8e6e1;
@@ -41,6 +43,29 @@
     --note-bg: #1f302b;
     --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%239aa0a5' stroke-width='1.6'/%3E%3C/svg%3E");
   }
+}
+
+:root[data-theme="dark"] {
+  --bg: #17191b;
+  --surface: #212427;
+  --fg: #e8e6e1;
+  --muted: #9aa0a5;
+  --accent: #6cbfa6;
+  --accent-fg: #10221c;
+  --line: #34383c;
+  --danger: #ef8a82;
+  --owed: #6cbfa6;
+  --owes: #ef8a82;
+  --note-bg: #1f302b;
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%239aa0a5' stroke-width='1.6'/%3E%3C/svg%3E");
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 * {
@@ -784,4 +809,34 @@ footer {
 
 .title-form .grow {
   flex: 1;
+}
+
+/* The account menu's light, dark and automatic choice. */
+.theme {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.45rem 0.7rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.theme-choices {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.menu-panel .theme-choices button {
+  width: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0;
+  justify-content: center;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.menu-panel .theme-choices button[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
 }

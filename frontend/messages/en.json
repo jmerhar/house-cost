@@ -328,5 +328,9 @@
   "nav_main": "Main menu",
   "setting_site_title": "App name",
   "setting_site_title_hint": "Shown in the menu, in the browser tab and on a phone's home screen. Leave blank to use ‘{name}’.",
-  "setting_site_title_save": "Save name"
+  "setting_site_title_save": "Save name",
+  "theme_label": "Appearance",
+  "theme_auto": "Same as this device",
+  "theme_light": "Light",
+  "theme_dark": "Dark"
 }

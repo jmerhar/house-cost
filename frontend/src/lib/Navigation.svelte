@@ -11,13 +11,17 @@
   import FileText from "@lucide/svelte/icons/file-text";
   import History from "@lucide/svelte/icons/history";
   import LogOut from "@lucide/svelte/icons/log-out";
+  import Monitor from "@lucide/svelte/icons/monitor";
+  import Moon from "@lucide/svelte/icons/moon";
   import Plug from "@lucide/svelte/icons/plug";
   import Receipt from "@lucide/svelte/icons/receipt";
   import Scale from "@lucide/svelte/icons/scale";
   import Settings from "@lucide/svelte/icons/settings";
+  import Sun from "@lucide/svelte/icons/sun";
   import User from "@lucide/svelte/icons/user";
   import { useApp } from "./context";
   import { route } from "./router.svelte";
+  import { chooseTheme, chosenTheme, type Theme } from "./theme";
   import { m } from "../paraglide/messages.js";
 
   let { onLogOut }: { onLogOut: () => void } = $props();
@@ -43,6 +47,18 @@
   }
 
   let open = $state<"more" | "account" | null>(null);
+
+  const THEMES = [
+    ["auto", m.theme_auto, Monitor],
+    ["light", m.theme_light, Sun],
+    ["dark", m.theme_dark, Moon],
+  ] as const;
+  let theme = $state<Theme>(chosenTheme());
+
+  function pick(choice: Theme): void {
+    theme = choice;
+    chooseTheme(choice);
+  }
 
   // A menu closes when its page opens, on Escape, and on a click anywhere outside it.
   $effect(() => {
@@ -98,6 +114,16 @@
           {#if app.isAdmin}
             <li><a href="/admin" aria-current={current("/admin") ? "page" : undefined}><Settings />{m.nav_admin()}</a></li>
           {/if}
+          <li class="theme" role="group" aria-label={m.theme_label()}>
+            <span>{m.theme_label()}</span>
+            <span class="theme-choices">
+              {#each THEMES as [value, label, Icon] (value)}
+                <button type="button" aria-pressed={theme === value} aria-label={label()} title={label()} onclick={() => pick(value)}>
+                  <Icon />
+                </button>
+              {/each}
+            </span>
+          </li>
           <li><button type="button" onclick={onLogOut}><LogOut />{m.nav_log_out()}</button></li>
         </ul>
       {/if}

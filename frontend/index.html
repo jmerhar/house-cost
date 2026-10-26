@@ -17,6 +17,14 @@
     <title>House costs</title>
     <!-- An interface that fails to start says why, rather than staying blank. Once it has drawn,
          errors are left to it. -->
+    <!-- The theme chosen on this browser (lib/theme.ts), set before anything is drawn so a dark
+         choice never flashes light. -->
+    <script>
+      try {
+        var theme = localStorage.getItem("house-cost:theme");
+        if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+      } catch (e) {}
+    </script>
     <script>
       (function () {
         function show(text) {
