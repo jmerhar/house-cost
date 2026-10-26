@@ -386,6 +386,11 @@ describe("Activity", () => {
     expect(first).toHaveTextContent("Tiago added a bill");
     expect(within(first).getByRole("link", { name: "a bill" })).toHaveAttribute("href", "/bills/7");
     expect(first).toHaveTextContent("MEO Energia · €287.59");
+    const icons = screen.getAllByRole("listitem").map((item) => item.querySelector(".entry-icon")!);
+    expect(icons[0]).toHaveClass("create");
+    expect(icons[0].querySelector("svg")).toHaveClass("lucide-receipt");
+    expect(icons[1]).toHaveClass("delete");
+    expect(icons[2].querySelector("svg")).toHaveClass("lucide-activity");
     expect(screen.getAllByRole("listitem")[1]).toHaveTextContent("Tiago deleted a bill");
     expect(screen.getAllByRole("listitem")[2]).toHaveTextContent("Someone frobnicate widget");
     expect(screen.getAllByRole("link")).toHaveLength(1);

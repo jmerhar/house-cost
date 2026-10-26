@@ -1,5 +1,18 @@
 <script lang="ts">
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
+  import Activity from "@lucide/svelte/icons/activity";
+  import ArrowLeftRight from "@lucide/svelte/icons/arrow-left-right";
+  import Building2 from "@lucide/svelte/icons/building-2";
+  import CalendarCheck from "@lucide/svelte/icons/calendar-check";
+  import FileText from "@lucide/svelte/icons/file-text";
+  import FingerprintPattern from "@lucide/svelte/icons/fingerprint-pattern";
+  import House from "@lucide/svelte/icons/house";
+  import Percent from "@lucide/svelte/icons/percent";
+  import Plug from "@lucide/svelte/icons/plug";
+  import Receipt from "@lucide/svelte/icons/receipt";
+  import Settings from "@lucide/svelte/icons/settings";
+  import Tag from "@lucide/svelte/icons/tag";
+  import User from "@lucide/svelte/icons/user";
   import { onMount } from "svelte";
   import type { AuditEntry } from "../lib/api";
   import { useApp } from "../lib/context";
@@ -53,6 +66,22 @@
     passkey: m.entity_passkey,
   };
 
+  /** The icon of each kind of record, as the menu shows the pages they live on. */
+  const ICONS: Record<string, typeof Receipt> = {
+    bill: Receipt,
+    settlement: ArrowLeftRight,
+    rule: Percent,
+    household: House,
+    person: User,
+    category: Tag,
+    settings: Settings,
+    reconciliation: CalendarCheck,
+    supplier: Building2,
+    service: Plug,
+    document: FileText,
+    passkey: FingerprintPattern,
+  };
+
   /** A few words on what the record was: a bill's supplier and total, a person's name. */
   function detail(entry: AuditEntry): string {
     const record = (entry.after ?? entry.before ?? {}) as Record<string, unknown>;
@@ -81,7 +110,9 @@
 {:else}
   <ul class="list">
     {#each entries as entry (entry.id)}
-      <li>
+      {@const Icon = ICONS[entry.entity] ?? Activity}
+      <li class="entry">
+        <span class="entry-icon {entry.action}"><Icon /></span>
         <span class="what">
           <span>
             <strong>{entry.person_name ?? m.activity_someone()}</strong>
