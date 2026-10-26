@@ -1,6 +1,7 @@
 <script lang="ts">
   import Flash from "./lib/Flash.svelte";
   import Footer from "./lib/Footer.svelte";
+  import PasskeyOffer from "./lib/PasskeyOffer.svelte";
   import { onMount } from "svelte";
   import { Api, ApiError } from "./lib/api";
   import { provideApp } from "./lib/context";
@@ -133,6 +134,7 @@
       </nav>
     </header>
     <main>
+      <PasskeyOffer />
       <Flash />
       {#if route.path === "/"}
         <Balances />

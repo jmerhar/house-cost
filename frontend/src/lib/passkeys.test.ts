@@ -1,18 +1,63 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
+const cancelCeremony = vi.fn();
 vi.mock("@simplewebauthn/browser", () => ({
   browserSupportsWebAuthn: () => true,
+  browserSupportsWebAuthnAutofill: async () => true,
+  platformAuthenticatorIsAvailable: async () => false,
   startRegistration: vi.fn(async ({ optionsJSON }) => ({ made: optionsJSON.challenge })),
-  startAuthentication: vi.fn(async ({ optionsJSON }) => ({ signed: optionsJSON.challenge })),
+  startAuthentication: vi.fn(async ({ optionsJSON, useBrowserAutofill }) => ({
+    signed: optionsJSON.challenge,
+    autofill: useBrowserAutofill,
+  })),
+  WebAuthnAbortService: { cancelCeremony: () => cancelCeremony() },
 }));
 
-const { browserAuthenticator, deviceName, dismissed } = await import("./passkeys");
+const {
+  browserAuthenticator,
+  declinePasskeyOffer,
+  deviceName,
+  dismissed,
+  passkeyOfferDeclined,
+  passkeyUsedHere,
+  rememberPasskeyUsed,
+} = await import("./passkeys");
+
+afterEach(() => {
+  localStorage.clear();
+  vi.restoreAllMocks();
+});
 
 describe("browserAuthenticator", () => {
   it("hands the server's options to the browser's ceremonies", async () => {
     expect(browserAuthenticator.supported()).toBe(true);
+    expect(await browserAuthenticator.autofill()).toBe(true);
+    expect(await browserAuthenticator.builtIn()).toBe(false);
     expect(await browserAuthenticator.register({ challenge: "abc" })).toEqual({ made: "abc" });
-    expect(await browserAuthenticator.authenticate({ challenge: "xyz" })).toEqual({ signed: "xyz" });
+    expect(await browserAuthenticator.authenticate({ challenge: "xyz" })).toEqual({ signed: "xyz", autofill: false });
+    expect(await browserAuthenticator.authenticate({ challenge: "xyz" }, true)).toEqual({ signed: "xyz", autofill: true });
+    browserAuthenticator.cancel();
+    expect(cancelCeremony).toHaveBeenCalledOnce();
+  });
+});
+
+describe("what this browser remembers", () => {
+  it("that a passkey was used here, and that the offer was turned down", () => {
+    expect([passkeyUsedHere(), passkeyOfferDeclined()]).toEqual([false, false]);
+    rememberPasskeyUsed();
+    declinePasskeyOffer();
+    expect([passkeyUsedHere(), passkeyOfferDeclined()]).toEqual([true, true]);
+  });
+
+  it("nothing, without failing, where storage is refused", () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("denied");
+    });
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("denied");
+    });
+    rememberPasskeyUsed();
+    expect(passkeyUsedHere()).toBe(false);
   });
 });
 

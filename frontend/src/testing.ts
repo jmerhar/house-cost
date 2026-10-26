@@ -145,7 +145,14 @@ export function fakeAuthenticator(answer: unknown = { id: "credential" }, error?
     if (error) throw error;
     return answer;
   };
-  return { supported: () => true, register: respond, authenticate: respond };
+  return {
+    supported: () => true,
+    autofill: async () => false,
+    builtIn: async () => true,
+    register: respond,
+    authenticate: respond,
+    cancel: () => undefined,
+  };
 }
 
 /** The app's state for a logged-in ``me``, with the agreement's households and categories. */

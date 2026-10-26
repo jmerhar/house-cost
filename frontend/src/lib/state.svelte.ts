@@ -13,6 +13,8 @@ export class AppState {
   /** A message for the page an action leads to, such as "Bill saved." after saving; it is shown
    *  on that page only, and cleared when the person moves on. */
   flash = $state<{ text: string; problem: boolean; path: string } | null>(null);
+  /** Whether to offer setting up a passkey, after a password login on a device that can. */
+  offerPasskey = $state(false);
 
   constructor(
     readonly api: Api,
