@@ -1,4 +1,7 @@
 <script lang="ts">
+  import ChevronDown from "@lucide/svelte/icons/chevron-down";
+  import Plus from "@lucide/svelte/icons/plus";
+  import Upload from "@lucide/svelte/icons/upload";
   import { onMount } from "svelte";
   import type { Bill } from "../lib/api";
   import { useApp } from "../lib/context";
@@ -92,10 +95,10 @@
   <h1>{m.bills_title()}</h1>
   <span class="row-actions">
     <label class="button secondary" aria-busy={reading}>
-      {reading ? m.reading_file() : m.bill_read()}
+      <Upload />{reading ? m.reading_file() : m.bill_read()}
       <input type="file" accept="application/pdf,image/*" class="file-input" disabled={reading} onchange={readFile} />
     </label>
-    <a class="button" href="/bills/new">{m.bill_new()}</a>
+    <a class="button" href="/bills/new"><Plus />{m.bill_new()}</a>
   </span>
 </div>
 
@@ -157,6 +160,6 @@
     {/each}
   </ul>
   {#if bills.length < total}
-    <button type="button" class="secondary" onclick={() => load(true)}>{m.show_more()}</button>
+    <button type="button" class="secondary" onclick={() => load(true)}><ChevronDown />{m.show_more()}</button>
   {/if}
 {/if}

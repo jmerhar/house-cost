@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Check from "@lucide/svelte/icons/check";
   import { onMount } from "svelte";
   import type { Balances } from "../lib/api";
   import { useApp } from "../lib/context";
@@ -74,7 +75,7 @@
             class="button secondary"
             href={`/settlements?from=${transfer.from_id}&to=${transfer.to_id}&amount=${transfer.amount_cents}`}
           >
-            {m.record_transfer()}
+            <Check />{m.record_transfer()}
           </a>
         </li>
       {/each}

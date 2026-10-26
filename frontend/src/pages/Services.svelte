@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Pencil from "@lucide/svelte/icons/pencil";
+  import Plus from "@lucide/svelte/icons/plus";
   import { onMount } from "svelte";
   import type { Service, ServiceIn, Supplier, SupplierIn } from "../lib/api";
   import { useApp } from "../lib/context";
@@ -158,7 +160,7 @@
 
 <div class="heading">
   <h1>{m.services_title()}</h1>
-  {#if !supplierForm}<button type="button" onclick={() => editSupplier(null)}>{m.supplier_add()}</button>{/if}
+  {#if !supplierForm}<button type="button" onclick={() => editSupplier(null)}><Plus />{m.supplier_add()}</button>{/if}
 </div>
 <p class="muted">{m.services_intro()}</p>
 {#if error}<p role="alert">{error}</p>{/if}
@@ -242,8 +244,8 @@
           {#if !supplier.active}<small class="tag">{m.inactive()}</small>{/if}
         </h2>
         <span class="row-actions">
-          <button type="button" class="link" onclick={() => editService(null, supplier)}>{m.service_add()}</button>
-          <button type="button" class="link" onclick={() => editSupplier(supplier)}>{m.edit()}</button>
+          <button type="button" class="link" onclick={() => editService(null, supplier)}><Plus />{m.service_add()}</button>
+          <button type="button" class="link" onclick={() => editSupplier(supplier)}><Pencil />{m.edit()}</button>
         </span>
       </div>
       {#if supplier.nif}<p class="muted">{m.nif_value({ nif: supplier.nif })}</p>{/if}
@@ -272,7 +274,7 @@
             </span>
             <span class="row-actions">
               <a href={`/documents?service=${service.id}`}>{m.nav_documents()}</a>
-              <button type="button" class="link" onclick={() => editService(service)}>{m.edit()}</button>
+              <button type="button" class="link" onclick={() => editService(service)}><Pencil />{m.edit()}</button>
             </span>
           </li>
         {/each}

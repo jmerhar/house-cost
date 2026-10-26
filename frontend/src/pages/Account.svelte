@@ -1,4 +1,8 @@
 <script lang="ts">
+  import FingerprintPattern from "@lucide/svelte/icons/fingerprint-pattern";
+  import LogOut from "@lucide/svelte/icons/log-out";
+  import Send from "@lucide/svelte/icons/send";
+  import Trash2 from "@lucide/svelte/icons/trash-2";
   import { onMount } from "svelte";
   import type { Passkey, SessionOut } from "../lib/api";
   import { useApp } from "../lib/context";
@@ -219,7 +223,7 @@
     <div class="actions">
       <button type="submit" disabled={notifyBusy}>{notifyBusy ? m.saving() : m.notify_save()}</button>
       {#if app.me?.email || app.me?.phone}
-        <button type="button" class="secondary" onclick={sendTest}>{m.notify_test()}</button>
+        <button type="button" class="secondary" onclick={sendTest}><Send />{m.notify_test()}</button>
       {/if}
     </div>
   </form>
@@ -236,14 +240,14 @@
           {passkey.last_used_at ? m.session_last_seen({ when: moment(passkey.last_used_at) }) : m.passkey_unused()}
         </small>
       </span>
-      <button type="button" class="link" onclick={() => removePasskey(passkey)}>{m.passkey_remove()}</button>
+      <button type="button" class="link" onclick={() => removePasskey(passkey)}><Trash2 />{m.passkey_remove()}</button>
     </li>
   {:else}
     <li class="muted">{m.passkeys_empty()}</li>
   {/each}
 </ul>
 {#if app.authenticator.supported()}
-  <button type="button" class="secondary" onclick={addPasskey}>{m.passkey_add()}</button>
+  <button type="button" class="secondary" onclick={addPasskey}><FingerprintPattern />{m.passkey_add()}</button>
 {/if}
 
 <h2>{m.sessions_title()}</h2>
@@ -255,7 +259,7 @@
         <small>{m.session_last_seen({ when: moment(session.last_seen_at) })}</small>
       </span>
       {#if !session.current}
-        <button type="button" class="link" onclick={() => end(session)}>{m.session_end()}</button>
+        <button type="button" class="link" onclick={() => end(session)}><LogOut />{m.session_end()}</button>
       {/if}
     </li>
   {/each}

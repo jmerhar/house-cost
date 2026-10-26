@@ -1,4 +1,7 @@
 <script lang="ts">
+  import Pencil from "@lucide/svelte/icons/pencil";
+  import Plus from "@lucide/svelte/icons/plus";
+  import Trash2 from "@lucide/svelte/icons/trash-2";
   import { onMount } from "svelte";
   import type { Reconciliation, ReconciliationIn } from "../lib/api";
   import { useApp } from "../lib/context";
@@ -103,7 +106,7 @@
 
 <div class="heading">
   <h1>{m.reconciliations_title()}</h1>
-  {#if app.isAdmin && !open}<button type="button" onclick={() => edit(null)}>{m.reconciliation_new()}</button>{/if}
+  {#if app.isAdmin && !open}<button type="button" onclick={() => edit(null)}><Plus />{m.reconciliation_new()}</button>{/if}
 </div>
 <p class="muted">{m.setting_reconciliation_hint()}</p>
 {#if error}<p role="alert">{error}</p>{/if}
@@ -147,7 +150,7 @@
       <button type="submit">{m.save()}</button>
       <button type="button" class="secondary" onclick={() => (open = false)}>{m.cancel()}</button>
       {#if editing}
-        <button type="button" class="danger" onclick={() => editing && discard(editing)}>{m.delete()}</button>
+        <button type="button" class="danger" onclick={() => editing && discard(editing)}><Trash2 />{m.delete()}</button>
       {/if}
     </div>
   </form>
@@ -190,7 +193,7 @@
       </div>
       {#if app.isAdmin && reconciliation.status === "draft"}
         <div class="actions">
-          <button type="button" class="secondary" onclick={() => edit(reconciliation)}>{m.edit()}</button>
+          <button type="button" class="secondary" onclick={() => edit(reconciliation)}><Pencil />{m.edit()}</button>
           <button type="button" class="danger" onclick={() => close(reconciliation)}>{m.reconciliation_close()}</button>
         </div>
       {/if}
