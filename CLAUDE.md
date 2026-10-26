@@ -76,6 +76,7 @@ frontend/          Svelte 5, Vite, TypeScript, Paraglide
 bruno/             a request, with assertions, for every endpoint (bin/test-bruno.sh)
 bin/               every script the Makefile and CI run
 CHANGELOG.md       every release's notes; new work goes under `## Unreleased`
+TODO/              planned work not started, one file per item; delete a file when it is done
 ```
 
 ## Things worth knowing before changing anything
