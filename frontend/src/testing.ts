@@ -7,6 +7,7 @@ import { render } from "@testing-library/svelte";
 import type { Component } from "svelte";
 import { Api, type Bill, type Category, type Household, type Me, type Person, type Rule } from "./lib/api";
 import { contextFor } from "./lib/context";
+import type { Authenticator } from "./lib/passkeys";
 import { AppState } from "./lib/state.svelte";
 
 export type Call = { method: string; path: string; query: URLSearchParams; body: unknown };
@@ -130,9 +131,18 @@ export function aBill(overrides: Partial<Bill> = {}): Bill {
   };
 }
 
+/** An authenticator that answers every ceremony with ``answer``, or fails with ``error``. */
+export function fakeAuthenticator(answer: unknown = { id: "credential" }, error?: Error): Authenticator {
+  const respond = async () => {
+    if (error) throw error;
+    return answer;
+  };
+  return { supported: () => true, register: respond, authenticate: respond };
+}
+
 /** The app's state for a logged-in ``me``, with the agreement's households and categories. */
-export function appFor(api: Api, me: Me = ADMIN): AppState {
-  const app = new AppState(api);
+export function appFor(api: Api, me: Me = ADMIN, authenticator?: Authenticator): AppState {
+  const app = new AppState(api, authenticator);
   app.me = me;
   app.households = HOUSEHOLDS;
   app.categories = CATEGORIES;

@@ -4,6 +4,14 @@ Every release of House costs, newest first. The image is `ghcr.io/jmerhar/house-
 follow semantic versioning: a major release needs something done by whoever runs it, and says
 what under **Upgrading**. Before 1.0, a minor release may.
 
+## Unreleased
+
+### Added
+
+- Passkeys: log in with a phone's or computer's fingerprint, face or screen lock instead of a
+  password. Add them on the account page; set `PUBLIC_URL` so that passkeys made behind a reverse
+  proxy belong to the address people use.
+
 ## 0.1.0 — 2026-10-26
 
 ### Added

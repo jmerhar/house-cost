@@ -19,6 +19,7 @@ dependencies = [
     "argon2-cffi>=25.1",
     # Multipart form parsing, which FastAPI's file uploads need.
     "python-multipart>=0.0.20",
+    "webauthn>=3.0,<4",
 ]
 
 [project.optional-dependencies]

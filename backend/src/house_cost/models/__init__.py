@@ -20,7 +20,7 @@ from .ledger import (
     SplitRule,
     SplitRuleShare,
 )
-from .people import Household, Person, Role, Session
+from .people import Household, Passkey, Person, Role, Session
 
 __all__ = [
     "WHOLE",
@@ -34,6 +34,7 @@ __all__ = [
     "BillLineShare",
     "Category",
     "Household",
+    "Passkey",
     "Person",
     "Reconciliation",
     "ReconciliationShare",

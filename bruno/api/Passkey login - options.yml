@@ -1,0 +1,34 @@
+info:
+  name: Passkey login - options
+  type: http
+  seq: 24
+
+http:
+  method: POST
+  url: "{{base_url}}/api/auth/passkey-login/options"
+  headers:
+    - name: X-Requested-With
+      value: house-cost
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.rpId
+      operator: eq
+      value: "127.0.0.1"
+    - expression: res.body.challenge
+      operator: isString
+
+docs:
+  content: |-
+    The options a browser hands its authenticator to log in with a passkey. The rest of the
+    ceremony needs a real authenticator; the backend's tests drive it with a software one.
+  type: text/markdown
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0

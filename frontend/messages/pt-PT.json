@@ -185,5 +185,18 @@
   "sessions_title": "Sessões iniciadas em",
   "session_this": "Este navegador",
   "session_end": "Terminar essa sessão",
-  "session_last_seen": "Última utilização: {when}"
+  "session_last_seen": "Última utilização: {when}",
+  "login_passkey": "Entrar com uma chave de acesso",
+  "passkeys_title": "Chaves de acesso",
+  "passkeys_intro": "Entre com a impressão digital, o reconhecimento facial ou o bloqueio de ecrã deste dispositivo, em vez da palavra-passe.",
+  "passkey_add": "Adicionar uma chave de acesso neste dispositivo",
+  "passkey_label": "Dê um nome a esta chave de acesso",
+  "passkey_added": "Chave de acesso adicionada. Da próxima vez, entre com ela.",
+  "passkey_remove": "Remover",
+  "confirm_remove_passkey": "Remover esta chave de acesso? Deixará de poder entrar com ela.",
+  "passkey_unused": "Ainda não utilizada",
+  "error_passkey_rejected": "Não foi possível verificar a chave de acesso.",
+  "error_passkey_unknown": "Esta chave de acesso não está associada a nenhuma conta.",
+  "error_passkey_expired": "Demorou demasiado tempo. Tente novamente.",
+  "error_passkey_exists": "Essa chave de acesso já está associada à sua conta."
 }

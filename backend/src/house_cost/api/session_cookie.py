@@ -11,7 +11,7 @@ from .deps import SESSION_COOKIE
 from .schemas import Me
 
 
-def _secure(request: Request, settings: Settings) -> bool:
+def is_secure(request: Request, settings: Settings) -> bool:
     """Whether the cookie gets the Secure flag: as configured, else when the request is HTTPS."""
     if settings.cookie_secure is not None:
         return settings.cookie_secure
@@ -30,7 +30,7 @@ def issue(response: Response, request: Request, settings: Settings, token: str) 
         max_age=int(SESSION_LIFETIME.total_seconds()),
         httponly=True,
         samesite="lax",
-        secure=_secure(request, settings),
+        secure=is_secure(request, settings),
         path="/",
     )
 
@@ -38,7 +38,7 @@ def issue(response: Response, request: Request, settings: Settings, token: str) 
 def clear(response: Response, request: Request, settings: Settings) -> None:
     """Remove the session token from the browser."""
     response.delete_cookie(
-        SESSION_COOKIE, httponly=True, samesite="lax", secure=_secure(request, settings), path="/"
+        SESSION_COOKIE, httponly=True, samesite="lax", secure=is_secure(request, settings), path="/"
     )
 
 

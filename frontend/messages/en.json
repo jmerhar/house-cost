@@ -185,5 +185,18 @@
   "sessions_title": "Logged in on",
   "session_this": "This browser",
   "session_end": "Log out there",
-  "session_last_seen": "Last used {when}"
+  "session_last_seen": "Last used {when}",
+  "login_passkey": "Log in with a passkey",
+  "passkeys_title": "Passkeys",
+  "passkeys_intro": "Log in with this device's fingerprint, face recognition or screen lock instead of your password.",
+  "passkey_add": "Add a passkey on this device",
+  "passkey_label": "Name this passkey",
+  "passkey_added": "Passkey added. Next time, log in with it.",
+  "passkey_remove": "Remove",
+  "confirm_remove_passkey": "Remove this passkey? It will no longer log you in.",
+  "passkey_unused": "Not used yet",
+  "error_passkey_rejected": "The passkey could not be verified.",
+  "error_passkey_unknown": "This passkey is not linked to any account.",
+  "error_passkey_expired": "That took too long. Try again.",
+  "error_passkey_exists": "That passkey is already on your account."
 }

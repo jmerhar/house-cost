@@ -20,6 +20,7 @@ from .routers import (
     categories,
     health,
     overview,
+    passkeys,
     people,
     reconciliations,
     settlements,
@@ -36,8 +37,9 @@ IMMUTABLE = "public, max-age=31536000, immutable"
 #: Methods that change something, which only the app's own interface may send.
 WRITES = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
-#: Routers open without a session: the health check, first-run setup, and logging in.
-PUBLIC_ROUTERS = (health, setup, account)
+#: Routers open without a session: the health check, first-run setup, and logging in. Their
+#: routes that act on an account ask for the session themselves.
+PUBLIC_ROUTERS = (health, setup, account, passkeys)
 #: Every other router, mounted so that each of its routes needs a session.
 PROTECTED_ROUTERS = (people, categories, bills, settlements, attachments, overview, reconciliations)
 

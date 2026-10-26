@@ -21,6 +21,7 @@ everyone can see what they have paid, what they owe and to whom.
 - **Records every change**: who added, corrected or deleted what, visible to everyone.
 - **Optional annual reconciliation**: split a closed period's bills again by shares agreed at its
   end, and settle the difference.
+- **Passkeys**: log in with a fingerprint, face or screen lock instead of a password.
 - **In English and Portuguese**, on a phone or a computer.
 
 ## Running it

@@ -1,11 +1,11 @@
-"""Households, the people who log in, and their sessions."""
+"""Households, the people who log in, their sessions and their passkeys."""
 
 from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String
+from sqlalchemy import JSON, Boolean, ForeignKey, Integer, LargeBinary, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, TimestampMixin, UtcDateTime, utcnow
@@ -48,6 +48,11 @@ class Person(TimestampMixin, Base):
     language: Mapped[str | None] = mapped_column(String(10), nullable=True)
     household_id: Mapped[int] = mapped_column(ForeignKey("household.id", ondelete="RESTRICT"))
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+    #: The random handle passkeys know this person by, made when their first passkey is added.
+    #: Random rather than the id, so an authenticator holds nothing that identifies them.
+    webauthn_handle: Mapped[bytes | None] = mapped_column(
+        LargeBinary(64), nullable=True, unique=True
+    )
 
     household: Mapped[Household] = relationship(back_populates="people", lazy="joined")
 
@@ -69,5 +74,24 @@ class Session(Base):
     last_seen_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
     expires_at: Mapped[datetime] = mapped_column(UtcDateTime)
     user_agent: Mapped[str] = mapped_column(String(300), default="")
+
+    person: Mapped[Person] = relationship(lazy="joined")
+
+
+class Passkey(Base):
+    """A passkey a person logs in with instead of their password."""
+
+    __tablename__ = "passkey"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    person_id: Mapped[int] = mapped_column(ForeignKey("person.id", ondelete="CASCADE"), index=True)
+    credential_id: Mapped[bytes] = mapped_column(LargeBinary(1024), unique=True)
+    public_key: Mapped[bytes] = mapped_column(LargeBinary(2048))
+    #: The authenticator's signature counter; one that goes backwards betrays a cloned key.
+    sign_count: Mapped[int] = mapped_column(Integer, default=0)
+    transports: Mapped[list[str]] = mapped_column(JSON, default=list)
+    label: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+    last_used_at: Mapped[datetime | None] = mapped_column(UtcDateTime, nullable=True)
 
     person: Mapped[Person] = relationship(lazy="joined")
