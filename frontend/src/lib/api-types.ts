@@ -1724,12 +1724,17 @@ export interface components {
          *     read where the others found nothing.
          */
         Proposal: {
+            contract: components["schemas"]["ProposedContract"];
             /** Date */
             date: string | null;
             /** Due Date */
             due_date: string | null;
             /** Duplicate Bill Id */
             duplicate_bill_id: number | null;
+            /** Identifiers */
+            identifiers: {
+                [key: string]: string;
+            };
             /** Invoice Number */
             invoice_number: string | null;
             /** Issuer Nif */
@@ -1762,6 +1767,21 @@ export interface components {
             total_cents: number | null;
             /** Warnings */
             warnings: string[];
+        };
+        /**
+         * ProposedContract
+         * @description What a bill says about its contract, for a service set up from it: when it ends or renews,
+         *     whether it renews by itself, its minimum term, and how often it bills.
+         */
+        ProposedContract: {
+            /** Billed Every Days */
+            billed_every_days: number | null;
+            /** Ends On */
+            ends_on: string | null;
+            /** Lock In Until */
+            lock_in_until: string | null;
+            /** Renews Automatically */
+            renews_automatically: boolean | null;
         };
         /** ProposedLine */
         ProposedLine: {

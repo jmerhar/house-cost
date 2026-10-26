@@ -252,7 +252,7 @@
   "read_ocr": "Some of it was read from a scan, so check the amounts carefully.",
   "read_total_mismatch": "The total printed on the page differs from the one in the QR code; the QR code's is used.",
   "read_lines_dropped": "The bill's items did not add up to its total, so they were left out. Add them by hand.",
-  "read_unknown_supplier": "The supplier with NIF {nif} is not on file yet. You can add it under Services.",
+  "read_unknown_supplier": "The supplier with NIF {nif} is not on file yet. Enter its name above, and saving adds it to your suppliers.",
   "read_duplicate": "This bill may already have been entered.",
   "read_duplicate_open": "View it",
   "service_changes_title": "Update the service as well",
@@ -332,5 +332,10 @@
   "theme_label": "Appearance",
   "theme_auto": "Same as this device",
   "theme_light": "Light",
-  "theme_dark": "Dark"
+  "theme_dark": "Dark",
+  "read_new_supplier": "Saving adds {name} to your suppliers.",
+  "service_from_bill": "Also add the service",
+  "field_service_name": "Service name",
+  "service_references": "References: {list}",
+  "setup_from_bill_failed": "The bill was saved, but its supplier or service could not be added. Add them under Services."
 }

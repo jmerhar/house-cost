@@ -123,6 +123,13 @@ def meo(text: str) -> Findings:
     return found
 
 
+#: The name of each supplier whose bills are read in full, by NIF: proposed for a bill from one
+#: that is not on file yet, which saving the bill then adds.
+NAMES: dict[str, str] = {
+    "506743357": "MEO Energia",
+    "504615947": "MEO",
+}
+
 #: The parser for each supplier whose bills are read in full, by NIF.
 BY_NIF: dict[str, Callable[[str], Findings]] = {
     "506743357": meo_energia,

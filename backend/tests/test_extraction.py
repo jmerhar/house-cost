@@ -270,6 +270,22 @@ class TestPipeline:
         assert result.findings.lines == [("Package", 1838), ("Mobile", 61), ("Activation", 99)]
         assert result.sources["lines"] == "text"
 
+    def test_a_supplier_with_a_parser_is_read_in_full_before_it_is_on_file(
+        self, tmp_path: Path
+    ) -> None:
+        result = extract(_file(tmp_path, meo_bill()), "application/pdf", set())
+
+        assert (result.issuer_nif, result.supplier_name) == ("504615947", "MEO")
+        assert result.findings.lines == [("Package", 1838), ("Mobile", 61), ("Activation", 99)]
+
+    def test_a_supplier_on_file_comes_before_one_only_known_to_the_parsers(
+        self, tmp_path: Path
+    ) -> None:
+        data = pdf(["MEO NIPC 504615947", "Faturado por 501234567", "Total a pagar: 5,00"])
+        result = extract(_file(tmp_path, data), "application/pdf", {"501234567"})
+
+        assert (result.issuer_nif, result.supplier_name) == ("501234567", None)
+
     def test_an_unknown_suppliers_bill_gets_the_generic_parser(self, tmp_path: Path) -> None:
         result = extract(
             _file(tmp_path, pdf(["Fatura N.o: FT 9/9 de 01/02/2027", "Total a pagar: 12,00"])),

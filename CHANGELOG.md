@@ -19,6 +19,10 @@ what under **Upgrading**. Before 1.0, a minor release may.
   with the page; on a phone the pages are a tab bar along the bottom.
 - The app's name can be set under Settings; it is shown in the menu, on the login page, in the
   browser tab and on a phone's home screen. Left empty, it is "House costs" in each language.
+- A first bill sets things up: a bill from MEO or MEO Energia reads in full before the supplier is
+  on file, saving it adds the supplier (with its NIF), and the form offers to add the service too,
+  filled in from the bill (its references, end or renewal date, minimum term and how often it
+  bills), then links the bill to it.
 - Light and dark appearance can be chosen in the account menu, or left to follow the device; the
   choice is kept on each browser.
 - The activity log shows each entry's kind of record as an icon, tinted for additions and

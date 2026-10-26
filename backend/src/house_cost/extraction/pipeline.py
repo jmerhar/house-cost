@@ -11,7 +11,7 @@ from PIL import Image, UnidentifiedImageError
 
 from ..claude import BillRead, cents_or_none, day_or_none
 from . import atcud, ocr
-from .parsers import BY_NIF, Findings, parse
+from .parsers import BY_NIF, NAMES, Findings, parse
 from .text import nifs
 
 #: Pages rendered for the QR code (it is on the first page or two) and read by OCR.
@@ -83,14 +83,26 @@ def _ocr(image: Image.Image) -> str:
 def extract(path: Path, content_type: str, known_nifs: set[str]) -> Extraction:
     """Read the bill at ``path``.
 
-    ``known_nifs`` are the suppliers on file: without a QR code, the first of them the text
-    mentions is taken to be the issuer, which picks the parser.
+    ``known_nifs`` are the suppliers on file. Without a QR code, the issuer is the first of them
+    the text mentions, or else a supplier the app has a parser for, so that a bill from one reads
+    in full before the supplier is on file.
     """
     text, text_source, qr_images = _text(path, content_type)
     code = atcud.find(qr_images) if qr_images else None
-    issuer = code.issuer_nif if code else next(iter(sorted(nifs(text) & known_nifs)), None)
+    printed = nifs(text)
+    issuer = (
+        code.issuer_nif
+        if code
+        else next(iter(sorted(printed & known_nifs)), None)
+        or next(iter(sorted(printed & NAMES.keys())), None)
+    )
     findings = parse(text, issuer) if text.strip() else Findings()
-    extraction = Extraction(findings=findings, issuer_nif=issuer, text_source=text_source)
+    extraction = Extraction(
+        findings=findings,
+        issuer_nif=issuer,
+        text_source=text_source,
+        supplier_name=NAMES.get(issuer or ""),
+    )
     page = "ocr" if text_source == "ocr" else "text"
     for name in ("invoice_number", "on", "total_cents", "period_start", "period_end", "due_date",
                  "ends_on", "lock_in_until"):  # fmt: skip

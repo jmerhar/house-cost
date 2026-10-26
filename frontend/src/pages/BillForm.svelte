@@ -48,6 +48,15 @@
   /** The contract changes the read bill reported, and whether to apply each on saving. */
   let changes = $state<{ field: "ends_on" | "renews_automatically" | "lock_in_until"; value: string | boolean; apply: boolean }[]>([]);
   let previews = $state<Record<number, Preview>>({});
+
+  // A read bill without a service offers to set one up from what the bill says, with its
+  // supplier added too when it is not on file, so one upload leaves all three in place.
+  let addService = $state(true);
+  let serviceName = $state("");
+  const offerService = $derived(draft !== null && serviceId === "");
+  const newSupplier = $derived(draft !== null && draft.proposal.supplier_id === null && supplier.trim() !== "");
+  /** The name a new service gets when none is typed: its category, else its supplier. */
+  const suggestedServiceName = $derived(lines[0]?.categoryId ? app.category(Number(lines[0].categoryId)) : supplier.trim());
   let busy = $state(false);
   let error = $state("");
 
@@ -209,6 +218,47 @@
     };
   }
 
+  /** After a read bill is saved: add its supplier if it is not on file, and the service it was
+   *  offered, then link the bill to that service. Whether all of that went through. */
+  async function setUpFromBill(billId: number, payload: BillIn): Promise<boolean> {
+    if (!draft) return true;
+    const read = draft.proposal;
+    const categoryId = payload.lines[0]?.category_id ?? null;
+    try {
+      let supplierId = read.supplier_id;
+      if (newSupplier) {
+        const added = await app.api.createSupplier({
+          name: supplier.trim(),
+          nif: read.issuer_nif,
+          default_category_id: categoryId,
+          notes: "",
+          active: true,
+        });
+        supplierId = added.id;
+      }
+      if (offerService && addService && supplierId !== null) {
+        const service = await app.api.createService({
+          supplier_id: supplierId,
+          name: serviceName.trim() || suggestedServiceName,
+          identifiers: read.identifiers,
+          default_category_id: categoryId,
+          starts_on: null,
+          ends_on: read.contract.ends_on,
+          renews_automatically: read.contract.renews_automatically ?? true,
+          lock_in_until: read.contract.lock_in_until,
+          notice_days: null,
+          billed_every_days: read.contract.billed_every_days,
+          notes: "",
+          active: true,
+        });
+        await app.api.updateBill(billId, { ...payload, service_id: service.id });
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async function save(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     error = "";
@@ -228,6 +278,11 @@
             () => false,
           );
           await applyChanges().catch(() => undefined);
+          if (!(await setUpFromBill(created.id, payload))) {
+            app.say(m.setup_from_bill_failed(), `/bills/${created.id}`, true);
+            navigate(`/bills/${created.id}`, { replace: true });
+            return;
+          }
           if (!attached) {
             app.say(m.file_attach_failed(), `/bills/${created.id}`, true);
             navigate(`/bills/${created.id}`, { replace: true });
@@ -299,7 +354,9 @@
       {#if draft.proposal.warnings.includes("lines_dropped")}<p>{m.read_lines_dropped()}</p>{/if}
       {#if Object.values(draft.proposal.sources).includes("claude")}<p>{m.read_claude()}</p>{/if}
       {#if draft.proposal.warnings.some((w) => w.startsWith("claude_"))}<p>{m.read_claude_failed()}</p>{/if}
-      {#if !draft.proposal.supplier_id && draft.proposal.issuer_nif}
+      {#if newSupplier}
+        <p>{m.read_new_supplier({ name: supplier.trim() })}</p>
+      {:else if !draft.proposal.supplier_id && draft.proposal.issuer_nif}
         <p>{m.read_unknown_supplier({ nif: draft.proposal.issuer_nif })}</p>
       {/if}
       {#if draft.proposal.duplicate_bill_id}
@@ -388,6 +445,24 @@
             </li>
           {/each}
         </ul>
+      {/if}
+      {#if draft && offerService && (draft.proposal.supplier_id !== null || newSupplier)}
+        {@const contract = draft.proposal.contract}
+        {@const references = Object.entries(draft.proposal.identifiers)}
+        <fieldset class="card">
+          <legend><label class="check"><input type="checkbox" bind:checked={addService} /> {m.service_from_bill()}</label></legend>
+          {#if addService}
+            <label>{m.field_service_name()}<input bind:value={serviceName} maxlength="200" placeholder={suggestedServiceName} /></label>
+            <ul class="muted">
+              {#if references.length}<li>{m.service_references({ list: references.map(([k, v]) => `${k} ${v}`).join(", ") })}</li>{/if}
+              {#if contract.ends_on}
+                <li>{contract.renews_automatically === false ? m.service_ends({ date: day(contract.ends_on) }) : m.service_renews({ date: day(contract.ends_on) })}</li>
+              {/if}
+              {#if contract.lock_in_until}<li>{m.service_lock_in({ date: day(contract.lock_in_until) })}</li>{/if}
+              {#if contract.billed_every_days}<li>{m.terms_billed_every({ days: contract.billed_every_days })}</li>{/if}
+            </ul>
+          {/if}
+        </fieldset>
       {/if}
       {#if changes.length}
         <fieldset class="card">

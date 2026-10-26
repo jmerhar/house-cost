@@ -509,6 +509,16 @@ class AnswerOut(BaseModel):
     citations: list[CitationOut]
 
 
+class ProposedContract(BaseModel):
+    """What a bill says about its contract, for a service set up from it: when it ends or renews,
+    whether it renews by itself, its minimum term, and how often it bills."""
+
+    ends_on: date | None
+    renews_automatically: bool | None
+    lock_in_until: date | None
+    billed_every_days: int | None
+
+
 class Proposal(BaseModel):
     """A bill as read from its file, to be checked and corrected before it is saved.
 
@@ -530,6 +540,9 @@ class Proposal(BaseModel):
     lines: list[ProposedLine]
     readings: list[ReadingIn]
     service_changes: ServiceChanges
+    #: The service's references the bill prints, such as {"CPE": "PT0002…"}.
+    identifiers: dict[str, str]
+    contract: ProposedContract
     sources: dict[str, str]
     warnings: list[str]
     text_source: Literal["text", "ocr", "none"]

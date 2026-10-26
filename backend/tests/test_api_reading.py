@@ -44,6 +44,29 @@ async def read(client: httpx.AsyncClient, data: bytes, name: str = "bill.pdf") -
 
 
 class TestReading:
+    async def test_proposes_a_supplier_not_on_file_from_its_parser(self, client, admin) -> None:
+        proposal = await ok(read(client, meo_bill()))
+
+        assert (proposal["supplier_id"], proposal["supplier_name"], proposal["issuer_nif"]) == (
+            None,
+            "MEO",
+            "504615947",
+        )
+        assert proposal["total_cents"] == 1998
+        assert [line["amount_cents"] for line in proposal["lines"]] == [1838, 61, 99]
+
+    async def test_proposes_what_a_new_service_needs(self, client, admin) -> None:
+        proposal = await ok(read(client, meo_energia_bill()))
+
+        assert proposal["service_id"] is None
+        assert proposal["identifiers"] == {"CPE": "PT0002000099999999ZZ"}
+        assert proposal["contract"] == {
+            "ends_on": "2026-12-11",
+            "renews_automatically": True,
+            "lock_in_until": None,
+            "billed_every_days": 30,
+        }
+
     async def test_proposes_a_bill_from_the_qr_code_and_the_page(
         self, client, meo_energia, agreement
     ) -> None:
@@ -270,3 +293,23 @@ def test_invoice_numbers_are_compared_by_their_tails() -> None:
     assert not _same_number("FT A/1", "FT A/2")
     assert not _same_number(None, "FT A/1")
     assert not _same_number("FT A/", "FT B/")
+
+
+@pytest.mark.parametrize(
+    ("start", "end", "every"),
+    [
+        ("2026-09-13", "2026-10-16", 30),
+        ("2026-09-01", "2026-10-31", 60),
+        ("2026-01-01", "2026-12-31", 360),
+        ("2026-09-01", "2026-09-10", None),
+        ("2026-09-01", "2026-10-15", None),
+        (None, "2026-10-15", None),
+    ],
+)
+def test_how_often_a_bill_comes_from_its_period(start, end, every) -> None:
+    from datetime import date
+
+    from house_cost.api.routers.reading import billed_every
+
+    as_day = lambda text: date.fromisoformat(text) if text else None  # noqa: E731
+    assert billed_every(as_day(start), as_day(end)) == every

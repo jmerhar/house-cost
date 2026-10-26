@@ -29,6 +29,8 @@ function proposal(overrides: Partial<Proposal> = {}): Proposal {
     lines: [{ description: "", amount_cents: 28759, category_id: ELECTRICITY.id }],
     readings: [{ quantity: "electricity_kwh", value: 1284, unit_price: 0.1525 }],
     service_changes: { ends_on: "2026-12-11", renews_automatically: false, lock_in_until: "2027-07-28" },
+    identifiers: { CPE: "PT0002000099999999ZZ" },
+    contract: { ends_on: "2026-12-11", renews_automatically: true, lock_in_until: null, billed_every_days: 30 },
     sources: { total_cents: "qr", on: "qr", period_start: "text" },
     warnings: [],
     text_source: "text",
@@ -143,7 +145,7 @@ describe("a read bill in the form", () => {
     expect(screen.getByText(/read from a scan/)).toBeInTheDocument();
     expect(screen.getByText(/Claude read some of it/)).toBeInTheDocument();
     expect(screen.getByText(/Claude could not read this bill/)).toBeInTheDocument();
-    expect(screen.getByText("The supplier with NIF 506743357 is not on file yet. You can add it under Services.")).toBeInTheDocument();
+    expect(screen.getByText("The supplier with NIF 506743357 is not on file yet. Enter its name above, and saving adds it to your suppliers.")).toBeInTheDocument();
     expect(screen.getByText("Water: 9 m³ at €—/m³")).toBeInTheDocument();
     expect(screen.queryByText(/bill's QR code/)).not.toBeInTheDocument();
     expect(screen.queryByText("Update the service as well")).not.toBeInTheDocument();
@@ -166,6 +168,106 @@ describe("a read bill in the form", () => {
     await waitFor(() => expect(route.path).toBe("/bills/43"));
     expect(calls.some((c) => c.method === "PUT")).toBe(false);
     expect(app.flash).toEqual({ text: expect.stringContaining("could not be attached"), problem: true, path: "/bills/43" });
+  });
+
+  it("adds the supplier and the service a first bill comes from, and links the bill to it", async () => {
+    holdDraft({
+      proposal: proposal({ supplier_id: null, supplier_name: "MEO", issuer_nif: "504615947", service_id: null, service_changes: { ends_on: null, renews_automatically: null, lock_in_until: null } }),
+      file: file(),
+    });
+    const { api, calls } = fakeApi({
+      "GET /services": [],
+      "GET /suppliers": [],
+      "POST /bills": aBill({ id: 43 }),
+      "POST /attachments": { id: 1, filename: "bill.pdf", content_type: "application/pdf", size: 4, created_at: "2026-10-26T20:00:00Z" },
+      "POST /suppliers": { id: 8, name: "MEO", nif: "504615947", default_category_id: ELECTRICITY.id, notes: "", active: true },
+      "POST /services": { ...SERVICE, id: 9, supplier_id: 8 },
+      "PUT /bills/43": aBill({ id: 43 }),
+    });
+    const app = appFor(api);
+    renderPage(BillForm, app);
+
+    expect(screen.getByText("Saving adds MEO to your suppliers.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Also add the service")).toBeChecked();
+    expect(screen.getByLabelText("Service name")).toHaveAttribute("placeholder", "Electricity");
+    expect(screen.getByText("References: CPE PT0002000099999999ZZ")).toBeInTheDocument();
+    expect(screen.getByText("Renews on 11 Dec 2026")).toBeInTheDocument();
+    await fireEvent.input(screen.getByLabelText("Service name"), { target: { value: "Internet at the Quinta" } });
+    await fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(route.path).toBe("/bills/43"));
+    expect(calls.map((c) => `${c.method} ${c.path}`).filter((c) => !c.startsWith("GET"))).toEqual([
+      "POST /bills",
+      "POST /attachments",
+      "POST /suppliers",
+      "POST /services",
+      "PUT /bills/43",
+    ]);
+    expect(calls.find((c) => c.path === "/suppliers" && c.method === "POST")!.body).toEqual({
+      name: "MEO", nif: "504615947", default_category_id: ELECTRICITY.id, notes: "", active: true,
+    });
+    expect(calls.find((c) => c.path === "/services" && c.method === "POST")!.body).toMatchObject({
+      supplier_id: 8,
+      name: "Internet at the Quinta",
+      identifiers: { CPE: "PT0002000099999999ZZ" },
+      ends_on: "2026-12-11",
+      renews_automatically: true,
+      billed_every_days: 30,
+    });
+    expect((calls.find((c) => c.method === "PUT")!.body as { service_id: number }).service_id).toBe(9);
+    expect(app.flash?.text).toBe("Bill saved.");
+  });
+
+  it("adds only the supplier when the service is not wanted, and none when a service is chosen", async () => {
+    holdDraft({ proposal: proposal({ supplier_id: null, supplier_name: "MEO", service_id: null }), file: file() });
+    const { api, calls } = fakeApi({
+      "GET /services": [SERVICE],
+      "GET /suppliers": [],
+      "POST /bills": aBill({ id: 43 }),
+      "POST /attachments": { id: 1, filename: "bill.pdf", content_type: "application/pdf", size: 4, created_at: "2026-10-26T20:00:00Z" },
+      "POST /suppliers": { id: 8, name: "MEO", nif: "506743357", default_category_id: null, notes: "", active: true },
+    });
+    renderPage(BillForm, appFor(api));
+    await fireEvent.click(screen.getByLabelText("Also add the service"));
+    expect(screen.queryByLabelText("Service name")).not.toBeInTheDocument();
+    await fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(route.path).toBe("/bills/43"));
+    expect(calls.some((c) => c.path === "/suppliers" && c.method === "POST")).toBe(true);
+    expect(calls.some((c) => c.path === "/services" && c.method === "POST")).toBe(false);
+  });
+
+  it("offers no new service once one is chosen, and asks for a name the bill does not give", async () => {
+    holdDraft({ proposal: proposal({ supplier_id: null, supplier_name: null, service_id: null }), file: file() });
+    const { api } = fakeApi({ "GET /services": [SERVICE], "GET /suppliers": [] });
+    renderPage(BillForm, appFor(api));
+
+    expect(screen.getByText(/NIF 506743357 is not on file yet. Enter its name above/)).toBeInTheDocument();
+    expect(screen.queryByLabelText("Also add the service")).not.toBeInTheDocument();
+    await fireEvent.input(screen.getByLabelText("Supplier"), { target: { value: "Águas do Vale" } });
+    expect(screen.getByText("Saving adds Águas do Vale to your suppliers.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Also add the service")).toBeInTheDocument();
+
+    await waitFor(() => expect(screen.getByRole("option", { name: "Electricity" })).toBeInTheDocument());
+    await fireEvent.change(screen.getByRole("combobox", { name: /^Service/ }), { target: { value: String(SERVICE.id) } });
+    expect(screen.queryByLabelText("Also add the service")).not.toBeInTheDocument();
+  });
+
+  it("keeps the bill when its supplier or service cannot be added, and says so", async () => {
+    holdDraft({ proposal: proposal({ supplier_id: null, supplier_name: "MEO", service_id: null }), file: file() });
+    const { api } = fakeApi({
+      "GET /services": [],
+      "GET /suppliers": [],
+      "POST /bills": aBill({ id: 43 }),
+      "POST /attachments": { id: 1, filename: "bill.pdf", content_type: "application/pdf", size: 4, created_at: "2026-10-26T20:00:00Z" },
+      "POST /suppliers": refuse(409, "supplier_exists"),
+    });
+    const app = appFor(api);
+    renderPage(BillForm, app);
+    await fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(route.path).toBe("/bills/43"));
+    expect(app.flash).toEqual({ text: expect.stringContaining("supplier or service could not be added"), problem: true, path: "/bills/43" });
   });
 
   it("keeps a corrected bill's readings", async () => {

@@ -15,7 +15,14 @@ from ...extraction.pipeline import Extraction, extract, merge_claude, worth_aski
 from ...models import Attachment, Bill, BillReading, Service, Supplier
 from ...storage import TooLarge, save, sniff
 from ..deps import DbDep, ServicesDep
-from ..schemas import Proposal, ProposedLine, ReadingIn, ReadingPoint, ServiceChanges
+from ..schemas import (
+    Proposal,
+    ProposedContract,
+    ProposedLine,
+    ReadingIn,
+    ReadingPoint,
+    ServiceChanges,
+)
 
 router = APIRouter(tags=["reading"])
 
@@ -94,6 +101,18 @@ def _changes(service: Service | None, extraction: Extraction) -> ServiceChanges:
     )
 
 
+def billed_every(start, end) -> int | None:
+    """How often a bill comes, from the period it covers: about a month (25 to 35 days) is every
+    30 days, about two months every 60, and so on up to a year; anything else says nothing."""
+    if start is None or end is None:
+        return None
+    days = (end - start).days + 1
+    months = round(days / 30.4)
+    if months < 1 or months > 12 or abs(days - months * 30.4) > 6:
+        return None
+    return months * 30
+
+
 @router.post("/bills/read")
 async def read_bill(file: UploadFile, db: DbDep, services: ServicesDep) -> Proposal:
     """Read a bill's PDF or photo into a proposed bill, which nothing saves until a person has
@@ -159,6 +178,13 @@ async def read_bill(file: UploadFile, db: DbDep, services: ServicesDep) -> Propo
             for r in findings.readings
         ],
         service_changes=_changes(service, extraction),
+        identifiers=findings.identifiers,
+        contract=ProposedContract(
+            ends_on=findings.ends_on,
+            renews_automatically=findings.renews_automatically,
+            lock_in_until=findings.lock_in_until,
+            billed_every_days=billed_every(findings.period_start, findings.period_end),
+        ),
         sources=extraction.sources,
         warnings=extraction.warnings,
         text_source=extraction.text_source,

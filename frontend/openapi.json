@@ -1857,6 +1857,9 @@
       "Proposal": {
         "description": "A bill as read from its file, to be checked and corrected before it is saved.\n\n``sources`` says where each value came from: \"qr\" for the invoice's fiscal QR code, \"text\" for\nthe PDF's own text, \"ocr\" for text read from the image of a page, \"claude\" for what Claude\nread where the others found nothing.",
         "properties": {
+          "contract": {
+            "$ref": "#/components/schemas/ProposedContract"
+          },
           "date": {
             "anyOf": [
               {
@@ -1891,6 +1894,13 @@
               }
             ],
             "title": "Duplicate Bill Id"
+          },
+          "identifiers": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Identifiers",
+            "type": "object"
           },
           "invoice_number": {
             "anyOf": [
@@ -2037,12 +2047,73 @@
           "lines",
           "readings",
           "service_changes",
+          "identifiers",
+          "contract",
           "sources",
           "warnings",
           "text_source",
           "duplicate_bill_id"
         ],
         "title": "Proposal",
+        "type": "object"
+      },
+      "ProposedContract": {
+        "description": "What a bill says about its contract, for a service set up from it: when it ends or renews,\nwhether it renews by itself, its minimum term, and how often it bills.",
+        "properties": {
+          "billed_every_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Billed Every Days"
+          },
+          "ends_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends On"
+          },
+          "lock_in_until": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lock In Until"
+          },
+          "renews_automatically": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Renews Automatically"
+          }
+        },
+        "required": [
+          "ends_on",
+          "renews_automatically",
+          "lock_in_until",
+          "billed_every_days"
+        ],
+        "title": "ProposedContract",
         "type": "object"
       },
       "ProposedLine": {
