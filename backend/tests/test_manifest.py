@@ -41,6 +41,7 @@ async def test_the_manifest_is_in_the_browsers_language(client) -> None:
 
     assert (portuguese.json()["name"], portuguese.json()["lang"]) == ("Despesas da casa", "pt-PT")
     assert portuguese.headers["content-language"] == "pt-PT"
+    assert portuguese.headers["cache-control"] == "no-cache"
     assert portuguese.headers["vary"] == "Accept-Language"
 
 

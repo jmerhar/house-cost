@@ -82,7 +82,9 @@ async def get_manifest(
         manifest(lang, await get_setting(db, "site_title")),
         media_type="application/manifest+json",
         headers={
-            "Cache-Control": "public, max-age=3600",
+            # Checked on every load: an admin can rename the app, and a cached copy would put the
+            # old name on a phone's home screen.
+            "Cache-Control": "no-cache",
             "Content-Language": lang,
             "Vary": "Accept-Language",
         },
