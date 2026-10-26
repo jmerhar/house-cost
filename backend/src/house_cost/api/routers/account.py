@@ -20,7 +20,9 @@ from ..schemas import LoginIn, Me, MeUpdate, PersonOut, SessionOut
 router = APIRouter(prefix="/auth", tags=["account"])
 
 
-def _client(request: Request) -> str:
+def client_address(request: Request) -> str:
+    """The address a request came from, as the login throttle counts it (after the proxy's
+    X-Forwarded-For, when the proxy is trusted)."""
     return request.client.host if request.client else "unknown"
 
 
@@ -34,7 +36,7 @@ async def log_in(
     does not reveal which logins exist. Too many failures from one address are refused with 429
     for a minute.
     """
-    address = _client(request)
+    address = client_address(request)
     if services.throttle.blocked(address):
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "too_many_attempts")
     person = (

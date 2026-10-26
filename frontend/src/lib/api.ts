@@ -35,6 +35,7 @@ export type AuditEntry = Schemas["AuditOut"];
 export type AppSettings = Schemas["SettingsOut"];
 export type Reconciliation = Schemas["ReconciliationOut"];
 export type ReconciliationIn = Schemas["ReconciliationIn"];
+export type Passkey = Schemas["PasskeyOut"];
 
 /** The header every write carries; the API refuses a write without it. */
 export const WRITE_HEADER = { "X-Requested-With": "house-cost" };
@@ -72,6 +73,13 @@ export class Api {
   updateMe = (body: MeUpdate) => this.request<Me>("PATCH", "/auth/me", body);
   sessions = () => this.request<SessionOut[]>("GET", "/auth/sessions");
   endSession = (id: number) => this.request<void>("DELETE", `/auth/sessions/${id}`);
+  passkeys = () => this.request<Passkey[]>("GET", "/auth/passkeys");
+  passkeyOptions = () => this.request<Record<string, unknown>>("POST", "/auth/passkeys/options");
+  addPasskey = (label: string, credential: unknown) =>
+    this.request<Passkey>("POST", "/auth/passkeys", { label, credential });
+  removePasskey = (id: number) => this.request<void>("DELETE", `/auth/passkeys/${id}`);
+  passkeyLoginOptions = () => this.request<Record<string, unknown>>("POST", "/auth/passkey-login/options");
+  passkeyLogIn = (credential: unknown) => this.request<Me>("POST", "/auth/passkey-login", { credential });
 
   // --- Households, people, categories and rules ---------------------------------------------
 

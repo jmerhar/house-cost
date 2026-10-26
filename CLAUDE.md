@@ -21,6 +21,7 @@ backend/src/house_cost/
   balances.py      each household's balance, and settle(): the transfers that clear them
   reconciliation.py  a period's bills split again by reconciled shares
   auth.py          argon2 passwords, server-side sessions, the login throttle, the origin check
+  passkeys.py      the relying party for a request, and WebAuthn challenges waiting for answers
   audit.py         record() for the audit log; the app's settings and their defaults
   storage.py       uploaded files under their SHA-256, and recognising their type by content
   api/
@@ -34,6 +35,7 @@ backend/src/house_cost/
   __main__.py      `python -m house_cost [--reload]`
 backend/alembic/   migrations; bin/entrypoint.sh runs them before the app starts
 backend/tests/     pytest; fixture_server.py serves the real app for the Bruno collection,
+                   softauthn.py is a software authenticator for the passkey ceremonies,
                    tooling/ tests the scripts in bin/ that have logic of their own
 frontend/          Svelte 5, Vite, TypeScript, Paraglide
   src/App.svelte   setup, login, then the routed views
@@ -43,6 +45,7 @@ frontend/          Svelte 5, Vite, TypeScript, Paraglide
   src/lib/router.svelte.ts  path routes over the history API, and in-app link handling
   src/lib/state.svelte.ts   the person logged in, households and categories, shared by views
   src/lib/language.ts  which language: the person's choice, else the browser's, else English
+  src/lib/passkeys.ts  the browser's half of the passkey ceremonies, replaceable in tests
   src/testing.ts   a stand-in API answering by method and path, and the agreement's examples
   messages/        en.json and pt-PT.json; Paraglide compiles them into src/paraglide
                    (generated); GLOSSARY.md fixes the words for the main ideas
@@ -71,6 +74,8 @@ CHANGELOG.md       every release's notes; new work goes under `## Unreleased`
   in that test.
 - **Reconciliation is invisible while it is off**: its routes answer 404, Balances ignores
   adjustments, and closed periods lock nothing.
+- **Passkeys belong to the host name of `PUBLIC_URL`** (else the request's own host). Changing
+  the address the app is served at orphans every passkey made under the old one.
 - **First-run setup is open to whoever arrives first** while no person exists, and closed for good
   after; a new deployment stays unreachable from outside until it is set up.
 - **The interface's types come from the API's schema.** Changing a response model means running

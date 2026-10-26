@@ -4,13 +4,17 @@
  */
 
 import type { Api, Category, Household, Me } from "./api";
+import { browserAuthenticator, type Authenticator } from "./passkeys";
 
 export class AppState {
   me = $state<Me | null>(null);
   households = $state<Household[]>([]);
   categories = $state<Category[]>([]);
 
-  constructor(readonly api: Api) {}
+  constructor(
+    readonly api: Api,
+    readonly authenticator: Authenticator = browserAuthenticator,
+  ) {}
 
   /** Load the households and categories, after logging in or after an admin changed them. */
   async refresh(): Promise<void> {

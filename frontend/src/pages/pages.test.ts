@@ -13,6 +13,7 @@ import {
   aBill,
   appFor,
   fakeApi,
+  fakeAuthenticator,
   refuse,
   renderPage,
 } from "../testing";
@@ -419,6 +420,7 @@ describe("Account", () => {
   it("changes the name and password, and logs another browser out", async () => {
     const { api, calls } = fakeApi({
       "GET /auth/sessions": sessions,
+      "GET /auth/passkeys": [],
       "PATCH /auth/me": (call) => ({ ...ADMIN, name: (call.body as { name: string }).name }),
       "DELETE /auth/sessions/2": () => undefined,
     });
@@ -446,7 +448,8 @@ describe("Account", () => {
 
   it("saves a new language and reloads into it", async () => {
     const reload = vi.fn();
-    const { api, calls } = fakeApi({ "GET /auth/sessions": [], "PATCH /auth/me": { ...ADMIN, language: "pt-PT" } });
+    const { api, calls } = fakeApi({ "GET /auth/sessions": [],
+      "GET /auth/passkeys": [], "PATCH /auth/me": { ...ADMIN, language: "pt-PT" } });
     renderPage(Account, appFor(api), { reload });
     await fireEvent.change(screen.getByLabelText("Language"), { target: { value: "pt-PT" } });
     await fireEvent.submit(screen.getByRole("button", { name: "Save" }).closest("form")!);
@@ -458,6 +461,7 @@ describe("Account", () => {
   it("shows refusals", async () => {
     const { api } = fakeApi({
       "GET /auth/sessions": refuse(500, "boom"),
+      "GET /auth/passkeys": [],
       "PATCH /auth/me": refuse(400, "wrong_password"),
       "DELETE /auth/sessions/2": refuse(404, "not_found"),
     });
@@ -468,7 +472,8 @@ describe("Account", () => {
   });
 
   it("shows a session that could not be ended", async () => {
-    const { api } = fakeApi({ "GET /auth/sessions": sessions, "DELETE /auth/sessions/2": refuse(404, "not_found") });
+    const { api } = fakeApi({ "GET /auth/sessions": sessions,
+      "GET /auth/passkeys": [], "DELETE /auth/sessions/2": refuse(404, "not_found") });
     renderPage(Account, appFor(api));
     await fireEvent.click(await screen.findByRole("button", { name: "Log out there" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("not_found");
@@ -757,5 +762,113 @@ describe("Reconciliations", () => {
     renderPage(Reconciliations, appFor(api, { ...ADMIN, reconciliation_enabled: true }));
     await fireEvent.click(await screen.findByRole("button", { name: "Close and write the adjustments" }));
     expect(calls.some((c) => c.path.endsWith("/close"))).toBe(false);
+  });
+});
+
+describe("Passkeys", () => {
+  const passkey = { id: 9, label: "iPhone", created_at: "2026-10-26T10:00:00Z", last_used_at: null };
+  const cancelled = Object.assign(new Error("cancelled"), { name: "NotAllowedError" });
+
+  it("log in from the login page", async () => {
+    const onDone = vi.fn();
+    const { api, calls } = fakeApi({ "POST /auth/passkey-login/options": { challenge: "c" }, "POST /auth/passkey-login": MEMBER });
+    const app = appFor(api, ADMIN, fakeAuthenticator({ signed: "c" }));
+    renderPage(Login, app, { onDone });
+    await fireEvent.click(screen.getByRole("button", { name: "Log in with a passkey" }));
+
+    await waitFor(() => expect(onDone).toHaveBeenCalledOnce());
+    expect(app.me).toEqual(MEMBER);
+    expect(calls.at(-1)!.body).toEqual({ credential: { signed: "c" } });
+  });
+
+  it("say nothing when the person cancels, and explain a refusal", async () => {
+    const { api } = fakeApi({ "POST /auth/passkey-login/options": { challenge: "c" }, "POST /auth/passkey-login": refuse(401, "passkey_unknown") });
+    renderPage(Login, appFor(api, ADMIN, fakeAuthenticator(undefined, cancelled)), { onDone: vi.fn() });
+    await fireEvent.click(screen.getByRole("button", { name: "Log in with a passkey" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Log in with a passkey" })).toBeEnabled());
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("explain a passkey the server refuses", async () => {
+    const { api } = fakeApi({ "POST /auth/passkey-login/options": { challenge: "c" }, "POST /auth/passkey-login": refuse(401, "passkey_unknown") });
+    renderPage(Login, appFor(api, ADMIN, fakeAuthenticator()), { onDone: vi.fn() });
+    await fireEvent.click(screen.getByRole("button", { name: "Log in with a passkey" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("not linked to any account");
+  });
+
+  it("are not offered where the browser has none", () => {
+    const { api } = fakeApi({});
+    renderPage(Login, appFor(api, ADMIN, { ...fakeAuthenticator(), supported: () => false }), { onDone: vi.fn() });
+    expect(screen.queryByRole("button", { name: "Log in with a passkey" })).not.toBeInTheDocument();
+  });
+
+  it("are added, named and removed on the account page", async () => {
+    vi.spyOn(window, "prompt").mockReturnValue(" Phone ");
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const { api, calls } = fakeApi({
+      "GET /auth/sessions": [],
+      "GET /auth/passkeys": [],
+      "POST /auth/passkeys/options": { challenge: "c" },
+      "POST /auth/passkeys": (call) => ({ ...passkey, label: (call.body as { label: string }).label }),
+      "DELETE /auth/passkeys/9": () => undefined,
+    });
+    renderPage(Account, appFor(api, ADMIN, fakeAuthenticator({ made: "c" })));
+    await fireEvent.click(await screen.findByRole("button", { name: "Add a passkey on this device" }));
+
+    expect(await screen.findByText("Phone")).toBeInTheDocument();
+    expect(screen.getByText("Not used yet")).toBeInTheDocument();
+    expect(screen.getByText(/Passkey added/)).toBeInTheDocument();
+    expect(calls.find((c) => c.path === "/auth/passkeys" && c.method === "POST")!.body).toEqual({ label: "Phone", credential: { made: "c" } });
+
+    await fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+    await waitFor(() => expect(screen.queryByText("Phone")).not.toBeInTheDocument());
+  });
+
+  it("are named after the device when the name is left out, and show when they were used", async () => {
+    vi.spyOn(window, "prompt").mockReturnValue(null);
+    const { api, calls } = fakeApi({
+      "GET /auth/sessions": [],
+      "GET /auth/passkeys": [{ ...passkey, id: 8, label: "Mac", last_used_at: "2026-10-25T10:00:00Z" }],
+      "POST /auth/passkeys/options": { challenge: "c" },
+      "POST /auth/passkeys": passkey,
+    });
+    renderPage(Account, appFor(api, ADMIN, fakeAuthenticator()));
+    expect(await screen.findByText(/^Last used/)).toBeInTheDocument();
+    await fireEvent.click(screen.getByRole("button", { name: "Add a passkey on this device" }));
+
+    await waitFor(() => expect(calls.some((c) => c.method === "POST" && c.path === "/auth/passkeys")).toBe(true));
+    expect((calls.find((c) => c.method === "POST" && c.path === "/auth/passkeys")!.body as { label: string }).label).not.toBe("");
+  });
+
+  it("report what goes wrong on the account page", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const { api } = fakeApi({
+      "GET /auth/sessions": [],
+      "GET /auth/passkeys": [passkey],
+      "POST /auth/passkeys/options": refuse(500, "boom"),
+      "DELETE /auth/passkeys/9": refuse(404, "not_found"),
+    });
+    renderPage(Account, appFor(api, ADMIN, fakeAuthenticator()));
+    await fireEvent.click(await screen.findByRole("button", { name: "Add a passkey on this device" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("boom");
+    await fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("not_found");
+  });
+
+  it("stay put when removing is not confirmed, a cancelled ceremony says nothing, and a list that fails to load is reported", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(false);
+    const { api, calls } = fakeApi({ "GET /auth/sessions": [], "GET /auth/passkeys": [passkey], "POST /auth/passkeys/options": { challenge: "c" } });
+    renderPage(Account, appFor(api, ADMIN, fakeAuthenticator(undefined, cancelled)));
+    await fireEvent.click(await screen.findByRole("button", { name: "Remove" }));
+    expect(calls.some((c) => c.method === "DELETE")).toBe(false);
+    await fireEvent.click(screen.getByRole("button", { name: "Add a passkey on this device" }));
+    await waitFor(() => expect(calls.some((c) => c.path === "/auth/passkeys/options")).toBe(true));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("report a list that cannot load", async () => {
+    const { api } = fakeApi({ "GET /auth/sessions": [], "GET /auth/passkeys": refuse(500, "boom") });
+    renderPage(Account, appFor(api, ADMIN, fakeAuthenticator()));
+    expect(await screen.findByRole("alert")).toHaveTextContent("boom");
   });
 });

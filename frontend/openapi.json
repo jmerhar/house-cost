@@ -956,6 +956,79 @@
         "title": "MonthTotal",
         "type": "object"
       },
+      "PasskeyIn": {
+        "description": "A passkey to add: the authenticator's answer, as the browser serialises it.",
+        "properties": {
+          "credential": {
+            "additionalProperties": true,
+            "title": "Credential",
+            "type": "object"
+          },
+          "label": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "credential"
+        ],
+        "title": "PasskeyIn",
+        "type": "object"
+      },
+      "PasskeyLogin": {
+        "properties": {
+          "credential": {
+            "additionalProperties": true,
+            "title": "Credential",
+            "type": "object"
+          }
+        },
+        "required": [
+          "credential"
+        ],
+        "title": "PasskeyLogin",
+        "type": "object"
+      },
+      "PasskeyOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "created_at",
+          "last_used_at"
+        ],
+        "title": "PasskeyOut",
+        "type": "object"
+      },
       "PersonIn": {
         "properties": {
           "household_id": {
@@ -2086,6 +2159,198 @@
         "summary": "Update Me",
         "tags": [
           "account"
+        ]
+      }
+    },
+    "/api/auth/passkey-login": {
+      "post": {
+        "description": "Finish logging in with a passkey, and start a session as its owner.\n\nEvery refusal counts against the address's failed logins, as a wrong password does.",
+        "operationId": "log_in_with_passkey_api_auth_passkey_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasskeyLogin"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Log In With Passkey",
+        "tags": [
+          "passkeys"
+        ]
+      }
+    },
+    "/api/auth/passkey-login/options": {
+      "post": {
+        "description": "Start logging in with a passkey. Names nobody: the authenticator offers whichever of its\npasskeys belong to this site.",
+        "operationId": "login_options_api_auth_passkey_login_options_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Login Options Api Auth Passkey Login Options Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Login Options",
+        "tags": [
+          "passkeys"
+        ]
+      }
+    },
+    "/api/auth/passkeys": {
+      "get": {
+        "description": "The passkeys on this person's account.",
+        "operationId": "list_passkeys_api_auth_passkeys_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PasskeyOut"
+                  },
+                  "title": "Response List Passkeys Api Auth Passkeys Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Passkeys",
+        "tags": [
+          "passkeys"
+        ]
+      },
+      "post": {
+        "description": "Finish adding a passkey, from the authenticator's answer to the challenge.",
+        "operationId": "add_passkey_api_auth_passkeys_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasskeyIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasskeyOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Passkey",
+        "tags": [
+          "passkeys"
+        ]
+      }
+    },
+    "/api/auth/passkeys/options": {
+      "post": {
+        "description": "Start adding a passkey: the options a browser hands its authenticator.\n\nThe passkey is discoverable, so it can log in without a login typed first, and the\nauthenticator is told which of this person's passkeys it already holds.",
+        "operationId": "registration_options_api_auth_passkeys_options_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Registration Options Api Auth Passkeys Options Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Registration Options",
+        "tags": [
+          "passkeys"
+        ]
+      }
+    },
+    "/api/auth/passkeys/{passkey_id}": {
+      "delete": {
+        "description": "Remove one of this person's passkeys; it can no longer log in.",
+        "operationId": "remove_passkey_api_auth_passkeys__passkey_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "passkey_id",
+            "required": true,
+            "schema": {
+              "title": "Passkey Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove Passkey",
+        "tags": [
+          "passkeys"
         ]
       }
     },

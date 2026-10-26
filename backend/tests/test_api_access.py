@@ -12,8 +12,15 @@ from house_cost.auth import WRITE_HEADER, WRITE_HEADER_VALUE
 from house_cost.config import Settings
 
 #: The only routes open without a session.
-PUBLIC = {("GET", "/api/health"), ("GET", "/api/setup"), ("POST", "/api/setup"),
-          ("POST", "/api/auth/login"), ("POST", "/api/auth/logout")}  # fmt: skip
+PUBLIC = {
+    ("GET", "/api/health"),
+    ("GET", "/api/setup"),
+    ("POST", "/api/setup"),
+    ("POST", "/api/auth/login"),
+    ("POST", "/api/auth/logout"),
+    ("POST", "/api/auth/passkey-login/options"),
+    ("POST", "/api/auth/passkey-login"),
+}
 
 
 class TestSetup:

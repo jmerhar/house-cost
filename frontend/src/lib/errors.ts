@@ -21,6 +21,10 @@ const BY_CODE: Record<string, () => string> = {
   already_closed: m.error_already_closed,
   already_set_up: m.error_already_set_up,
   invalid: m.error_invalid,
+  passkey_rejected: m.error_passkey_rejected,
+  passkey_unknown: m.error_passkey_unknown,
+  passkey_expired: m.error_passkey_expired,
+  passkey_exists: m.error_passkey_exists,
 };
 
 /** A failure as a sentence: the API's own reason where it has one this interface knows. */

@@ -1,10 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { SessionOut } from "../lib/api";
+  import type { Passkey, SessionOut } from "../lib/api";
   import { useApp } from "../lib/context";
   import { errorMessage } from "../lib/errors";
   import { moment } from "../lib/format";
   import { LANGUAGE_NAMES, chooseLanguage } from "../lib/language";
+  import { deviceName, dismissed } from "../lib/passkeys";
   import { m } from "../paraglide/messages.js";
   import { locales, type Locale } from "../paraglide/runtime.js";
 
@@ -16,6 +17,7 @@
   let currentPassword = $state("");
   let newPassword = $state("");
   let sessions = $state<SessionOut[]>([]);
+  let passkeys = $state<Passkey[]>([]);
   let error = $state("");
   let notice = $state("");
   let busy = $state(false);
@@ -28,9 +30,42 @@
     }
   }
 
+  async function loadPasskeys(): Promise<void> {
+    try {
+      passkeys = await app.api.passkeys();
+    } catch (failure) {
+      error = errorMessage(failure);
+    }
+  }
+
   onMount(() => {
     loadSessions();
+    loadPasskeys();
   });
+
+  async function addPasskey(): Promise<void> {
+    error = "";
+    notice = "";
+    try {
+      const options = await app.api.passkeyOptions();
+      const credential = await app.authenticator.register(options);
+      const label = prompt(m.passkey_label(), deviceName())?.trim() || deviceName();
+      passkeys = [...passkeys, await app.api.addPasskey(label, credential)];
+      notice = m.passkey_added();
+    } catch (failure) {
+      if (!dismissed(failure)) error = errorMessage(failure);
+    }
+  }
+
+  async function removePasskey(passkey: Passkey): Promise<void> {
+    if (!confirm(m.confirm_remove_passkey())) return;
+    try {
+      await app.api.removePasskey(passkey.id);
+      passkeys = passkeys.filter((other) => other.id !== passkey.id);
+    } catch (failure) {
+      error = errorMessage(failure);
+    }
+  }
 
   async function save(event: SubmitEvent): Promise<void> {
     event.preventDefault();
@@ -98,6 +133,25 @@
   {#if notice}<p class="note">{notice}</p>{/if}
   <button type="submit" disabled={busy}>{busy ? m.saving() : m.save()}</button>
 </form>
+
+<h2>{m.passkeys_title()}</h2>
+<p class="muted">{m.passkeys_intro()}</p>
+<ul class="list">
+  {#each passkeys as passkey (passkey.id)}
+    <li>
+      <span class="what">
+        <strong>{passkey.label}</strong>
+        <small>
+          {passkey.last_used_at ? m.session_last_seen({ when: moment(passkey.last_used_at) }) : m.passkey_unused()}
+        </small>
+      </span>
+      <button type="button" class="link" onclick={() => removePasskey(passkey)}>{m.passkey_remove()}</button>
+    </li>
+  {/each}
+</ul>
+{#if app.authenticator.supported()}
+  <button type="button" class="secondary" onclick={addPasskey}>{m.passkey_add()}</button>
+{/if}
 
 <h2>{m.sessions_title()}</h2>
 <ul class="list">
