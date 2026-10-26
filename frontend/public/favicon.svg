@@ -1,5 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#2f6f5e"/>
-  <path d="M14 31 32 16l18 15v18a3 3 0 0 1-3 3H17a3 3 0 0 1-3-3z" fill="#f7f6f2"/>
-  <path d="M32 31v14M27 35.5c0-2 2-3 5-3s5 1 5 3-2.4 2.6-5 3-5 1-5 3 2 3 5 3 5-1 5-3" fill="none" stroke="#2f6f5e" stroke-width="3" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- The app icon's house and euro, on a rounded square for a browser tab. -->
+  <rect width="512" height="512" rx="112" fill="#2f6f5e"/>
+  <path d="M256 104 398 230h-34v154a14 14 0 0 1-14 14H162a14 14 0 0 1-14-14V230h-34z" fill="#f7f6f2"/>
+  <path d="M292 276a48 48 0 1 0 0 64" fill="none" stroke="#2f6f5e" stroke-width="18" stroke-linecap="round"/>
+  <path d="M208 298h56M208 318h56" fill="none" stroke="#2f6f5e" stroke-width="14" stroke-linecap="round"/>
 </svg>

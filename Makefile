@@ -1,4 +1,4 @@
-.PHONY: help install dev up down logs shell build test test-backend test-frontend test-bruno test-samples \
+.PHONY: help app-icons install dev up down logs shell build test test-backend test-frontend test-bruno test-samples \
         coverage lint openapi contract check migrate revision db-shell lockfile release clean
 
 help: ## Show available commands
@@ -80,6 +80,9 @@ db-shell: ## Open a SQLite shell on the development database
 	sqlite3 data/house-cost.db
 
 ##@ Release
+
+app-icons: ## Render the home-screen icons from frontend/icons/app-icon.svg (needs rsvg-convert)
+	bin/app-icons.sh
 
 lockfile: ## Regenerate package-lock.json (Linux binaries, public registry URLs)
 	bin/lockfile.sh

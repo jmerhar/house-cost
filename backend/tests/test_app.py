@@ -91,6 +91,12 @@ class TestServingTheFrontend:
         assert response.status_code == 404
         assert "shell" not in response.text
 
+    async def test_the_manifest_is_not_the_shell(self, web_client: httpx.AsyncClient) -> None:
+        response = await web_client.get("/manifest.webmanifest")
+
+        assert response.headers["content-type"] == "application/manifest+json"
+        assert response.json()["name"] == "House costs"
+
     async def test_the_api_still_answers_beside_the_frontend(
         self, web_client: httpx.AsyncClient
     ) -> None:

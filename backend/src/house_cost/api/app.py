@@ -12,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from .. import __version__
 from ..auth import WRITE_HEADER, WRITE_HEADER_VALUE, origin_allowed
 from ..config import Settings, get_settings
+from . import manifest
 from .deps import build_services, get_person
 from .routers import (
     account,
@@ -87,6 +88,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     for module in PROTECTED_ROUTERS:
         app.include_router(module.router, prefix=API_PREFIX, dependencies=[Depends(get_person)])
     _guard_writes(app, settings)
+    # Outside /api and before the interface's fallback, which would otherwise answer for it.
+    app.include_router(manifest.router)
     _mount_frontend(app, settings.static_dir)
     return app
 

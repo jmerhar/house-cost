@@ -33,7 +33,8 @@ everyone can see what they have paid, what they owe and to whom.
 - **Claude, optionally**: with an Anthropic API key, Claude reads the bills whose layout the app
   does not know, proposes a contract's dates and notice for its service, and answers questions
   about a document with the pages it rests on. The file in question is sent to Anthropic's API.
-- **In English and Portuguese**, on a phone or a computer.
+- **In English and Portuguese**, on a phone or a computer, and installable on a phone's home
+  screen as an app ("Add to Home Screen").
 
 ## Running it
 

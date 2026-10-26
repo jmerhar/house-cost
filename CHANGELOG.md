@@ -4,6 +4,17 @@ Every release of House costs, newest first. The image is `ghcr.io/jmerhar/house-
 follow semantic versioning: a major release needs something done by whoever runs it, and says
 what under **Upgrading**. Before 1.0, a minor release may.
 
+## Unreleased
+
+### Added
+
+- The app can be added to a phone's home screen and opens as an app of its own, named in the
+  phone's language, with its own icon.
+
+### Changed
+
+- The icon shows a euro sign.
+
 ## 0.8.0 — 2026-10-26
 
 ### Changed
