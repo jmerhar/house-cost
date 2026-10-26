@@ -1,10 +1,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { Attachment, Bill, BillIn, Service, Supplier } from "../lib/api";
+  import type { Attachment, Bill, BillIn, Reading, Service, ServiceIn, Supplier } from "../lib/api";
+  import { takeDraft } from "../lib/draft";
   import { useApp } from "../lib/context";
   import { errorMessage } from "../lib/errors";
-  import { amountInput, euros, fileSize, parseAmount, today } from "../lib/format";
+  import { amountInput, day, euros, fileSize, parseAmount, today } from "../lib/format";
   import { navigate } from "../lib/router.svelte";
+  import { intlLocale } from "../lib/language";
   import { m } from "../paraglide/messages.js";
 
   let { id }: { id?: number } = $props();
@@ -35,6 +37,12 @@
   let notes = $state("");
   let lines = $state<LineDraft[]>([blankLine()]);
   let attachments = $state<Attachment[]>([]);
+  let readings = $state<Reading[]>([]);
+  // A bill read from a file opens with what was read; nothing is saved until it is checked.
+  // svelte-ignore state_referenced_locally
+  const draft = id === undefined ? takeDraft() : null;
+  /** The contract changes the read bill reported, and whether to apply each on saving. */
+  let changes = $state<{ field: "ends_on" | "renews_automatically" | "lock_in_until"; value: string | boolean; apply: boolean }[]>([]);
   let previews = $state<Record<number, Preview>>({});
   let busy = $state(false);
   let error = $state("");
@@ -55,6 +63,7 @@
     notes = bill.notes;
     locked = bill.locked;
     attachments = bill.attachments;
+    readings = bill.readings;
     lines = bill.lines.map((line) => ({
       key: nextKey++,
       id: line.id,
@@ -62,6 +71,54 @@
       categoryId: String(line.category_id),
       amount: amountInput(line.amount_cents),
     }));
+  }
+
+  if (draft) {
+    const read = draft.proposal;
+    if (read.date) date = read.date;
+    supplier = read.supplier_name ?? "";
+    invoice = read.invoice_number ?? "";
+    periodStart = read.period_start ?? "";
+    periodEnd = read.period_end ?? "";
+    due = read.due_date ?? "";
+    serviceId = read.service_id ? String(read.service_id) : "";
+    readings = read.readings;
+    if (read.lines.length) {
+      lines = read.lines.map((line) => ({
+        key: nextKey++,
+        id: null,
+        description: line.description,
+        categoryId: line.category_id ? String(line.category_id) : "",
+        amount: amountInput(line.amount_cents),
+      }));
+    }
+    const reported = read.service_changes;
+    changes = (["ends_on", "renews_automatically", "lock_in_until"] as const)
+      .filter((field) => reported[field] !== null && reported[field] !== undefined)
+      .map((field) => ({ field, value: reported[field] as string | boolean, apply: true }));
+  }
+
+  /** The QR code vouches for these; the rest was read from the page and needs a look. */
+  const vouched = $derived(
+    Object.entries(draft?.proposal.sources ?? {})
+      .filter(([, source]) => source === "qr")
+      .map(([field]) => field),
+  );
+
+  function changeText(change: (typeof changes)[number]): string {
+    if (change.field === "ends_on") return m.service_ends_on_change({ date: day(String(change.value)) });
+    if (change.field === "lock_in_until") return m.service_lock_in({ date: day(String(change.value)) });
+    return change.value ? m.field_renews() : m.service_no_renewal();
+  }
+
+  async function applyChanges(): Promise<void> {
+    const service = services.find((s) => String(s.id) === serviceId);
+    const wanted = changes.filter((change) => change.apply);
+    if (!service || !wanted.length) return;
+    const { id: serviceKey, ...fields } = service;
+    const body: ServiceIn = { ...fields };
+    for (const change of wanted) Object.assign(body, { [change.field]: change.value });
+    await app.api.updateService(serviceKey, body);
   }
 
   onMount(() => {
@@ -138,6 +195,7 @@
       paid_by_id: Number(paidBy),
       service_id: serviceId ? Number(serviceId) : null,
       notes,
+      readings,
       lines: parsed.map(({ line, cents }) => ({
         id: line.id,
         description: line.description,
@@ -156,8 +214,16 @@
     try {
       // A new bill opens as itself, where its files can be attached; a corrected one goes back to
       // the list.
-      if (id === undefined) navigate(`/bills/${(await app.api.createBill(payload)).id}`, { replace: true });
-      else {
+      if (id === undefined) {
+        const created = await app.api.createBill(payload);
+        if (draft) {
+          // The bill is saved; its file and the contract dates follow, and a failure of either
+          // leaves the bill as it is, to be finished on its own page.
+          await app.api.attach(draft.file, { bill_id: created.id }).catch(() => undefined);
+          await applyChanges().catch(() => undefined);
+        }
+        navigate(`/bills/${created.id}`, { replace: true });
+      } else {
         await app.api.updateBill(id, payload);
         navigate("/bills");
       }
@@ -210,6 +276,23 @@
   <p>{m.loading()}</p>
 {:else}
   {#if locked}<p class="note">{m.error_period_closed()}</p>{/if}
+  {#if draft}
+    <div class="note">
+      <p><strong>{m.read_banner({ file: draft.file.name })}</strong></p>
+      {#if vouched.length}<p>{m.read_vouched()}</p>{/if}
+      {#if draft.proposal.text_source === "ocr"}<p>{m.read_ocr()}</p>{/if}
+      {#if draft.proposal.warnings.includes("total_mismatch")}<p class="problem">{m.read_total_mismatch()}</p>{/if}
+      {#if draft.proposal.warnings.includes("lines_dropped")}<p>{m.read_lines_dropped()}</p>{/if}
+      {#if !draft.proposal.supplier_id && draft.proposal.issuer_nif}
+        <p>{m.read_unknown_supplier({ nif: draft.proposal.issuer_nif })}</p>
+      {/if}
+      {#if draft.proposal.duplicate_bill_id}
+        <p class="problem">
+          {m.read_duplicate()} <a href={`/bills/${draft.proposal.duplicate_bill_id}`}>{m.read_duplicate_open()}</a>
+        </p>
+      {/if}
+    </div>
+  {/if}
   <form onsubmit={save}>
     <fieldset disabled={locked || busy}>
       <div class="grid">
@@ -278,6 +361,26 @@
       </ol>
       <button type="button" class="secondary" onclick={() => (lines = [...lines, blankLine()])}>{m.line_add()}</button>
       <p class="total">{m.total_label()}: <strong>{euros(totalCents)}</strong></p>
+
+      {#if readings.length}
+        <ul class="list">
+          {#each readings as reading, index (index)}
+            <li>
+              {reading.quantity === "electricity_kwh"
+                ? m.reading_kwh({ value: reading.value.toLocaleString(intlLocale()), price: reading.unit_price ?? "—" })
+                : m.reading_m3({ value: reading.value.toLocaleString(intlLocale()), price: reading.unit_price ?? "—" })}
+            </li>
+          {/each}
+        </ul>
+      {/if}
+      {#if changes.length}
+        <fieldset class="card">
+          <legend>{m.service_changes_title()}</legend>
+          {#each changes as change (change.field)}
+            <label class="check"><input type="checkbox" bind:checked={change.apply} /> {changeText(change)}</label>
+          {/each}
+        </fieldset>
+      {/if}
 
       <label>{m.field_notes()}<textarea bind:value={notes} rows="3" maxlength="2000"></textarea></label>
     </fieldset>

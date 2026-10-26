@@ -1,4 +1,4 @@
-.PHONY: help install dev up down logs shell build test test-backend test-frontend test-bruno \
+.PHONY: help install dev up down logs shell build test test-backend test-frontend test-bruno test-samples \
         coverage lint openapi contract check migrate revision db-shell lockfile release clean
 
 help: ## Show available commands
@@ -48,6 +48,9 @@ test-frontend: ## Type-check the interface and run its suite
 
 test-bruno: ## Run the Bruno collection against the real API
 	bin/test-bruno.sh
+
+test-samples: ## Read the real bills in samples/ (kept out of git) and check what they give
+	SAMPLES_DIR="$(CURDIR)/samples" bin/test-backend.sh tests/test_extraction.py -k real_samples -v
 
 coverage: ## Run both suites with coverage and print the combined summary
 	bin/coverage.sh --format md

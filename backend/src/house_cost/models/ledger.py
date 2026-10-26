@@ -12,6 +12,7 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     Date,
+    Float,
     ForeignKey,
     Integer,
     String,
@@ -124,6 +125,28 @@ class Bill(TimestampMixin, Base):
     attachments: Mapped[list[Attachment]] = relationship(
         back_populates="bill", lazy="selectin", order_by="Attachment.id"
     )
+    readings: Mapped[list[BillReading]] = relationship(
+        back_populates="bill", cascade="all, delete-orphan", lazy="selectin"
+    )
+
+
+class BillReading(Base):
+    """A quantity a bill measures and its unit price: the electricity or water it charges for.
+
+    Kept to chart consumption over time, and to notice when a supplier's price changes.
+    """
+
+    __tablename__ = "bill_reading"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    bill_id: Mapped[int] = mapped_column(ForeignKey("bill.id", ondelete="CASCADE"), index=True)
+    #: electricity_kwh or water_m3.
+    quantity: Mapped[str] = mapped_column(String(30))
+    value: Mapped[float] = mapped_column(Float)
+    #: Euros per unit, before tax, as the bill states it.
+    unit_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    bill: Mapped[Bill] = relationship(back_populates="readings")
 
 
 class BillLine(Base):
