@@ -78,6 +78,10 @@ CHANGELOG.md       every release's notes; new work goes under `## Unreleased`
 - **Rules are never edited.** A change is a new rule from a later date, and a rule that has
   split a line cannot be deleted. Shares are basis points adding up to 10 000; money is whole
   cents, split by `money.allocate`, so shares always add up to the amount exactly.
+- **A request's database session commits before its response is sent** (`DbDep` has
+  `scope="function"`). A yield dependency's default scope would commit after the response, so a
+  client acting on it at once, or a background task, could miss what it describes;
+  `test_a_requests_changes_are_committed_before_its_answer_starts` checks it.
 - **Every write goes through `audit.record`**, in the same transaction, with the API's view of
   the record before and after. The activity log is open to everyone on purpose.
 - **Every write under /api needs the `X-Requested-With: house-cost` header, and any Origin must

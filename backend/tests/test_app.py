@@ -1,10 +1,12 @@
 """The application: its health endpoint and how it serves the built single-page app."""
 
+import sqlite3
 from collections.abc import AsyncIterator
 from pathlib import Path
 
 import httpx
 import pytest
+from helpers import PASSWORD, ok
 
 from house_cost import __version__
 from house_cost.api.app import IMMUTABLE, create_app
@@ -113,3 +115,37 @@ async def test_a_build_without_assets_still_serves_its_shell(data_dir: Path) -> 
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(transport=transport, base_url="http://t") as client:
             assert "shell" in (await client.get("/")).text
+
+
+async def test_a_requests_changes_are_committed_before_its_answer_starts(app, admin) -> None:
+    # A client acts on a response as soon as it arrives: a login's cookie is sent with the very
+    # next request. Whatever the response describes must therefore be in the database by the
+    # time the response begins, not committed after it has gone out.
+    database = app.state.services.settings.data_dir / "house-cost.db"
+
+    def sessions() -> int:
+        connection = sqlite3.connect(database)
+        try:
+            return connection.execute("SELECT count(*) FROM session").fetchone()[0]
+        finally:
+            connection.close()
+
+    at_answer: list[int] = []
+
+    async def watched(scope, receive, send):
+        async def spy(message):
+            if message["type"] == "http.response.start" and scope["path"] == "/api/auth/login":
+                at_answer.append(sessions())
+            await send(message)
+
+        await app(scope, receive, spy)
+
+    before = sessions()
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=watched),
+        base_url="http://house-cost.test",
+        headers={"X-Requested-With": "house-cost"},
+    ) as browser:
+        await ok(browser.post("/api/auth/login", json={"login": "lucia", "password": PASSWORD}))
+
+    assert at_answer == [before + 1]
