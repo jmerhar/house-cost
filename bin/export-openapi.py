@@ -18,7 +18,11 @@ def main() -> None:
     """Write the schema to stdout, keys sorted so the committed copy diffs cleanly."""
     with tempfile.TemporaryDirectory() as scratch:
         app = create_app(Settings(data_dir=Path(scratch), static_dir=None))
-        json.dump(app.openapi(), sys.stdout, indent=2, sort_keys=True)
+        schema = app.openapi()
+        # The committed schema describes the API's shape, not a release: a fixed version keeps
+        # it from changing with every release or with whichever version happens to be installed.
+        schema["info"]["version"] = "0.0.0"
+        json.dump(schema, sys.stdout, indent=2, sort_keys=True)
         sys.stdout.write("\n")
 
 
