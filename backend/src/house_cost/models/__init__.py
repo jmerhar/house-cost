@@ -20,6 +20,7 @@ from .ledger import (
     SplitRule,
     SplitRuleShare,
 )
+from .papers import Document, Service, Supplier
 from .people import Household, Passkey, Person, Role, Session
 
 __all__ = [
@@ -33,6 +34,7 @@ __all__ = [
     "BillLine",
     "BillLineShare",
     "Category",
+    "Document",
     "Household",
     "Passkey",
     "Person",
@@ -40,10 +42,12 @@ __all__ = [
     "ReconciliationShare",
     "ReconciliationStatus",
     "Role",
+    "Service",
     "Session",
     "Settlement",
     "SplitRule",
     "SplitRuleShare",
+    "Supplier",
     "TimestampMixin",
     "UtcDateTime",
     "utcnow",

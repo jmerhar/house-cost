@@ -46,6 +46,10 @@
     category: m.entity_category,
     settings: m.entity_settings,
     reconciliation: m.entity_reconciliation,
+    supplier: m.entity_supplier,
+    service: m.entity_service,
+    document: m.entity_document,
+    passkey: m.entity_passkey,
   };
 
   /** A few words on what the record was: a bill's supplier and total, a person's name. */

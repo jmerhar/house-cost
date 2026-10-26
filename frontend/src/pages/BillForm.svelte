@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { Attachment, Bill, BillIn } from "../lib/api";
+  import type { Attachment, Bill, BillIn, Service, Supplier } from "../lib/api";
   import { useApp } from "../lib/context";
   import { errorMessage } from "../lib/errors";
   import { amountInput, euros, fileSize, parseAmount, today } from "../lib/format";
@@ -29,6 +29,9 @@
   let periodEnd = $state("");
   let due = $state("");
   let paidBy = $state(String(app.me?.household_id ?? ""));
+  let serviceId = $state("");
+  let services = $state<Service[]>([]);
+  let suppliers = $state<Supplier[]>([]);
   let notes = $state("");
   let lines = $state<LineDraft[]>([blankLine()]);
   let attachments = $state<Attachment[]>([]);
@@ -48,6 +51,7 @@
     periodEnd = bill.period_end ?? "";
     due = bill.due_date ?? "";
     paidBy = String(bill.paid_by_id);
+    serviceId = bill.service_id ? String(bill.service_id) : "";
     notes = bill.notes;
     locked = bill.locked;
     attachments = bill.attachments;
@@ -61,6 +65,15 @@
   }
 
   onMount(() => {
+    Promise.all([app.api.services(), app.api.suppliers()]).then(
+      ([loadedServices, loadedSuppliers]) => {
+        services = loadedServices.filter((service) => service.active || String(service.id) === serviceId);
+        suppliers = loadedSuppliers;
+      },
+      () => {
+        // Without them the bill is entered without a service, which is allowed.
+      },
+    );
     if (id === undefined) return;
     app.api.bill(id).then(
       (bill) => {
@@ -73,6 +86,15 @@
       },
     );
   });
+
+  /** Choosing a service fills in what it implies and is still empty: the supplier, and the
+   * first line's category. */
+  function chooseService(): void {
+    const service = services.find((s) => String(s.id) === serviceId);
+    if (!service) return;
+    if (!supplier) supplier = suppliers.find((s) => s.id === service.supplier_id)?.name ?? "";
+    if (service.default_category_id && !lines[0].categoryId) lines[0].categoryId = String(service.default_category_id);
+  }
 
   /** Show each line's split as it would be saved, asking the API for the rule in force. */
   let previewTimer: ReturnType<typeof setTimeout> | undefined;
@@ -114,6 +136,7 @@
       period_end: periodEnd || null,
       due_date: due || null,
       paid_by_id: Number(paidBy),
+      service_id: serviceId ? Number(serviceId) : null,
       notes,
       lines: parsed.map(({ line, cents }) => ({
         id: line.id,
@@ -197,6 +220,13 @@
             {#each app.households as household (household.id)}
               <option value={String(household.id)}>{household.name}</option>
             {/each}
+          </select>
+        </label>
+        <label>
+          {m.field_service()} <small>({m.optional()})</small>
+          <select bind:value={serviceId} onchange={chooseService}>
+            <option value="">—</option>
+            {#each services as service (service.id)}<option value={String(service.id)}>{service.name}</option>{/each}
           </select>
         </label>
         <label>{m.field_supplier()}<input bind:value={supplier} maxlength="200" /></label>

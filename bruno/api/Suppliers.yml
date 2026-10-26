@@ -1,0 +1,23 @@
+info:
+  name: Suppliers
+  type: http
+  seq: 25
+
+http:
+  method: GET
+  url: "{{base_url}}/api/suppliers"
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body[0].nif
+      operator: eq
+      value: '"506743357"'
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0

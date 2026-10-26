@@ -18,11 +18,13 @@ from .routers import (
     attachments,
     bills,
     categories,
+    documents,
     health,
     overview,
     passkeys,
     people,
     reconciliations,
+    services,
     settlements,
     setup,
 )
@@ -41,7 +43,17 @@ WRITES = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 #: routes that act on an account ask for the session themselves.
 PUBLIC_ROUTERS = (health, setup, account, passkeys)
 #: Every other router, mounted so that each of its routes needs a session.
-PROTECTED_ROUTERS = (people, categories, bills, settlements, attachments, overview, reconciliations)
+PROTECTED_ROUTERS = (
+    people,
+    categories,
+    bills,
+    settlements,
+    attachments,
+    services,
+    documents,
+    overview,
+    reconciliations,
+)
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:

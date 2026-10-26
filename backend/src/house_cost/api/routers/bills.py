@@ -14,7 +14,7 @@ from ...bills import (
     locked_periods,
     set_lines,
 )
-from ...models import Bill, BillLine, Household, utcnow
+from ...models import Bill, BillLine, Household, Service, utcnow
 from ...splitting import NoRule, households_in_order
 from ..deps import DbDep, PersonDep, get_or_404
 from ..schemas import BillIn, BillOut, BillPage
@@ -86,6 +86,8 @@ async def _apply(db, bill: Bill, body: BillIn, *, date_changed: bool) -> None:
     """Copy ``body`` onto ``bill`` and split its lines, turning a bad line into a 422."""
     if await db.get(Household, body.paid_by_id) is None:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "unknown_household")
+    if body.service_id is not None and await db.get(Service, body.service_id) is None:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "unknown_service")
     for key, value in body.model_dump(exclude={"lines"}).items():
         setattr(bill, key, value)
     drafts = [

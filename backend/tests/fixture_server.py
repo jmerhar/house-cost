@@ -4,7 +4,8 @@
 
 Run from backend/ by bin/test-bruno.sh. The database is migrated exactly as the container's
 entrypoint migrates it, then filled through the API itself with the agreement's example: two
-households, the electricity and road rules, and a bill in each category. Log in as `lucia` with
+households, the electricity and road rules, MEO Energia and its electricity service, and a bill
+in each category. Log in as `lucia` with
 the password in FIXTURE_PASSWORD.
 """
 
@@ -68,11 +69,29 @@ async def seed(settings: Settings) -> None:
                     },
                 )
                 if name == "Electricity":
+                    supplier = await post(
+                        "/api/suppliers",
+                        {
+                            "name": "MEO Energia",
+                            "nif": "506743357",
+                            "default_category_id": category["id"],
+                        },
+                    )
+                    service = await post(
+                        "/api/services",
+                        {
+                            "supplier_id": supplier["id"],
+                            "name": "Electricity at the Quinta",
+                            "ends_on": "2026-12-11",
+                            "notice_days": 30,
+                        },
+                    )
                     await post(
                         "/api/bills",
                         {
                             "date": "2026-10-18",
                             "supplier": "MEO Energia",
+                            "service_id": service["id"],
                             "paid_by_id": owners,
                             "lines": [{"category_id": category["id"], "amount_cents": 28759}],
                         },

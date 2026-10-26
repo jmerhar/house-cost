@@ -14,7 +14,8 @@ backend/src/house_cost/
   db.py            async engine with SQLite's pragmas, the session factory, session_scope
   models/          base.py (Base, UtcDateTime, naming convention), people.py (households,
                    people, sessions), ledger.py (categories, rules, bills, lines, shares,
-                   settlements, attachments), admin.py (audit log, settings, reconciliation)
+                   settlements, attachments), admin.py (audit log, settings, reconciliation),
+                   papers.py (suppliers, services, library documents)
   money.py         allocate(): whole cents split by largest remainder, adding up exactly
   splitting.py     the rule in force on a date, and a split by basis points
   bills.py         set_lines (splitting a bill's lines, keeping unchanged ones), locked periods
@@ -23,7 +24,9 @@ backend/src/house_cost/
   auth.py          argon2 passwords, server-side sessions, the login throttle, the origin check
   passkeys.py      the relying party for a request, and WebAuthn challenges waiting for answers
   audit.py         record() for the audit log; the app's settings and their defaults
-  storage.py       uploaded files under their SHA-256, and recognising their type by content
+  storage.py       uploaded files under their SHA-256, and recognising their type by content;
+                   attachments and library documents share it (attachments.held)
+  extraction/      reading documents: pdf.py is a PDF's text layer
   api/
     app.py         create_app: routers under /api, the write guard, the interface and its SPA
                    fallback
@@ -36,6 +39,7 @@ backend/src/house_cost/
 backend/alembic/   migrations; bin/entrypoint.sh runs them before the app starts
 backend/tests/     pytest; fixture_server.py serves the real app for the Bruno collection,
                    softauthn.py is a software authenticator for the passkey ceremonies,
+                   synthetic.py makes the PDFs tests read, in place of real bills,
                    tooling/ tests the scripts in bin/ that have logic of their own
 frontend/          Svelte 5, Vite, TypeScript, Paraglide
   src/App.svelte   setup, login, then the routed views

@@ -4,6 +4,15 @@ Every release of House costs, newest first. The image is `ghcr.io/jmerhar/house-
 follow semantic versioning: a major release needs something done by whoever runs it, and says
 what under **Upgrading**. Before 1.0, a minor release may.
 
+## Unreleased
+
+### Added
+
+- Services and suppliers: what the house has with each supplier, with its references, when it
+  ends or renews, its lock-in and notice period. A bill can name the service it is for.
+- A document library for contracts, terms, the signed agreement and leaflets, searched by the
+  text of their PDFs.
+
 ## 0.2.0 — 2026-10-26
 
 ### Added

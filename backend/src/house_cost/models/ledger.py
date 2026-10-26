@@ -103,6 +103,11 @@ class Bill(TimestampMixin, Base):
     due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     total_cents: Mapped[int] = mapped_column(Integer)
     paid_by_id: Mapped[int] = mapped_column(ForeignKey("household.id", ondelete="RESTRICT"))
+    #: The service the bill is for, when it is for one; the supplier's name is kept as text too,
+    #: for bills from someone with no service on file.
+    service_id: Mapped[int | None] = mapped_column(
+        ForeignKey("service.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     notes: Mapped[str] = mapped_column(Text, default="")
     created_by_id: Mapped[int | None] = mapped_column(
         ForeignKey("person.id", ondelete="SET NULL"), nullable=True

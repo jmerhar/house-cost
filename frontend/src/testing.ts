@@ -109,6 +109,7 @@ export function aBill(overrides: Partial<Bill> = {}): Bill {
     due_date: "2026-11-03",
     total_cents: 28759,
     paid_by_id: OWNERS.id,
+    service_id: null,
     notes: "",
     lines: [
       {
