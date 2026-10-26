@@ -162,7 +162,7 @@ section {
 
 .narrow {
   max-width: 24rem;
-  margin: 10vh auto 0;
+  margin: 10vh auto 2rem;
 }
 
 /* Forms */
