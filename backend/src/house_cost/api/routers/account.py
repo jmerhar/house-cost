@@ -13,9 +13,10 @@ from ...auth import (
     verify_password,
 )
 from ...models import Person, Session
+from ...notify.messages import language, render
 from .. import session_cookie
 from ..deps import SESSION_COOKIE, DbDep, PersonDep, ServicesDep, SessionDep
-from ..schemas import LoginIn, Me, MeUpdate, PersonOut, SessionOut
+from ..schemas import LoginIn, Me, MeUpdate, PersonOut, SessionOut, TestSent
 
 router = APIRouter(prefix="/auth", tags=["account"])
 
@@ -81,6 +82,10 @@ async def update_me(body: MeUpdate, session: SessionDep, db: DbDep) -> Me:
     before = PersonOut.model_validate(person)
     person.name = body.name
     person.language = body.language
+    if body.apprise_urls is not None:
+        person.apprise_urls = body.apprise_urls.strip()
+    if body.notify_on is not None:
+        person.notify_on = dict(body.notify_on)
     if body.new_password is not None:
         if body.current_password is None or not verify_password(
             person.password_hash, body.current_password
@@ -98,6 +103,15 @@ async def update_me(body: MeUpdate, session: SessionDep, db: DbDep) -> Me:
         after=PersonOut.model_validate(person),
     )
     return await session_cookie.describe(db, person)
+
+
+@router.post("/me/test-notification")
+async def test_notification(person: PersonDep, services: ServicesDep) -> TestSent:
+    """Send a test notification to this person's own URLs."""
+    if not person.urls:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "no_urls")
+    title, body = render("test", language(person.language))
+    return TestSent(sent=await services.sender.send(person.urls, title, body))
 
 
 @router.get("/sessions")

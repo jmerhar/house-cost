@@ -7,6 +7,7 @@ from .admin import (
     Reconciliation,
     ReconciliationShare,
     ReconciliationStatus,
+    SentNotification,
 )
 from .base import Base, TimestampMixin, UtcDateTime, utcnow
 from .ledger import (
@@ -44,6 +45,7 @@ __all__ = [
     "ReconciliationShare",
     "ReconciliationStatus",
     "Role",
+    "SentNotification",
     "Service",
     "Session",
     "Settlement",

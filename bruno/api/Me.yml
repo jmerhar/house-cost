@@ -18,6 +18,9 @@ runtime:
     - expression: res.body.reconciliation_enabled
       operator: eq
       value: "false"
+    - expression: res.body.notify_on.new_bill
+      operator: eq
+      value: "true"
 
 settings:
   encodeUrl: true

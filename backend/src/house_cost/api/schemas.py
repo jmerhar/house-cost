@@ -88,20 +88,32 @@ class PersonUpdate(BaseModel):
     password: Password | None = None
 
 
+Event = Literal["new_bill", "price_change", "contract", "missing_bill"]
+
+
 class Me(PersonOut):
     """The person logged in, with what the interface needs to know about the app."""
 
     household_name: str
     reconciliation_enabled: bool
+    apprise_urls: str
+    notify_on: dict[Event, bool]
 
 
 class MeUpdate(BaseModel):
-    """A person's change to themselves. A new password needs the current one."""
+    """A person's change to themselves. A new password needs the current one; notification
+    settings left out stay as they are."""
 
     name: Name
     language: Language | None = None
     current_password: str | None = None
     new_password: Password | None = None
+    apprise_urls: Annotated[str, StringConstraints(max_length=4000)] | None = None
+    notify_on: dict[Event, bool] | None = None
+
+
+class TestSent(BaseModel):
+    sent: bool
 
 
 class SessionOut(Out):

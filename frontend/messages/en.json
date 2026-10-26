@@ -263,5 +263,19 @@
   "consumption_electricity": "Electricity used",
   "consumption_water": "Water used",
   "error_read_timeout": "Reading the file took too long. Enter the bill by hand.",
-  "error_unreadable": "That file could not be read."
+  "error_unreadable": "That file could not be read.",
+  "notify_title": "Notifications",
+  "notify_urls": "Where to send them",
+  "notify_urls_hint": "One Apprise URL per line, such as mailto://you@example.com or tgram://bot-token/chat-id. Only you can see these.",
+  "notify_when": "Tell me about",
+  "notify_new_bill": "Bills another household adds",
+  "notify_price_change": "Price changes on a bill",
+  "notify_contract": "Contracts ending and lock-ins expiring",
+  "notify_missing_bill": "Regular bills that have not arrived",
+  "notify_saved": "Notification settings saved.",
+  "notify_test": "Send a test",
+  "notify_test_sent": "Test sent. Check that it arrived.",
+  "notify_test_failed": "The test could not be delivered. Check the URLs.",
+  "error_no_urls": "Add a URL to send notifications to first.",
+  "notify_save": "Save notifications"
 }

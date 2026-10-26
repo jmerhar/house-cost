@@ -50,3 +50,39 @@ def test_there_is_exactly_one_head() -> None:
     config.set_main_option("script_location", str(BACKEND / "alembic"))
 
     assert len(ScriptDirectory.from_config(config).get_heads()) == 1
+
+
+def test_upgrading_a_database_that_has_people_keeps_them(data_dir: Path) -> None:
+    # Columns added later must have defaults for the rows already there, or a deployment with
+    # data fails to upgrade while an empty test database does not.
+    def alembic(*args: str) -> None:
+        subprocess.run(
+            [sys.executable, "-m", "alembic", *args],
+            cwd=BACKEND,
+            env={"DATA_DIR": str(data_dir), "PATH": ""},
+            check=True,
+            capture_output=True,
+        )
+
+    alembic("upgrade", "0002")
+    engine = create_engine(f"sqlite:///{data_dir / 'house-cost.db'}")
+    try:
+        with engine.begin() as connection:
+            connection.exec_driver_sql(
+                "INSERT INTO household (id, name, position, active, created_at, updated_at) "
+                "VALUES (1, 'H', 0, 1, '2026-01-01', '2026-01-01')"
+            )
+            connection.exec_driver_sql(
+                "INSERT INTO person (id, name, login, password_hash, role, household_id, active, "
+                "created_at, updated_at) VALUES (1, 'P', 'p', 'x', 'admin', 1, 1, '2026-01-01', "
+                "'2026-01-01')"
+            )
+        alembic("upgrade", "head")
+        with engine.connect() as connection:
+            row = connection.exec_driver_sql(
+                "SELECT login, apprise_urls, notify_on FROM person"
+            ).one()
+    finally:
+        engine.dispose()
+
+    assert tuple(row) == ("p", "", "{}")

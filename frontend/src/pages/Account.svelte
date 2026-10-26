@@ -22,6 +22,27 @@
   let notice = $state("");
   let busy = $state(false);
 
+  /** The notifications a person can turn on or off, with their labels. */
+  const EVENTS = [
+    ["new_bill", m.notify_new_bill],
+    ["price_change", m.notify_price_change],
+    ["contract", m.notify_contract],
+    ["missing_bill", m.notify_missing_bill],
+  ] as const;
+  type Event = (typeof EVENTS)[number][0];
+
+  let appriseUrls = $state(app.me?.apprise_urls ?? "");
+  let notifyOn = $state<Record<Event, boolean>>({
+    new_bill: true,
+    price_change: true,
+    contract: true,
+    missing_bill: true,
+    ...app.me?.notify_on,
+  });
+  let notifyError = $state("");
+  let notifyNotice = $state("");
+  let notifyBusy = $state(false);
+
   async function loadSessions(): Promise<void> {
     try {
       sessions = await app.api.sessions();
@@ -95,6 +116,39 @@
     }
   }
 
+  async function saveNotifications(event: SubmitEvent): Promise<void> {
+    event.preventDefault();
+    notifyError = "";
+    notifyNotice = "";
+    notifyBusy = true;
+    try {
+      app.me = await app.api.updateMe({
+        name: app.me?.name ?? name,
+        language: app.me?.language ?? null,
+        apprise_urls: appriseUrls,
+        notify_on: { ...notifyOn },
+      });
+      appriseUrls = app.me.apprise_urls;
+      notifyNotice = m.notify_saved();
+    } catch (failure) {
+      notifyError = errorMessage(failure);
+    } finally {
+      notifyBusy = false;
+    }
+  }
+
+  async function sendTest(): Promise<void> {
+    notifyError = "";
+    notifyNotice = "";
+    try {
+      const { sent } = await app.api.testNotification();
+      if (sent) notifyNotice = m.notify_test_sent();
+      else notifyError = m.notify_test_failed();
+    } catch (failure) {
+      notifyError = errorMessage(failure);
+    }
+  }
+
   async function end(session: SessionOut): Promise<void> {
     try {
       await app.api.endSession(session.id);
@@ -132,6 +186,29 @@
   {#if error}<p role="alert">{error}</p>{/if}
   {#if notice}<p class="note">{notice}</p>{/if}
   <button type="submit" disabled={busy}>{busy ? m.saving() : m.save()}</button>
+</form>
+
+<h2>{m.notify_title()}</h2>
+<form class="card" onsubmit={saveNotifications}>
+  <label>
+    {m.notify_urls()}
+    <textarea bind:value={appriseUrls} rows="3" maxlength="4000" spellcheck="false" placeholder="mailto://…"></textarea>
+    <small>{m.notify_urls_hint()}</small>
+  </label>
+  <fieldset>
+    <legend>{m.notify_when()}</legend>
+    {#each EVENTS as [key, label] (key)}
+      <label class="check"><input type="checkbox" bind:checked={notifyOn[key]} /> {label()}</label>
+    {/each}
+  </fieldset>
+  {#if notifyError}<p role="alert">{notifyError}</p>{/if}
+  {#if notifyNotice}<p class="note">{notifyNotice}</p>{/if}
+  <div class="actions">
+    <button type="submit" disabled={notifyBusy}>{notifyBusy ? m.saving() : m.notify_save()}</button>
+    {#if app.me?.apprise_urls}
+      <button type="button" class="secondary" onclick={sendTest}>{m.notify_test()}</button>
+    {/if}
+  </div>
 </form>
 
 <h2>{m.passkeys_title()}</h2>

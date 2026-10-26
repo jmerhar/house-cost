@@ -263,5 +263,19 @@
   "consumption_electricity": "Consumo de eletricidade",
   "consumption_water": "Consumo de água",
   "error_read_timeout": "A leitura do ficheiro demorou demasiado. Registe a fatura manualmente.",
-  "error_unreadable": "Não foi possível ler esse ficheiro."
+  "error_unreadable": "Não foi possível ler esse ficheiro.",
+  "notify_title": "Notificações",
+  "notify_urls": "Para onde as enviar",
+  "notify_urls_hint": "Um URL do Apprise por linha, como mailto://nome@exemplo.pt ou tgram://token-do-bot/id-do-chat. Só são visíveis para si.",
+  "notify_when": "Avisar-me de",
+  "notify_new_bill": "Faturas adicionadas por outra família",
+  "notify_price_change": "Alterações de preço numa fatura",
+  "notify_contract": "Fim de contratos e de fidelizações",
+  "notify_missing_bill": "Faturas habituais que não chegaram",
+  "notify_saved": "Definições de notificação guardadas.",
+  "notify_test": "Enviar teste",
+  "notify_test_sent": "Teste enviado. Confirme que chegou.",
+  "notify_test_failed": "Não foi possível entregar o teste. Verifique os URLs.",
+  "error_no_urls": "Adicione primeiro um URL para onde enviar as notificações.",
+  "notify_save": "Guardar notificações"
 }

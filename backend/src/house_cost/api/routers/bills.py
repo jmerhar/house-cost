@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, status
 from sqlalchemy import extract, func, or_, select
 
 from ...audit import record
@@ -15,8 +15,9 @@ from ...bills import (
     set_lines,
 )
 from ...models import Bill, BillLine, BillReading, Household, Service, utcnow
+from ...notify.events import bill_added
 from ...splitting import NoRule, households_in_order
-from ..deps import DbDep, PersonDep, get_or_404
+from ..deps import DbDep, PersonDep, ServicesDep, get_or_404
 from ..schemas import BillIn, BillOut, BillPage
 
 router = APIRouter(prefix="/bills", tags=["bills"])
@@ -111,8 +112,13 @@ def _refuse_if_locked(on: date, periods: list[tuple[date, date]]) -> None:
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-async def create_bill(body: BillIn, person: PersonDep, db: DbDep) -> BillOut:
-    """Enter a bill. Each line is split by its category's rule in force on the bill's date."""
+async def create_bill(
+    body: BillIn, person: PersonDep, db: DbDep, services: ServicesDep, tasks: BackgroundTasks
+) -> BillOut:
+    """Enter a bill. Each line is split by its category's rule in force on the bill's date.
+
+    Once it is saved, the other households hear of it, and everyone of a price it changed.
+    """
     periods = await locked_periods(db)
     _refuse_if_locked(body.date, periods)
     bill = Bill(created_by_id=person.id, lines=[], attachments=[], readings=[])
@@ -122,6 +128,10 @@ async def create_bill(body: BillIn, person: PersonDep, db: DbDep) -> BillOut:
     await db.refresh(bill)
     out = bill_out(bill, periods)
     record(db, person, "create", "bill", bill.id, after=out)
+    # Background tasks can run before the request's own session closes, so the bill is
+    # committed here for the notification's separate session to find.
+    await db.commit()
+    tasks.add_task(bill_added, services.sessionmaker, services.sender, bill.id, person.id)
     return out
 
 

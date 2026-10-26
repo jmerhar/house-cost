@@ -33,6 +33,12 @@ services:
       # address the login throttle counts is the last one an untrusted hop added, so "*" would let
       # a client choose its own.
       FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1,172.16.0.0/12}
+      COOKIE_SECURE: ${COOKIE_SECURE:-}
+      MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-20971520}
+      LOGIN_ATTEMPTS_PER_MINUTE: ${LOGIN_ATTEMPTS_PER_MINUTE:-10}
+      # The daily snapshot of the database into data/backups: from what time, and how many kept.
+      BACKUP_TIME: ${BACKUP_TIME:-03:30}
+      BACKUPS_KEPT: ${BACKUPS_KEPT:-14}
     ports:
       # Loopback, for a reverse proxy to publish. Until the first administrator is created, the
       # first person to open the interface becomes one, so finish setup before anyone else can
