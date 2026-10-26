@@ -9,7 +9,7 @@ description = "Track a shared house's running costs and split them between house
 requires-python = ">=3.14"
 license = "GPL-3.0-or-later"
 dependencies = [
-    "fastapi>=0.141,<0.142",
+    "fastapi>=0.141,<0.144",
     "uvicorn[standard]>=0.52",
     "sqlalchemy[asyncio]>=2.0.52",
     "aiosqlite>=0.22",
