@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from ..db import session_scope
 from ..models import Bill, BillReading, Person, Service, Supplier
-from . import Sender, once, send_to
+from . import Notifier, once
 from .messages import day, days, every, money, price, within, word
 
 logger = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ def _label(bill: Bill) -> str:
 
 
 async def bill_added(
-    sessionmaker: async_sessionmaker[AsyncSession], sender: Sender, bill_id: int, actor_id: int
+    sessionmaker: async_sessionmaker[AsyncSession], notifier: Notifier, bill_id: int, actor_id: int
 ) -> None:
     """Tell the other households of a new bill, and everyone of a unit price it changed.
 
@@ -55,8 +55,7 @@ async def bill_added(
                     if s.household_id == person.household_id
                 )
 
-            await send_to(
-                sender,
+            await notifier.send_to(
                 others,
                 "new_bill",
                 "new_bill",
@@ -68,13 +67,13 @@ async def bill_added(
                     "share": money(share(person), lang),
                 },
             )
-            await _price_changes(db, sender, bill, people)
+            await _price_changes(db, notifier, bill, people)
     except Exception:  # noqa: BLE001 - see the docstring
         logger.exception("notifying of bill %s failed", bill_id)
 
 
 async def _price_changes(
-    db: AsyncSession, sender: Sender, bill: Bill, people: list[Person]
+    db: AsyncSession, notifier: Notifier, bill: Bill, people: list[Person]
 ) -> None:
     """Tell everyone when a reading's unit price differs from the service's previous bill, naming
     the service's supplier."""
@@ -107,8 +106,7 @@ async def _price_changes(
         if not await once(db, f"price:{bill.id}:{reading.quantity}"):
             continue
         unit = "kWh" if reading.quantity == "electricity_kwh" else "m³"
-        await send_to(
-            sender,
+        await notifier.send_to(
             people,
             "price_change",
             "price_change",
@@ -123,7 +121,7 @@ async def _price_changes(
         )
 
 
-async def contract_reminders(db: AsyncSession, sender: Sender, today: date) -> None:
+async def contract_reminders(db: AsyncSession, notifier: Notifier, today: date) -> None:
     """Remind everyone of contracts ending and lock-ins expiring, 30 and 7 days ahead.
 
     Each reminder is sent once. A service first seen inside the 7-day window gets only that
@@ -144,8 +142,7 @@ async def contract_reminders(db: AsyncSession, sender: Sender, today: date) -> N
             fresh = [await once(db, key) for key in keys]
             if not fresh[-1]:
                 continue
-            await send_to(
-                sender,
+            await notifier.send_to(
                 people,
                 "contract",
                 message,
@@ -164,7 +161,7 @@ async def contract_reminders(db: AsyncSession, sender: Sender, today: date) -> N
             )
 
 
-async def missing_bills(db: AsyncSession, sender: Sender, today: date) -> None:
+async def missing_bills(db: AsyncSession, notifier: Notifier, today: date) -> None:
     """Point out a regular bill that has not come a week after it was due, once per gap."""
     people = await _people(db)
     rows = await db.execute(
@@ -179,8 +176,7 @@ async def missing_bills(db: AsyncSession, sender: Sender, today: date) -> None:
             continue
         if not await once(db, f"missing:{service.id}:{last.isoformat()}"):
             continue
-        await send_to(
-            sender,
+        await notifier.send_to(
             people,
             "missing_bill",
             "missing_bill",

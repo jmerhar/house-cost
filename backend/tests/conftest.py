@@ -27,10 +27,21 @@ def data_dir() -> Iterator[Path]:
         yield Path(directory)
 
 
+#: The notification channels the tests' deployment offers.
+MAIL_URL = "mailto://mail.test/?from=house-cost@house.test"
+SIGNAL_URL = "signal://signal.test:8080/+351210000000"
+
+
 @pytest.fixture
 def settings(data_dir: Path) -> Settings:
     """Settings pointed at the throwaway directory, serving no built frontend."""
-    return Settings(data_dir=data_dir, static_dir=None, scheduler_enabled=False)
+    return Settings(
+        data_dir=data_dir,
+        static_dir=None,
+        scheduler_enabled=False,
+        notify_email_url=MAIL_URL,
+        notify_signal_url=SIGNAL_URL,
+    )
 
 
 @pytest.fixture

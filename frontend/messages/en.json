@@ -265,8 +265,6 @@
   "error_read_timeout": "Reading the file took too long. Enter the bill by hand.",
   "error_unreadable": "That file could not be read.",
   "notify_title": "Notifications",
-  "notify_urls": "Where to send them",
-  "notify_urls_hint": "One Apprise URL per line, such as mailto://you@example.com or tgram://bot-token/chat-id. Only you can see these.",
   "notify_when": "Tell me about",
   "notify_new_bill": "Bills another household adds",
   "notify_price_change": "Price changes on a bill",
@@ -275,8 +273,7 @@
   "notify_saved": "Notification settings saved.",
   "notify_test": "Send a test",
   "notify_test_sent": "Test sent. Check that it arrived.",
-  "notify_test_failed": "The test could not be delivered. Check the URLs.",
-  "error_no_urls": "Add a URL to send notifications to first.",
+  "notify_test_failed": "The test could not be delivered. Check the address and the number.",
   "notify_save": "Save notifications",
   "read_claude": "Claude read some of it, since the app does not know this bill's layout. Check those fields against the file.",
   "read_claude_failed": "Claude could not read this bill, so only what the app read itself is filled in.",
@@ -297,5 +294,12 @@
   "terms_apply": "Update {service} with these",
   "terms_applied": "{service}: details updated.",
   "terms_no_service": "Link this document to a service to update it with these.",
-  "close": "Close"
+  "close": "Close",
+  "notify_intro": "Get a message by email or Signal when something needs your attention.",
+  "field_email": "Email address",
+  "field_phone": "Phone number (Signal)",
+  "field_phone_hint": "Use a number registered on Signal. One without a country code is taken as +{code}.",
+  "error_no_contact": "Add an email address or a phone number first.",
+  "error_invalid_email": "That is not an email address.",
+  "error_invalid_phone": "That is not a phone number."
 }

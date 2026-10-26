@@ -1,5 +1,5 @@
 info:
-  name: Error - test notification without URLs
+  name: Error - test notification without contacts
   type: http
   seq: 29
 
@@ -17,7 +17,7 @@ runtime:
       value: "422"
     - expression: res.body.detail
       operator: eq
-      value: "no_urls"
+      value: "no_contact"
 
 settings:
   encodeUrl: true

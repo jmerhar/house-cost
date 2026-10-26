@@ -4,6 +4,16 @@ Every release of House costs, newest first. The image is `ghcr.io/jmerhar/house-
 follow semantic versioning: a major release needs something done by whoever runs it, and says
 what under **Upgrading**. Before 1.0, a minor release may.
 
+## Unreleased
+
+### Changed
+
+- **Upgrading:** notifications go to an email address and a phone number (Signal) instead of
+  Apprise URLs. Set `NOTIFY_EMAIL_URL` and `NOTIFY_SIGNAL_URL` to the Apprise URLs to send
+  through, without a recipient; a channel left unset is not offered. People enter their address
+  and number on the account page, or an administrator does for them. Apprise URLs saved before
+  are dropped.
+
 ## 0.6.1 — 2026-10-26
 
 ### Fixed

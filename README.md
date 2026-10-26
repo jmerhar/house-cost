@@ -26,10 +26,9 @@ everyone can see what they have paid, what they owe and to whom.
 - **Records every change**: who added, corrected or deleted what, visible to everyone.
 - **Optional annual reconciliation**: split a closed period's bills again by shares agreed at its
   end, and settle the difference.
-- **Notifications** through [Apprise](https://github.com/caronc/apprise) (email, Telegram,
-  ntfy and the rest), each person choosing where and which: a bill another household adds, a
-  unit price that changed, a contract ending or a lock-in expiring in 30 and 7 days, and a regular
-  bill that has not arrived.
+- **Notifications by email and Signal**, each person giving an address or a phone number and
+  choosing which: a bill another household adds, a unit price that changed, a contract ending or
+  a lock-in expiring in 30 and 7 days, and a regular bill that has not arrived.
 - **Passkeys**: log in with a fingerprint, face or screen lock instead of a password.
 - **Claude, optionally**: with an Anthropic API key, Claude reads the bills whose layout the app
   does not know, proposes a contract's dates and notice for its service, and answers questions
@@ -70,6 +69,9 @@ Set in the compose file's environment, or in `.env` beside it.
 | `TZ` | `UTC` | Time zone of the house: log lines, the daily backup and reminders follow it. |
 | `BACKUP_TIME` | `03:30` | From when each day the database is copied to `data/backups`. |
 | `BACKUPS_KEPT` | `14` | How many daily copies are kept. |
+| `NOTIFY_EMAIL_URL` | | Apprise URL notifications are mailed through, without a recipient. |
+| `NOTIFY_SIGNAL_URL` | | Apprise Signal URL (a signal-cli REST API and its number) messages are sent from. |
+| `PHONE_COUNTRY_CODE` | `351` | The country a phone number typed without a country code is in. |
 | `ANTHROPIC_API_KEY` | | Turns on Claude. Leave it unset to keep every file on the server. |
 | `ANTHROPIC_API_KEY_FILE` | | A file holding the key, such as a Docker secret, in place of the variable. |
 | `CLAUDE_MODEL` | `claude-opus-5-5` | The model Claude's requests use. |
@@ -79,8 +81,19 @@ Everything the app keeps is in `./data`. Back that directory up and there is not
 `data/backups` holds a consistent copy of the database from each day, so a backup that catches
 the live database mid-write still has one to restore.
 
-Each person sets where their notifications go on the account page, as Apprise URLs. The
-container needs to reach whatever those URLs name, such as a mail server or an Apprise API.
+Notifications go out through [Apprise](https://github.com/caronc/apprise), by channels the
+deployment configures without a recipient; each person's email address and phone number, set
+on the account page or by an administrator, complete them. A channel left unset is not
+offered. For example:
+
+```yaml
+NOTIFY_EMAIL_URL: mailto://user:password@smtp.example.com:587/?from=costs@example.com
+NOTIFY_SIGNAL_URL: signal://signal-cli-rest-api:8080/+351210000000
+```
+
+The address is added as the mail URL's `to`, and the phone number to the end of the Signal URL's
+path, so any Apprise service that takes its recipient there works too. The container needs to
+reach what the URLs name.
 
 ## Development
 

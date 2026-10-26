@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from .config import Settings
 from .db import session_scope
-from .notify import Sender
+from .notify import Notifier
 from .notify.events import contract_reminders, missing_bills
 
 logger = logging.getLogger(__name__)
@@ -54,12 +54,12 @@ class Scheduler:
         settings: Settings,
         engine: AsyncEngine,
         sessionmaker: async_sessionmaker[AsyncSession],
-        sender: Sender,
+        notifier: Notifier,
     ) -> None:
         self.settings = settings
         self.engine = engine
         self.sessionmaker = sessionmaker
-        self.sender = sender
+        self.notifier = notifier
         self._task: asyncio.Task | None = None
         self._last_reminded: str | None = None
 
@@ -73,8 +73,8 @@ class Scheduler:
             await back_up(self.engine, self.settings.backups_dir, today, self.settings.backups_kept)
         if self._last_reminded != today:
             async with session_scope(self.sessionmaker) as db:
-                await contract_reminders(db, self.sender, now.date())
-                await missing_bills(db, self.sender, now.date())
+                await contract_reminders(db, self.notifier, now.date())
+                await missing_bills(db, self.notifier, now.date())
             self._last_reminded = today
 
     async def _loop(self) -> None:

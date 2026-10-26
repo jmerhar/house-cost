@@ -63,9 +63,32 @@
   }
 
   // --- People ---
-  let personForm = $state<{ id: number | null; name: string; login: string; role: "admin" | "member"; language: string; householdId: string; active: boolean; password: string } | null>(null);
+  let personForm = $state<{
+    id: number | null;
+    name: string;
+    login: string;
+    role: "admin" | "member";
+    language: string;
+    householdId: string;
+    active: boolean;
+    password: string;
+    email: string;
+    phone: string;
+  } | null>(null);
+  const channels = $derived(app.me?.notify_channels ?? []);
   function newPerson(): void {
-    personForm = { id: null, name: "", login: "", role: "member", language: "", householdId: String(app.households[0]?.id ?? ""), active: true, password: "" };
+    personForm = {
+      id: null,
+      name: "",
+      login: "",
+      role: "member",
+      language: "",
+      householdId: String(app.households[0]?.id ?? ""),
+      active: true,
+      password: "",
+      email: "",
+      phone: "",
+    };
   }
   function editPerson(person: Person): void {
     personForm = {
@@ -77,6 +100,8 @@
       householdId: String(person.household_id),
       active: person.active,
       password: "",
+      email: person.email ?? "",
+      phone: person.phone ?? "",
     };
   }
   async function savePerson(event: SubmitEvent): Promise<void> {
@@ -89,6 +114,8 @@
       role: form.role,
       language: (form.language || null) as Locale | null,
       household_id: Number(form.householdId),
+      email: form.email,
+      phone: form.phone,
     };
     const ok = await attempt(() =>
       form.id === null
@@ -238,6 +265,12 @@
           {personForm.id === null ? m.field_password() : m.field_reset_password()}
           <input type="password" bind:value={personForm.password} minlength="10" required={personForm.id === null} autocomplete="new-password" />
         </label>
+        {#if channels.includes("email")}
+          <label>{m.field_email()}<input type="email" bind:value={personForm.email} maxlength="254" autocomplete="off" /></label>
+        {/if}
+        {#if channels.includes("signal")}
+          <label>{m.field_phone()}<input type="tel" bind:value={personForm.phone} maxlength="30" autocomplete="off" /></label>
+        {/if}
         {#if personForm.id !== null}
           <label class="check"><input type="checkbox" bind:checked={personForm.active} /> {m.active()}</label>
         {/if}

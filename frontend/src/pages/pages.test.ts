@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor, within } from "@testing-library/svelte";
+import { cleanup, fireEvent, screen, waitFor, within } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { navigate } from "../lib/router.svelte";
 import {
@@ -446,32 +446,46 @@ describe("Account", () => {
     });
   });
 
-  it("saves where and what to be notified of, and sends a test", async () => {
+  it("saves an email address, a phone number and what to be told of, and sends a test", async () => {
     const { api, calls } = fakeApi({
       "GET /auth/sessions": [],
       "GET /auth/passkeys": [],
-      "PATCH /auth/me": (call) => ({ ...ADMIN, ...(call.body as object), apprise_urls: "json://me.test" }),
+      "PATCH /auth/me": (call) => ({ ...ADMIN, ...(call.body as object), phone: "+351912345678" }),
       "POST /auth/me/test-notification": { sent: true },
     });
     const app = appFor(api);
     renderPage(Account, app);
     expect(screen.queryByRole("button", { name: "Send a test" })).not.toBeInTheDocument();
 
-    await fireEvent.input(screen.getByLabelText(/^Where to send them/), { target: { value: " json://me.test\n" } });
+    await fireEvent.input(screen.getByLabelText("Email address"), { target: { value: "lucia@example.com" } });
+    await fireEvent.input(screen.getByLabelText(/^Phone number/), { target: { value: "912 345 678" } });
     await fireEvent.click(screen.getByLabelText("Bills another household adds"));
-    await fireEvent.submit(screen.getByLabelText(/^Where to send them/).closest("form")!);
+    await fireEvent.submit(screen.getByLabelText("Email address").closest("form")!);
 
     expect(await screen.findByText("Notification settings saved.")).toBeInTheDocument();
     expect(calls.find((c) => c.method === "PATCH")!.body).toEqual({
       name: "Lúcia",
       language: null,
-      apprise_urls: " json://me.test\n",
+      email: "lucia@example.com",
+      phone: "912 345 678",
       notify_on: { new_bill: false, price_change: true, contract: true, missing_bill: true },
     });
-    expect(screen.getByLabelText(/^Where to send them/)).toHaveValue("json://me.test");
+    expect(screen.getByLabelText(/^Phone number/)).toHaveValue("+351912345678");
+    expect(screen.getByText(/taken as \+351\./)).toBeInTheDocument();
 
     await fireEvent.click(screen.getByRole("button", { name: "Send a test" }));
     expect(await screen.findByText("Test sent. Check that it arrived.")).toBeInTheDocument();
+  });
+
+  it("offers only the channels the app is set up for", async () => {
+    const { api } = fakeApi({ "GET /auth/sessions": [], "GET /auth/passkeys": [] });
+    renderPage(Account, appFor(api, { ...ADMIN, notify_channels: ["email"] }));
+    expect(screen.getByLabelText("Email address")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^Phone number/)).not.toBeInTheDocument();
+    cleanup();
+
+    renderPage(Account, appFor(api, { ...ADMIN, notify_channels: [] }));
+    expect(screen.queryByRole("heading", { name: "Notifications" })).not.toBeInTheDocument();
   });
 
   it("says when a test notification was not delivered, or was refused", async () => {
@@ -481,25 +495,25 @@ describe("Account", () => {
       "GET /auth/passkeys": [],
       "POST /auth/me/test-notification": () => answer,
     });
-    renderPage(Account, appFor(api, { ...ADMIN, apprise_urls: "json://me.test" }));
+    renderPage(Account, appFor(api, { ...ADMIN, phone: "+351912345678" }));
 
     await fireEvent.click(screen.getByRole("button", { name: "Send a test" }));
     expect(await screen.findByText(/could not be delivered/)).toBeInTheDocument();
 
-    answer = refuse(422, "no_urls");
+    answer = refuse(422, "no_contact");
     await fireEvent.click(screen.getByRole("button", { name: "Send a test" }));
-    expect(await screen.findByText(/Add a URL/)).toBeInTheDocument();
+    expect(await screen.findByText(/Add an email address or a phone number/)).toBeInTheDocument();
   });
 
   it("shows why notification settings were not saved", async () => {
     const { api } = fakeApi({
       "GET /auth/sessions": [],
       "GET /auth/passkeys": [],
-      "PATCH /auth/me": () => refuse(422, "no_urls"),
+      "PATCH /auth/me": () => refuse(422, "invalid_phone"),
     });
     renderPage(Account, appFor(api));
-    await fireEvent.submit(screen.getByLabelText(/^Where to send them/).closest("form")!);
-    expect(await screen.findByRole("alert")).toHaveTextContent(/Add a URL/);
+    await fireEvent.submit(screen.getByLabelText("Email address").closest("form")!);
+    expect(await screen.findByRole("alert")).toHaveTextContent("That is not a phone number.");
   });
 
   it("saves a new language and reloads into it", async () => {
@@ -582,7 +596,8 @@ describe("Admin", () => {
   });
 
   it("adds and edits people", async () => {
-    const { api, calls } = adminApi({ "POST /people": PEOPLE[1], "PUT /people/2": PEOPLE[1] });
+    const withPhone = [PEOPLE[0], { ...PEOPLE[1], email: null, phone: "+351910000000" }];
+    const { api, calls } = adminApi({ "GET /people": withPhone, "POST /people": PEOPLE[1], "PUT /people/2": PEOPLE[1] });
     renderPage(Admin, appFor(api));
     await fireEvent.click(await screen.findByRole("button", { name: "Add a person" }));
     const form = screen.getByRole("button", { name: "Save" }).closest("form")!;
@@ -590,6 +605,8 @@ describe("Admin", () => {
     await fireEvent.input(within(form).getByLabelText("Login"), { target: { value: "marta" } });
     await fireEvent.change(within(form).getByLabelText("Household"), { target: { value: String(OWNERS.id) } });
     await fireEvent.input(within(form).getByLabelText("Password"), { target: { value: "first password" } });
+    await fireEvent.input(within(form).getByLabelText("Email address"), { target: { value: "marta@example.com" } });
+    await fireEvent.input(within(form).getByLabelText("Phone number (Signal)"), { target: { value: "913 000 000" } });
     await fireEvent.submit(form);
     await waitFor(() =>
       expect(calls.find((c) => c.method === "POST")?.body).toEqual({
@@ -599,14 +616,19 @@ describe("Admin", () => {
         language: null,
         household_id: OWNERS.id,
         password: "first password",
+        email: "marta@example.com",
+        phone: "913 000 000",
       }),
     );
 
     await fireEvent.click(screen.getAllByRole("button", { name: "Edit" }).at(-1)!);
     const edit = screen.getByRole("button", { name: "Save" }).closest("form")!;
+    expect(within(edit).getByLabelText("Phone number (Signal)")).toHaveValue("+351910000000");
     await fireEvent.click(within(edit).getByLabelText("Active"));
     await fireEvent.submit(edit);
-    await waitFor(() => expect(calls.find((c) => c.method === "PUT")?.body).toMatchObject({ active: false, password: null }));
+    await waitFor(() =>
+      expect(calls.find((c) => c.method === "PUT")?.body).toMatchObject({ active: false, password: null, email: "", phone: "+351910000000" }),
+    );
   });
 
   it("adds a category and a rule from a date, and deletes an unused rule", async () => {

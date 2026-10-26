@@ -13,6 +13,7 @@ from pydantic import (
 )
 
 from ..auth import MIN_PASSWORD_LENGTH
+from ..contacts import PHONE_TYPED
 from ..models import WHOLE
 
 Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
@@ -67,6 +68,19 @@ class PersonOut(Out):
     active: bool
 
 
+#: Contacts as typed; the routes check them and put a phone number in international form.
+Email = Annotated[str, StringConstraints(strip_whitespace=True, max_length=254)]
+Phone = Annotated[str, StringConstraints(max_length=30, pattern=PHONE_TYPED)]
+
+
+class PersonDetail(PersonOut):
+    """A person with their contacts, which only an admin and the person themselves see; None
+    for anyone else. The audit log records the plain ``PersonOut``, without them."""
+
+    email: str | None = None
+    phone: str | None = None
+
+
 class PersonIn(BaseModel):
     name: Name
     login: Login
@@ -74,6 +88,8 @@ class PersonIn(BaseModel):
     language: Language | None = None
     household_id: int
     password: Password
+    email: Email = ""
+    phone: Phone = ""
 
 
 class PersonUpdate(BaseModel):
@@ -86,6 +102,9 @@ class PersonUpdate(BaseModel):
     household_id: int
     active: bool
     password: Password | None = None
+    #: Left out, they stay as they are.
+    email: Email | None = None
+    phone: Phone | None = None
 
 
 Event = Literal["new_bill", "price_change", "contract", "missing_bill"]
@@ -98,7 +117,12 @@ class Me(PersonOut):
     reconciliation_enabled: bool
     #: Whether an Anthropic API key is set, which the reading and document features need.
     claude_enabled: bool
-    apprise_urls: str
+    email: str
+    phone: str
+    #: The kinds of contact notifications can be sent to, as the deployment configures them.
+    notify_channels: list[Literal["email", "signal"]]
+    #: The country a phone number typed without a country code is taken to be in.
+    phone_country_code: str
     notify_on: dict[Event, bool]
 
 
@@ -110,7 +134,8 @@ class MeUpdate(BaseModel):
     language: Language | None = None
     current_password: str | None = None
     new_password: Password | None = None
-    apprise_urls: Annotated[str, StringConstraints(max_length=4000)] | None = None
+    email: Email | None = None
+    phone: Phone | None = None
     notify_on: dict[Event, bool] | None = None
 
 

@@ -128,7 +128,7 @@ async def create_bill(
     await db.refresh(bill)
     out = bill_out(bill, periods)
     record(db, person, "create", "bill", bill.id, after=out)
-    tasks.add_task(bill_added, services.sessionmaker, services.sender, bill.id, person.id)
+    tasks.add_task(bill_added, services.sessionmaker, services.notifier, bill.id, person.id)
     return out
 
 

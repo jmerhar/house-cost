@@ -39,6 +39,14 @@ services:
       # The daily snapshot of the database into data/backups: from what time, and how many kept.
       BACKUP_TIME: ${BACKUP_TIME:-03:30}
       BACKUPS_KEPT: ${BACKUPS_KEPT:-14}
+      # How notifications are sent, as Apprise URLs without a recipient: each person's email
+      # address becomes the mail URL's "to", their phone number the end of the Signal URL's path.
+      # A channel left empty is not offered. For example:
+      #   NOTIFY_EMAIL_URL=mailto://user:password@smtp.example.com:587/?from=costs@example.com
+      #   NOTIFY_SIGNAL_URL=signal://signal-cli-rest-api:8080/+351210000000
+      NOTIFY_EMAIL_URL: ${NOTIFY_EMAIL_URL:-}
+      NOTIFY_SIGNAL_URL: ${NOTIFY_SIGNAL_URL:-}
+      PHONE_COUNTRY_CODE: ${PHONE_COUNTRY_CODE:-351}
       # Optional: an Anthropic API key lets Claude read bills the app does not know, contracts'
       # terms, and questions about documents. Those files are sent to Anthropic's API.
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
