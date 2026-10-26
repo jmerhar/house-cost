@@ -219,12 +219,22 @@
         if (draft) {
           // The bill is saved; its file and the contract dates follow, and a failure of either
           // leaves the bill as it is, to be finished on its own page.
-          await app.api.attach(draft.file, { bill_id: created.id }).catch(() => undefined);
+          const attached = await app.api.attach(draft.file, { bill_id: created.id }).then(
+            () => true,
+            () => false,
+          );
           await applyChanges().catch(() => undefined);
+          if (!attached) {
+            app.say(m.file_attach_failed(), `/bills/${created.id}`, true);
+            navigate(`/bills/${created.id}`, { replace: true });
+            return;
+          }
         }
+        app.say(m.bill_saved(), `/bills/${created.id}`);
         navigate(`/bills/${created.id}`, { replace: true });
       } else {
         await app.api.updateBill(id, payload);
+        app.say(m.bill_saved(), "/bills");
         navigate("/bills");
       }
     } catch (failure) {
@@ -341,7 +351,7 @@
               </label>
               <label>
                 {m.field_amount()}
-                <input bind:value={line.amount} inputmode="decimal" required placeholder="0,00" />
+                <input bind:value={line.amount} inputmode="decimal" required placeholder={amountInput(0)} />
               </label>
               <label class="wide">
                 {m.field_line_description()} <small>({m.optional()})</small>
@@ -393,7 +403,7 @@
         <button type="submit" disabled={busy}>{busy ? m.saving() : m.save()}</button>
         <a class="button secondary" href="/bills">{m.cancel()}</a>
         {#if id !== undefined}
-          <button type="button" class="danger" onclick={remove}>{m.delete()}</button>
+          <button type="button" class="danger apart" onclick={remove}>{m.delete()}</button>
         {/if}
       </div>
     {/if}
@@ -418,7 +428,7 @@
       {#if !locked}
         <label class="button secondary">
           {m.files_add()}
-          <input type="file" accept="application/pdf,image/*" multiple hidden onchange={attach} />
+          <input type="file" accept="application/pdf,image/*" multiple class="file-input" onchange={attach} />
         </label>
       {/if}
     {/if}

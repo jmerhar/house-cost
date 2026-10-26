@@ -47,8 +47,10 @@
   <label>{m.field_login()}<input bind:value={login} required autocomplete="username" autocapitalize="none" /></label>
   <label>{m.field_password()}<input type="password" bind:value={password} required autocomplete="current-password" /></label>
   {#if error}<p role="alert">{error}</p>{/if}
-  <button type="submit" disabled={busy}>{m.login_submit()}</button>
-  {#if app.authenticator.supported()}
-    <button type="button" class="secondary" disabled={busy} onclick={withPasskey}>{m.login_passkey()}</button>
-  {/if}
+  <div class="actions">
+    <button type="submit" disabled={busy}>{busy ? m.logging_in() : m.login_submit()}</button>
+    {#if app.authenticator.supported()}
+      <button type="button" class="secondary" disabled={busy} onclick={withPasskey}>{m.login_passkey()}</button>
+    {/if}
+  </div>
 </form>

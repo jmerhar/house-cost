@@ -4,6 +4,28 @@ Every release of House costs, newest first. The image is `ghcr.io/jmerhar/house-
 follow semantic versioning: a major release needs something done by whoever runs it, and says
 what under **Upgrading**. Before 1.0, a minor release may.
 
+## Unreleased
+
+### Changed
+
+- Clearer wording throughout, in English and Portuguese: balances say who "is settled up" and
+  list "Suggested payments"; a household or category is deactivated with a "Deactivate" button
+  that asks first, and shows an "Inactive" tag; households are reordered with "Move up"; bill
+  items, minimum terms, usernames and error messages say what they mean and what to do next.
+- Saving a bill says so, and says when its uploaded file could not be attached.
+- Edit forms scroll into view when opened from far down a list; deleting a draft reconciliation
+  asks first; empty lists say what to do.
+- Notifications say when a contract renews rather than ends, and point to the contract when its
+  notice period is not on file.
+
+### Fixed
+
+- The "Upload a bill" and "New bill" buttons line up, and file pickers can be reached from the
+  keyboard.
+- Drop-down lists have room for their arrow.
+- The menu wraps on a phone instead of hiding its last items off-screen.
+- The documents page's service filter offered "Anyone" for all services.
+
 ## 0.7.0 — 2026-10-26
 
 ### Changed

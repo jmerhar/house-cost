@@ -23,6 +23,7 @@ from house_cost.notify.messages import (
     every,
     language,
     money,
+    notice,
     price,
     render,
     within,
@@ -107,9 +108,17 @@ class TestMessages:
         assert render("test", "pt-PT")[0] == "Notificação de teste"
         assert (price(0.1525, "en"), price(0.2052, "pt-PT")) == ("€0.1525", "0,2052 €")
         assert [within(n, "en") for n in (0, 1, 7)] == ["today", "tomorrow", "in 7 days"]
-        assert [within(n, "pt-PT") for n in (0, 1, 7)] == ["hoje", "amanhã", "dentro de 7 dias"]
+        assert [within(n, "pt-PT") for n in (0, 1, 7)] == ["hoje", "amanhã", "daqui a 7 dias"]
         assert (days(1, "en"), days(30, "pt-PT"), days(1, "pt-PT")) == ("1 day", "30 dias", "1 dia")
-        assert (every(1, "en"), every(1, "pt-PT"), every(30, "en")) == ("day", "dia", "30 days")
+        assert (every(1, "en"), every(1, "pt-PT"), every(30, "en")) == (
+            "every day",
+            "por dia",
+            "every 30 days",
+        )
+        assert (notice(30, "en"), notice(None, "pt-PT")) == (
+            "You must give notice of 30 days to leave.",
+            "Confirme no contrato o pré-aviso necessário para o cancelar.",
+        )
 
 
 class TestAccount:
@@ -309,7 +318,7 @@ class TestPriceChange:
             (
                 "MEO Energia changed its price",
                 "The electricity price on the bill of 23 Nov 2026 is €0.1525 per kWh, "
-                "against €0.2052 on the bill before.",
+                "compared with €0.2052 on the bill before.",
             )
         ]
 
@@ -376,10 +385,10 @@ class TestReminders:
             await self._run(app, recorder, today, contract_reminders)
 
         titles = [title for _, title, _ in recorder.sent]
-        assert titles == ["Electricity ends in 28 days", "Electricity ends in 7 days"]
+        assert titles == ["Electricity renews in 28 days", "Electricity renews in 7 days"]
         assert (
             recorder.sent[0][2] == "Electricity with MEO Energia renews on 11 Dec 2026. "
-            "Leaving needs notice of 30 days."
+            "You must give notice of 30 days to leave."
         )
 
     async def test_a_service_first_seen_inside_a_week_gets_one_reminder(
@@ -389,7 +398,9 @@ class TestReminders:
         await self._run(app, recorder, date(2027, 7, 25), contract_reminders)
         await self._run(app, recorder, date(2027, 7, 26), contract_reminders)
 
-        assert [title for _, title, _ in recorder.sent] == ["Electricity: lock-in ends in 3 days"]
+        assert [title for _, title, _ in recorder.sent] == [
+            "Electricity: minimum term ends in 3 days"
+        ]
 
     async def test_the_last_days_reminder_in_portuguese(
         self, client, admin, electricity, app, recorder
@@ -404,7 +415,7 @@ class TestReminders:
 
         assert [sent[1:] for sent in recorder.sent] == [
             (
-                "O contrato de Electricity termina hoje",
+                "O contrato de Electricity renova-se hoje",
                 "O contrato de Electricity com MEO Energia renova-se a 11/12/2026. Para rescindir, "
                 "é preciso avisar com 1 dia de antecedência.",
             )
@@ -429,7 +440,7 @@ class TestReminders:
 
         assert (
             recorder.sent[0][2] == "Electricity with MEO Energia ends on 11 Dec 2026. "
-            "Leaving needs notice of an unknown number of days."
+            "Check the contract for the notice needed to leave."
         )
 
     async def test_a_missing_bill_is_pointed_out_once_per_gap(

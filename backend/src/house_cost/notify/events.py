@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from ..db import session_scope
 from ..models import Bill, BillReading, Person, Service, Supplier
 from . import Notifier, once
-from .messages import day, days, every, money, price, within, word
+from .messages import day, every, money, notice, price, within, word
 
 logger = logging.getLogger(__name__)
 
@@ -152,11 +152,7 @@ async def contract_reminders(db: AsyncSession, notifier: Notifier, today: date) 
                     "when": within(n, lang),
                     "date": day(w, lang),
                     "ends": word("renews" if s.renews_automatically else "ends", lang),
-                    "notice": (
-                        days(s.notice_days, lang)
-                        if s.notice_days is not None
-                        else word("unknown", lang)
-                    ),
+                    "notice": notice(s.notice_days, lang),
                 },
             )
 

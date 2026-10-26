@@ -32,7 +32,7 @@ describe("App", () => {
     const { api } = fakeApi({ ...LOGGED_IN, "GET /auth/me": refuse(401, "not_authenticated"), "POST /auth/login": MEMBER });
     render(App, { api });
 
-    await fireEvent.input(await screen.findByLabelText("Login"), { target: { value: "tiago" } });
+    await fireEvent.input(await screen.findByLabelText("Username"), { target: { value: "tiago" } });
     await fireEvent.input(screen.getByLabelText("Password"), { target: { value: "correct horse battery" } });
     await fireEvent.click(screen.getByRole("button", { name: "Log in" }));
 
@@ -91,9 +91,9 @@ describe("App", () => {
     const { api } = fakeApi({ ...LOGGED_IN, "GET /auth/me": MEMBER });
     navigate("/admin");
     render(App, { api });
-    expect(await screen.findByText("There is nothing here.")).toBeInTheDocument();
+    expect(await screen.findByText("This page does not exist.")).toBeInTheDocument();
     navigate("/reconciliation");
-    expect(await screen.findByText("There is nothing here.")).toBeInTheDocument();
+    expect(await screen.findByText("This page does not exist.")).toBeInTheDocument();
   });
 
   it("logs out", async () => {
@@ -132,7 +132,7 @@ describe("App", () => {
       "POST /auth/login": { ...MEMBER, language: "pt-PT" },
     });
     render(App, { api, reload });
-    await fireEvent.input(await screen.findByLabelText("Login"), { target: { value: "tiago" } });
+    await fireEvent.input(await screen.findByLabelText("Username"), { target: { value: "tiago" } });
     await fireEvent.input(screen.getByLabelText("Password"), { target: { value: "x".repeat(10) } });
     await fireEvent.click(screen.getByRole("button", { name: "Log in" }));
 

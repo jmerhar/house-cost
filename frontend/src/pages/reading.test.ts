@@ -65,7 +65,7 @@ describe("reading a bill from the list", () => {
       "POST /bills/read": proposal(),
     });
     renderPage(Bills, appFor(api));
-    const input = (await screen.findByLabelText("Read a bill")) as HTMLInputElement;
+    const input = (await screen.findByLabelText("Upload a bill")) as HTMLInputElement;
     await fireEvent.change(input, { target: { files: [] } });
     await fireEvent.change(input, { target: { files: [file()] } });
 
@@ -77,7 +77,7 @@ describe("reading a bill from the list", () => {
   it("explains a file that cannot be read", async () => {
     const { api } = fakeApi({ "GET /bills": { items: [], total: 0 }, "GET /reports/summary": refuse(500, "x"), "POST /bills/read": refuse(504, "read_timeout") });
     renderPage(Bills, appFor(api));
-    await fireEvent.change(await screen.findByLabelText("Read a bill"), { target: { files: [file()] } });
+    await fireEvent.change(await screen.findByLabelText("Upload a bill"), { target: { files: [file()] } });
     expect(await screen.findByRole("alert")).toHaveTextContent("took too long");
     expect(route.path).toBe("/bills");
   });
@@ -97,7 +97,7 @@ describe("a read bill in the form", () => {
     renderPage(BillForm, appFor(api));
 
     expect(screen.getByText("Read from bill.pdf. Check every field before saving.")).toBeInTheDocument();
-    expect(screen.getByText(/fiscal QR code/)).toBeInTheDocument();
+    expect(screen.getByText(/bill's QR code/)).toBeInTheDocument();
     expect(screen.getByLabelText("Date on the bill")).toHaveValue("2026-10-18");
     expect(screen.getByLabelText("Invoice number")).toHaveValue("FT FA.MEA26/100001");
     expect(screen.getByLabelText("Supplier")).toHaveValue("MEO Energia");
@@ -105,8 +105,8 @@ describe("a read bill in the form", () => {
     expect(screen.getByLabelText("Category")).toHaveValue(String(ELECTRICITY.id));
     expect(screen.getByText(/Electricity: 1,284 kWh at €0.1525\/kWh/)).toBeInTheDocument();
     expect(screen.getByLabelText(/Ends or renews on/)).toBeChecked();
-    expect(screen.getByLabelText("Does not renew by itself")).toBeChecked();
-    await fireEvent.click(screen.getByLabelText(/Locked in until/));
+    expect(screen.getByLabelText("Does not renew automatically")).toBeChecked();
+    await fireEvent.click(screen.getByLabelText(/Minimum term ends/));
 
     await fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(route.path).toBe("/bills/42"));
@@ -137,15 +137,15 @@ describe("a read bill in the form", () => {
     const { api } = fakeApi({ "GET /services": [], "GET /suppliers": [] });
     renderPage(BillForm, appFor(api));
 
-    expect(screen.getByRole("link", { name: "Open bill" })).toHaveAttribute("href", "/bills/7");
+    expect(screen.getByRole("link", { name: "View it" })).toHaveAttribute("href", "/bills/7");
     expect(screen.getByText(/differs from the one in the QR code/)).toBeInTheDocument();
     expect(screen.getByText(/did not add up/)).toBeInTheDocument();
-    expect(screen.getByText(/image of the page/)).toBeInTheDocument();
+    expect(screen.getByText(/read from a scan/)).toBeInTheDocument();
     expect(screen.getByText(/Claude read some of it/)).toBeInTheDocument();
     expect(screen.getByText(/Claude could not read this bill/)).toBeInTheDocument();
-    expect(screen.getByText("The supplier with NIF 506743357 is not on file yet.")).toBeInTheDocument();
+    expect(screen.getByText("The supplier with NIF 506743357 is not on file yet. You can add it under Services.")).toBeInTheDocument();
     expect(screen.getByText("Water: 9 m³ at €—/m³")).toBeInTheDocument();
-    expect(screen.queryByText(/fiscal QR code/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/bill's QR code/)).not.toBeInTheDocument();
     expect(screen.queryByText("Update the service as well")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Amount (€)")).toHaveValue("");
   });
@@ -158,22 +158,26 @@ describe("a read bill in the form", () => {
       "POST /bills": aBill({ id: 43 }),
       "POST /attachments": refuse(415, "unsupported_file"),
     });
-    renderPage(BillForm, appFor(api));
-    expect(screen.getByText("Renews by itself")).toBeInTheDocument();
+    const app = appFor(api);
+    renderPage(BillForm, app);
+    expect(screen.getByText("Renews automatically")).toBeInTheDocument();
     await fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => expect(route.path).toBe("/bills/43"));
     expect(calls.some((c) => c.method === "PUT")).toBe(false);
+    expect(app.flash).toEqual({ text: expect.stringContaining("could not be attached"), problem: true, path: "/bills/43" });
   });
 
   it("keeps a corrected bill's readings", async () => {
     const reading = { quantity: "electricity_kwh" as const, value: 1284, unit_price: 0.1525 };
     const { api, calls } = fakeApi({ "GET /bills/7": aBill({ readings: [reading] }), "PUT /bills/7": aBill(), "GET /services": [], "GET /suppliers": [] });
-    renderPage(BillForm, appFor(api), { id: 7 });
+    const app = appFor(api);
+    renderPage(BillForm, app, { id: 7 });
     await screen.findByDisplayValue("MEO Energia");
     await fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => expect(calls.some((c) => c.method === "PUT")).toBe(true));
+    expect(app.flash).toEqual({ text: "Bill saved.", problem: false, path: "/bills" });
     expect((calls.find((c) => c.method === "PUT")!.body as { readings: unknown[] }).readings).toEqual([reading]);
   });
 });

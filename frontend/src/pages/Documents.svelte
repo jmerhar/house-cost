@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import type { AnswerOut, DocumentMatch, DocumentUpdate, Service, ServiceIn, Supplier, Terms } from "../lib/api";
   import { useApp } from "../lib/context";
+  import { reveal } from "../lib/reveal";
   import { errorMessage } from "../lib/errors";
   import { day, fileSize } from "../lib/format";
   import { m } from "../paraglide/messages.js";
@@ -106,6 +107,7 @@
       serviceId: document.service_id ? String(document.service_id) : "",
       notes: document.notes,
     };
+    reveal("#document-form");
   }
 
   async function save(event: SubmitEvent): Promise<void> {
@@ -150,6 +152,7 @@
   function open(document: DocumentMatch): void {
     form = null;
     study = { document, question: "", answer: null, terms: null, busy: false, error: "", notice: "" };
+    reveal("#study");
   }
 
   async function consult(work: (current: Study) => Promise<void>): Promise<void> {
@@ -222,7 +225,7 @@
   <h1>{m.documents_title()}</h1>
   <label class="button">
     {m.document_add()}
-    <input type="file" accept="application/pdf,image/*" hidden onchange={pick} />
+    <input type="file" accept="application/pdf,image/*" class="file-input" onchange={pick} />
   </label>
 </div>
 
@@ -241,7 +244,7 @@
   <label>
     {m.field_service()}
     <select bind:value={serviceFilter} onchange={() => load()}>
-      <option value="">{m.filter_anyone()}</option>
+      <option value="">{m.filter_all_services()}</option>
       {#each services as service (service.id)}<option value={String(service.id)}>{service.name}</option>{/each}
     </select>
   </label>
@@ -250,7 +253,7 @@
 {#if error}<p role="alert">{error}</p>{/if}
 
 {#if form}
-  <form class="card" onsubmit={save}>
+  <form class="card" id="document-form" onsubmit={save}>
     <h2>{form.id === null ? m.document_add() : m.document_edit()}</h2>
     {#if form.file}<p class="muted">{form.file.name} · {fileSize(form.file.size)}</p>{/if}
     <div class="grid">
@@ -292,7 +295,7 @@
 {#if study}
   {@const current = study}
   {@const service = services.find((s) => s.id === current.document.service_id)}
-  <section class="card">
+  <section class="card" id="study">
     <h2>{m.study_title({ title: current.document.title })}</h2>
     <form class="filters" onsubmit={ask}>
       <label class="grow">

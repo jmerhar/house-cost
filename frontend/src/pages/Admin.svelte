@@ -57,6 +57,10 @@
       }),
     );
   }
+  function toggleHousehold(household: Household): void {
+    if (household.active && !confirm(m.confirm_deactivate_household({ name: household.name }))) return;
+    saveHousehold(household, { active: !household.active });
+  }
   function renameHousehold(household: Household): void {
     const name = prompt(m.field_name(), household.name);
     if (name && name !== household.name) saveHousehold(household, { name });
@@ -132,6 +136,7 @@
     if (await attempt(() => app.api.createCategory({ name: categoryName, description: "", active: true }))) categoryName = "";
   }
   function toggleCategory(category: Category): void {
+    if (category.active && !confirm(m.confirm_deactivate_category({ name: category.name }))) return;
     attempt(() =>
       app.api.updateCategory(category.id, { name: category.name, description: category.description, active: !category.active }),
     );
@@ -196,19 +201,22 @@
   <ul class="list">
     {#each app.households as household, index (household.id)}
       <li>
-        <span class="what"><strong>{household.name}</strong>{#if !household.active}<small>{m.inactive()}</small>{/if}</span>
+        <span class="what">
+          <strong>{household.name} {#if !household.active}<small class="tag">{m.status_inactive()}</small>{/if}</strong>
+        </span>
         <span class="row-actions">
           <button type="button" class="link" onclick={() => renameHousehold(household)}>{m.edit()}</button>
           {#if index > 0}
             <button
               type="button"
               class="link"
-              aria-label="↑ {household.name}"
-              onclick={() => saveHousehold(household, { position: app.households[index - 1].position - 1 })}>↑</button
+              aria-label={m.move_up_label({ name: household.name })}
+              title={m.move_up_label({ name: household.name })}
+              onclick={() => saveHousehold(household, { position: app.households[index - 1].position - 1 })}>↑ {m.move_up()}</button
             >
           {/if}
-          <button type="button" class="link" onclick={() => saveHousehold(household, { active: !household.active })}>
-            {household.active ? m.inactive() : m.active()}
+          <button type="button" class="link" class:danger={household.active} onclick={() => toggleHousehold(household)}>
+            {household.active ? m.deactivate() : m.reactivate()}
           </button>
         </span>
       </li>
@@ -229,7 +237,7 @@
           <strong>{person.name}</strong>
           <small>
             {person.login} · {app.household(person.household_id)} · {person.role === "admin" ? m.role_admin() : m.role_member()}
-            {#if !person.active}· {m.inactive()}{/if}
+            {#if !person.active}· {m.person_cannot_log_in()}{/if}
           </small>
         </span>
         <button type="button" class="link" onclick={() => editPerson(person)}>{m.edit()}</button>
@@ -272,7 +280,7 @@
           <label>{m.field_phone()}<input type="tel" bind:value={personForm.phone} maxlength="30" autocomplete="off" /></label>
         {/if}
         {#if personForm.id !== null}
-          <label class="check"><input type="checkbox" bind:checked={personForm.active} /> {m.active()}</label>
+          <label class="check"><input type="checkbox" bind:checked={personForm.active} /> {m.person_can_log_in()}</label>
         {/if}
       </div>
       <div class="actions">
@@ -292,11 +300,11 @@
     {@const own = rules.filter((rule) => rule.category_id === category.id)}
     <article class="card">
       <div class="heading">
-        <h3>{category.name}{#if !category.active} <small>({m.inactive()})</small>{/if}</h3>
+        <h3>{category.name} {#if !category.active}<small class="tag">{m.status_inactive()}</small>{/if}</h3>
         <span class="row-actions">
           <button type="button" class="link" onclick={() => newRule(category)}>{m.rule_add()}</button>
-          <button type="button" class="link" onclick={() => toggleCategory(category)}>
-            {category.active ? m.inactive() : m.active()}
+          <button type="button" class="link" class:danger={category.active} onclick={() => toggleCategory(category)}>
+            {category.active ? m.deactivate() : m.reactivate()}
           </button>
         </span>
       </div>
@@ -312,7 +320,7 @@
             {#if rule.in_use}
               <small class="tag">{m.rule_in_use()}</small>
             {:else}
-              <button type="button" class="link" onclick={() => deleteRule(rule)}>{m.rule_delete()}</button>
+              <button type="button" class="link danger" onclick={() => deleteRule(rule)}>{m.rule_delete()}</button>
             {/if}
           </li>
         {/each}
@@ -331,7 +339,7 @@
           </div>
           <p class:problem={ruleTotal !== 10_000}>{m.rule_total({ percent: percent(ruleTotal) })}</p>
           <div class="actions">
-            <button type="submit">{m.save()}</button>
+            <button type="submit" disabled={ruleTotal !== 10_000}>{m.save()}</button>
             <button type="button" class="secondary" onclick={() => (ruleFor = null)}>{m.cancel()}</button>
           </div>
         </form>

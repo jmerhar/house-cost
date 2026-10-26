@@ -48,7 +48,7 @@ describe("Setup", () => {
     renderPage(Setup, app, { onDone });
     await fireEvent.input(screen.getByLabelText("Your household's name"), { target: { value: "Lúcia" } });
     await fireEvent.input(screen.getByLabelText("Name"), { target: { value: "Lúcia" } });
-    await fireEvent.input(screen.getByLabelText("Login"), { target: { value: "lucia" } });
+    await fireEvent.input(screen.getByLabelText("Username"), { target: { value: "lucia" } });
     await fireEvent.input(screen.getByLabelText(/^Password/), { target: { value: "correct horse battery" } });
     await fireEvent.submit(screen.getByRole("button", { name: "Set up" }).closest("form")!);
 
@@ -76,7 +76,7 @@ describe("Login", () => {
     const { api } = fakeApi({ "POST /auth/login": refuse(401, "invalid_login") });
     renderPage(Login, appFor(api), { onDone: vi.fn() });
     await fireEvent.submit(screen.getByRole("button", { name: "Log in" }).closest("form")!);
-    expect(await screen.findByRole("alert")).toHaveTextContent("do not match");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Wrong username or password");
   });
 });
 
@@ -103,12 +103,12 @@ describe("Balances", () => {
 
     expect(await screen.findByText("is owed €99.73")).toBeInTheDocument();
     expect(screen.getByText("owes €99.73")).toBeInTheDocument();
-    expect(screen.getByText("Tiago + Marta pays Lúcia €99.73")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Record this transfer" })).toHaveAttribute(
+    expect(screen.getByText("Tiago + Marta should pay Lúcia €99.73")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Mark as paid" })).toHaveAttribute(
       "href",
       "/settlements?from=2&to=1&amount=9973",
     );
-    expect(screen.queryByText("Reconciled")).not.toBeInTheDocument();
+    expect(screen.queryByText("Year-end adjustment")).not.toBeInTheDocument();
   });
 
   it("shows reconciliation adjustments only when there are some, and says when everyone is square", async () => {
@@ -117,9 +117,9 @@ describe("Balances", () => {
     });
     renderPage(Balances, appFor(api));
 
-    expect(await screen.findByText("Everyone is square.")).toBeInTheDocument();
-    expect(screen.getAllByText("Reconciled")).toHaveLength(2);
-    expect(screen.getAllByText("is square")).toHaveLength(2);
+    expect(await screen.findByText("Nobody owes anything.")).toBeInTheDocument();
+    expect(screen.getAllByText("Year-end adjustment")).toHaveLength(2);
+    expect(screen.getAllByText("is settled up")).toHaveLength(2);
   });
 
   it("says so when the balances cannot be loaded", async () => {
@@ -140,7 +140,7 @@ describe("Bills", () => {
     expect(await screen.findByText("MEO Energia")).toBeInTheDocument();
     expect(screen.getByText("Bills: 2")).toBeInTheDocument();
     expect(screen.getAllByText("Electricity · paid by Tiago + Marta")).toHaveLength(2);
-    expect(screen.getByText("Reconciled")).toBeInTheDocument();
+    expect(screen.getByText("Locked")).toBeInTheDocument();
     expect(screen.getAllByRole("link")[1]).toHaveAttribute("href", "/bills/7");
     expect(await screen.findByRole("option", { name: "2025" })).toBeInTheDocument();
   });
@@ -149,7 +149,7 @@ describe("Bills", () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const { api, calls } = fakeApi({ "GET /bills": { items: [], total: 0 }, "GET /reports/summary": refuse(500, "x") });
     renderPage(Bills, appFor(api));
-    expect(await screen.findByText("No bills yet.")).toBeInTheDocument();
+    expect(await screen.findByText(/^No bills yet\./)).toBeInTheDocument();
 
     await fireEvent.change(screen.getByLabelText("Category"), { target: { value: String(ROAD.id) } });
     await fireEvent.change(screen.getByLabelText("Paid by"), { target: { value: String(LUCIA.id) } });
@@ -159,7 +159,7 @@ describe("Bills", () => {
     await waitFor(() => expect(calls.at(-1)!.query.get("q")).toBe("meo"));
     expect(calls.at(-1)!.query.get("category_id")).toBe(String(ROAD.id));
     expect(calls.at(-1)!.query.get("paid_by_id")).toBe(String(LUCIA.id));
-    expect(await screen.findByText("No bills match.")).toBeInTheDocument();
+    expect(await screen.findByText("No bills match the search.")).toBeInTheDocument();
   });
 
   it("shows more on request", async () => {
@@ -223,7 +223,7 @@ describe("Settlements", () => {
     expect(await screen.findByLabelText("Amount (€)")).toHaveValue("99.73");
     expect(screen.getByLabelText("From")).toHaveValue("2");
     expect(screen.getByLabelText("To")).toHaveValue("1");
-    expect(await screen.findByText("No transfers recorded yet.")).toBeInTheDocument();
+    expect(await screen.findByText(/^No transfers recorded yet\./)).toBeInTheDocument();
   });
 
   it("corrects and deletes a transfer", async () => {
@@ -260,7 +260,7 @@ describe("Settlements", () => {
 
     await fireEvent.input(screen.getByLabelText("Amount (€)"), { target: { value: "5" } });
     await fireEvent.submit(screen.getByRole("button", { name: "Save" }).closest("form")!);
-    expect(await screen.findByRole("alert")).toHaveTextContent("Some fields are not valid.");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Some fields need correcting.");
     await fireEvent.click(screen.getByRole("button", { name: "Delete" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("boom");
     await fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
@@ -428,7 +428,7 @@ describe("Account", () => {
     renderPage(Account, app);
 
     expect(await screen.findByText("This browser")).toBeInTheDocument();
-    await fireEvent.click(screen.getByRole("button", { name: "Log out there" }));
+    await fireEvent.click(screen.getByRole("button", { name: "Log out" }));
     await waitFor(() => expect(screen.queryByText("Safari on iPhone")).not.toBeInTheDocument());
 
     await fireEvent.input(screen.getByLabelText("Name"), { target: { value: "Lúcia M." } });
@@ -474,7 +474,7 @@ describe("Account", () => {
     expect(screen.getByText(/taken as \+351\./)).toBeInTheDocument();
 
     await fireEvent.click(screen.getByRole("button", { name: "Send a test" }));
-    expect(await screen.findByText("Test sent. Check that it arrived.")).toBeInTheDocument();
+    expect(await screen.findByText("Test sent. Check your email or Signal.")).toBeInTheDocument();
   });
 
   it("offers only the channels the app is set up for", async () => {
@@ -538,14 +538,14 @@ describe("Account", () => {
     renderPage(Account, appFor(api));
     expect(await screen.findByRole("alert")).toHaveTextContent("boom");
     await fireEvent.submit(screen.getByRole("button", { name: "Save" }).closest("form")!);
-    expect(await screen.findByRole("alert")).toHaveTextContent("current password is not right");
+    expect(await screen.findByRole("alert")).toHaveTextContent("current password is incorrect");
   });
 
   it("shows a session that could not be ended", async () => {
     const { api } = fakeApi({ "GET /auth/sessions": sessions,
       "GET /auth/passkeys": [], "DELETE /auth/sessions/2": refuse(404, "not_found") });
     renderPage(Account, appFor(api));
-    await fireEvent.click(await screen.findByRole("button", { name: "Log out there" }));
+    await fireEvent.click(await screen.findByRole("button", { name: "Log out" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("not_found");
   });
 });
@@ -569,7 +569,7 @@ describe("Admin", () => {
     expect(screen.getAllByText(/^From 5 Sept? 2026$/)).toHaveLength(2);
     expect(screen.getAllByText("Lúcia 50% · Tiago + Marta 50%")).toHaveLength(1);
     expect(screen.getByText("Lúcia 40% · Tiago + Marta 60%")).toBeInTheDocument();
-    expect(screen.getByText("In use")).toBeInTheDocument();
+    expect(screen.getByText("Used by bills")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Delete rule" })).toBeInTheDocument();
   });
 
@@ -589,10 +589,29 @@ describe("Admin", () => {
 
     await fireEvent.click(screen.getAllByRole("button", { name: "Edit" })[0]);
     await waitFor(() => expect(calls.find((c) => c.path === "/households/1")?.body).toMatchObject({ name: "Lúcia S." }));
-    await fireEvent.click(screen.getByRole("button", { name: "↑ Tiago + Marta" }));
+    await fireEvent.click(screen.getByRole("button", { name: "Move Tiago + Marta up" }));
     await waitFor(() => expect(calls.find((c) => c.path === "/households/2")?.body).toMatchObject({ position: -1 }));
-    await fireEvent.click(screen.getAllByRole("button", { name: "Inactive" })[0]);
+    const ask = vi.spyOn(window, "confirm").mockReturnValueOnce(false).mockReturnValue(true);
+    const deactivated = () => calls.some((c) => c.path === "/households/1" && (c.body as { active?: boolean }).active === false);
+    await fireEvent.click(screen.getAllByRole("button", { name: "Deactivate" })[0]);
+    expect(ask).toHaveBeenCalledWith(expect.stringContaining("Deactivate Lúcia?"));
+    expect(deactivated()).toBe(false);
+    await fireEvent.click(screen.getAllByRole("button", { name: "Deactivate" })[0]);
     await waitFor(() => expect(calls.filter((c) => c.path === "/households/1").at(-1)?.body).toMatchObject({ active: false }));
+  });
+
+  it("marks an inactive household, which reactivates without asking", async () => {
+    const ask = vi.spyOn(window, "confirm");
+    const { api, calls } = adminApi({ "PUT /households/2": OWNERS });
+    const app = appFor(api);
+    app.households = [LUCIA, { ...OWNERS, active: false }];
+    renderPage(Admin, app);
+    await screen.findByText("tiago · Tiago + Marta · Member");
+
+    expect(screen.getByText("Inactive")).toHaveClass("tag");
+    await fireEvent.click(screen.getByRole("button", { name: "Reactivate" }));
+    await waitFor(() => expect(calls.find((c) => c.path === "/households/2")?.body).toMatchObject({ active: true }));
+    expect(ask).not.toHaveBeenCalled();
   });
 
   it("adds and edits people", async () => {
@@ -602,7 +621,7 @@ describe("Admin", () => {
     await fireEvent.click(await screen.findByRole("button", { name: "Add a person" }));
     const form = screen.getByRole("button", { name: "Save" }).closest("form")!;
     await fireEvent.input(within(form).getByLabelText("Name"), { target: { value: "Marta" } });
-    await fireEvent.input(within(form).getByLabelText("Login"), { target: { value: "marta" } });
+    await fireEvent.input(within(form).getByLabelText("Username"), { target: { value: "marta" } });
     await fireEvent.change(within(form).getByLabelText("Household"), { target: { value: String(OWNERS.id) } });
     await fireEvent.input(within(form).getByLabelText("Password"), { target: { value: "first password" } });
     await fireEvent.input(within(form).getByLabelText("Email address"), { target: { value: "marta@example.com" } });
@@ -624,7 +643,7 @@ describe("Admin", () => {
     await fireEvent.click(screen.getAllByRole("button", { name: "Edit" }).at(-1)!);
     const edit = screen.getByRole("button", { name: "Save" }).closest("form")!;
     expect(within(edit).getByLabelText("Phone number (Signal)")).toHaveValue("+351910000000");
-    await fireEvent.click(within(edit).getByLabelText("Active"));
+    await fireEvent.click(within(edit).getByLabelText("Can log in"));
     await fireEvent.submit(edit);
     await waitFor(() =>
       expect(calls.find((c) => c.method === "PUT")?.body).toMatchObject({ active: false, password: null, email: "", phone: "+351910000000" }),
@@ -647,15 +666,17 @@ describe("Admin", () => {
     await waitFor(() => expect(calls.find((c) => c.path === "/categories" && c.method === "POST")).toBeTruthy());
 
     const road = screen.getByRole("heading", { name: "Road upkeep" }).closest("article")!;
-    await fireEvent.click(within(road).getByRole("button", { name: "New rule" }));
+    await fireEvent.click(within(road).getByRole("button", { name: "Change the split" }));
     expect(within(road).getByLabelText("Lúcia (%)")).toHaveValue("40");
     await fireEvent.input(within(road).getByLabelText("Lúcia (%)"), { target: { value: "30" } });
     expect(within(road).getByText("Total 90%")).toHaveClass("problem");
+    expect(within(road).getByRole("button", { name: "Save" })).toBeDisabled();
     await fireEvent.submit(within(road).getByRole("button", { name: "Save" }).closest("form")!);
     expect(screen.getByRole("alert")).toHaveTextContent("must add up to 100%");
 
     await fireEvent.input(within(road).getByLabelText("Tiago + Marta (%)"), { target: { value: "70" } });
     await fireEvent.input(within(road).getByLabelText(/Note/), { target: { value: "Amendment" } });
+    expect(within(road).getByRole("button", { name: "Save" })).toBeEnabled();
     await fireEvent.submit(within(road).getByRole("button", { name: "Save" }).closest("form")!);
     await waitFor(() =>
       expect(calls.find((c) => c.path === "/rules" && c.method === "POST")?.body).toMatchObject({
@@ -670,7 +691,7 @@ describe("Admin", () => {
 
     await fireEvent.click(screen.getByRole("button", { name: "Delete rule" }));
     await waitFor(() => expect(calls.some((c) => c.method === "DELETE" && c.path === "/rules/101")).toBe(true));
-    await fireEvent.click(within(road).getByRole("button", { name: "Inactive" }));
+    await fireEvent.click(within(road).getByRole("button", { name: "Deactivate" }));
     await waitFor(() => expect(calls.find((c) => c.path === "/categories/11")?.body).toMatchObject({ active: false }));
   });
 
@@ -679,7 +700,7 @@ describe("Admin", () => {
     renderPage(Admin, appFor(api));
     const road = (await screen.findByRole("heading", { name: "Road upkeep" })).closest("article")!;
     expect(within(road).getByText(/No rule yet/)).toBeInTheDocument();
-    await fireEvent.click(within(road).getByRole("button", { name: "New rule" }));
+    await fireEvent.click(within(road).getByRole("button", { name: "Change the split" }));
     expect(within(road).getByLabelText("Lúcia (%)")).toHaveValue("0");
     await fireEvent.click(within(road).getByRole("button", { name: "Cancel" }));
     expect(within(road).queryByLabelText("Lúcia (%)")).not.toBeInTheDocument();
@@ -709,7 +730,7 @@ describe("Admin", () => {
 
     await fireEvent.input(screen.getByLabelText("Add a household"), { target: { value: "Lúcia" } });
     await fireEvent.submit(screen.getByLabelText("Add a household").closest("form")!);
-    expect(await screen.findByRole("alert")).toHaveTextContent("already used");
+    expect(await screen.findByRole("alert")).toHaveTextContent("already taken");
   });
 
   it("leaves a household as it was when the rename is cancelled", async () => {
@@ -758,7 +779,7 @@ describe("Reconciliations", () => {
     expect(screen.getByText("Bills affected: 2")).toBeInTheDocument();
     expect(screen.getByText("€30.00")).toBeInTheDocument();
     expect(screen.getByText("-€30.00")).toBeInTheDocument();
-    await fireEvent.click(screen.getByRole("button", { name: "Close and write the adjustments" }));
+    await fireEvent.click(screen.getByRole("button", { name: "Close and update the balances" }));
     await waitFor(() => expect(calls.some((c) => c.path === "/reconciliations/1/close")).toBe(true));
   });
 
@@ -780,6 +801,7 @@ describe("Reconciliations", () => {
   });
 
   it("refuses shares that do not add up, and edits and discards a draft", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
     const { api, calls } = fakeApi({
       "GET /reconciliations": [draft],
       "PUT /reconciliations/1": draft,
@@ -817,7 +839,7 @@ describe("Reconciliations", () => {
       "DELETE /reconciliations/1": refuse(409, "already_closed"),
     });
     renderPage(Reconciliations, appFor(api, { ...ADMIN, reconciliation_enabled: true }));
-    await fireEvent.click(await screen.findByRole("button", { name: "Close and write the adjustments" }));
+    await fireEvent.click(await screen.findByRole("button", { name: "Close and update the balances" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("overlaps one already reconciled");
 
     await fireEvent.click(screen.getByRole("button", { name: "Edit" }));
@@ -838,7 +860,7 @@ describe("Reconciliations", () => {
     vi.spyOn(window, "confirm").mockReturnValue(false);
     const { api, calls } = fakeApi({ "GET /reconciliations": [draft] });
     renderPage(Reconciliations, appFor(api, { ...ADMIN, reconciliation_enabled: true }));
-    await fireEvent.click(await screen.findByRole("button", { name: "Close and write the adjustments" }));
+    await fireEvent.click(await screen.findByRole("button", { name: "Close and update the balances" }));
     expect(calls.some((c) => c.path.endsWith("/close"))).toBe(false);
   });
 });

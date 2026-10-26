@@ -32,7 +32,7 @@ describe("a new bill", () => {
     await fireEvent.change(screen.getByLabelText("Category"), { target: { value: String(ELECTRICITY.id) } });
     await fireEvent.input(screen.getByLabelText("Amount (€)"), { target: { value: "287,59" } });
 
-    expect(await screen.findByText("Split: Lúcia €143.80 · Tiago + Marta €143.79", {}, { timeout: 2000 })).toBeInTheDocument();
+    expect(await screen.findByText("Each household pays: Lúcia €143.80 · Tiago + Marta €143.79", {}, { timeout: 2000 })).toBeInTheDocument();
     expect(screen.getByText("€287.59")).toBeInTheDocument();
   });
 
@@ -42,7 +42,7 @@ describe("a new bill", () => {
     await fireEvent.change(screen.getByLabelText("Category"), { target: { value: String(ROAD.id) } });
     await fireEvent.input(screen.getByLabelText("Amount (€)"), { target: { value: "10" } });
 
-    expect(await screen.findByText(/no split rule in force/, {}, { timeout: 2000 })).toHaveClass("problem");
+    expect(await screen.findByText(/no split for that date/, {}, { timeout: 2000 })).toHaveClass("problem");
   });
 
   it("is saved with all its lines and opens as itself, where files can be attached", async () => {
@@ -51,7 +51,7 @@ describe("a new bill", () => {
     await fireEvent.input(screen.getByLabelText("Supplier"), { target: { value: "MEO" } });
     await fireEvent.change(screen.getByLabelText("Category"), { target: { value: String(ELECTRICITY.id) } });
     await fireEvent.input(screen.getByLabelText("Amount (€)"), { target: { value: "18,37" } });
-    await fireEvent.click(screen.getByRole("button", { name: "Add a line" }));
+    await fireEvent.click(screen.getByRole("button", { name: "Add another item" }));
     const [, second] = screen.getAllByRole("listitem");
     await fireEvent.change(within(second).getByLabelText("Category"), { target: { value: String(ROAD.id) } });
     await fireEvent.input(within(second).getByLabelText("Amount (€)"), { target: { value: "1,61" } });
@@ -77,10 +77,10 @@ describe("a new bill", () => {
   it("can lose a line again", async () => {
     const { api } = fakeApi({});
     renderPage(BillForm, appFor(api));
-    expect(screen.queryByRole("button", { name: "Remove this line" })).not.toBeInTheDocument();
-    await fireEvent.click(screen.getByRole("button", { name: "Add a line" }));
+    expect(screen.queryByRole("button", { name: "Remove this item" })).not.toBeInTheDocument();
+    await fireEvent.click(screen.getByRole("button", { name: "Add another item" }));
     expect(screen.getAllByRole("listitem")).toHaveLength(2);
-    await fireEvent.click(screen.getAllByRole("button", { name: "Remove this line" })[0]);
+    await fireEvent.click(screen.getAllByRole("button", { name: "Remove this item" })[0]);
     expect(screen.getAllByRole("listitem")).toHaveLength(1);
   });
 
@@ -102,7 +102,7 @@ describe("a new bill", () => {
     await fireEvent.input(screen.getByLabelText("Amount (€)"), { target: { value: "5" } });
     await fireEvent.submit(screen.getByRole("button", { name: "Save" }).closest("form")!);
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("no split rule in force");
+    expect(await screen.findByRole("alert")).toHaveTextContent("no split for that date");
   });
 });
 

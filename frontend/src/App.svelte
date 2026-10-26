@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Flash from "./lib/Flash.svelte";
   import { onMount } from "svelte";
   import { Api, ApiError } from "./lib/api";
   import { provideApp } from "./lib/context";
@@ -127,10 +128,11 @@
         {#each NAV as item (item.href)}
           <a href={item.href} aria-current={current(item.href, route.path) ? "page" : undefined}>{item.label}</a>
         {/each}
-        <button type="button" class="link" onclick={logOut}>{m.nav_log_out()}</button>
+        <button type="button" class="nav-action" onclick={logOut}>{m.nav_log_out()}</button>
       </nav>
     </header>
     <main>
+      <Flash />
       {#if route.path === "/"}
         <Balances />
       {:else if route.path === "/bills"}

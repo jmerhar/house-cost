@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import type { Service, ServiceIn, Supplier, SupplierIn } from "../lib/api";
   import { useApp } from "../lib/context";
+  import { reveal } from "../lib/reveal";
   import { errorMessage } from "../lib/errors";
   import { day, today } from "../lib/format";
   import { m } from "../paraglide/messages.js";
@@ -61,6 +62,7 @@
       notes: supplier?.notes ?? "",
       active: supplier?.active ?? true,
     };
+    reveal("#supplier-form");
   }
 
   async function saveSupplier(event: SubmitEvent): Promise<void> {
@@ -116,6 +118,7 @@
       notes: service?.notes ?? "",
       active: service?.active ?? true,
     };
+    reveal("#service-form");
   }
 
   /** "CPE: PT0002…" lines as a map; a line without a colon is ignored. */
@@ -161,7 +164,7 @@
 {#if error}<p role="alert">{error}</p>{/if}
 
 {#if supplierForm}
-  <form class="card" onsubmit={saveSupplier}>
+  <form class="card" id="supplier-form" onsubmit={saveSupplier}>
     <h2>{supplierForm.id === null ? m.supplier_add() : m.supplier_edit()}</h2>
     <div class="grid">
       <label>{m.field_name()}<input bind:value={supplierForm.name} required maxlength="200" /></label>
@@ -186,7 +189,7 @@
 {/if}
 
 {#if serviceForm}
-  <form class="card" onsubmit={saveService}>
+  <form class="card" id="service-form" onsubmit={saveService}>
     <h2>{serviceForm.id === null ? m.service_add() : m.service_edit()}</h2>
     <div class="grid">
       <label>
@@ -243,7 +246,7 @@
           <button type="button" class="link" onclick={() => editSupplier(supplier)}>{m.edit()}</button>
         </span>
       </div>
-      {#if supplier.nif}<p class="muted">{m.field_nif()}: {supplier.nif}</p>{/if}
+      {#if supplier.nif}<p class="muted">{m.nif_value({ nif: supplier.nif })}</p>{/if}
       <ul class="list">
         {#each own as service (service.id)}
           <li>
