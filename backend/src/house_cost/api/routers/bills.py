@@ -128,9 +128,6 @@ async def create_bill(
     await db.refresh(bill)
     out = bill_out(bill, periods)
     record(db, person, "create", "bill", bill.id, after=out)
-    # Background tasks can run before the request's own session closes, so the bill is
-    # committed here for the notification's separate session to find.
-    await db.commit()
     tasks.add_task(bill_added, services.sessionmaker, services.sender, bill.id, person.id)
     return out
 

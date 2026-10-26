@@ -76,7 +76,10 @@ async def get_db(request: Request) -> AsyncIterator[AsyncSession]:
 
 
 ServicesDep = Annotated[Services, Depends(get_services)]
-DbDep = Annotated[AsyncSession, Depends(get_db)]
+# Function scope commits before the response is sent, so a client that acts on a response (the
+# session cookie from a login, the id of a new bill) finds what it describes already in the
+# database, and so do the background tasks that run after it.
+DbDep = Annotated[AsyncSession, Depends(get_db, scope="function")]
 ClaudeDep = Annotated[Claude, Depends(get_claude)]
 
 

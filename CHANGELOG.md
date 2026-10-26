@@ -4,6 +4,14 @@ Every release of House costs, newest first. The image is `ghcr.io/jmerhar/house-
 follow semantic versioning: a major release needs something done by whoever runs it, and says
 what under **Upgrading**. Before 1.0, a minor release may.
 
+## Unreleased
+
+### Fixed
+
+- A request's changes are saved before its response is sent. A browser that acted on the
+  response at once, such as the first request after logging in, could find them not there yet
+  and be refused as logged out.
+
 ## 0.6.0 — 2026-10-26
 
 ### Added
