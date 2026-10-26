@@ -96,6 +96,8 @@ class Me(PersonOut):
 
     household_name: str
     reconciliation_enabled: bool
+    #: Whether an Anthropic API key is set, which the reading and document features need.
+    claude_enabled: bool
     apprise_urls: str
     notify_on: dict[Event, bool]
 
@@ -445,11 +447,45 @@ class ServiceChanges(BaseModel):
     lock_in_until: date | None = None
 
 
+class Terms(BaseModel):
+    """A contract's terms as Claude read them, for a person to check before using any."""
+
+    service_name: str | None
+    supplier_name: str | None
+    starts_on: date | None
+    ends_on: date | None
+    renews_automatically: bool | None
+    lock_in_until: date | None
+    notice_days: int | None
+    billed_every_days: int | None
+    summary: str
+
+
+Question = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=1000)]
+
+
+class QuestionIn(BaseModel):
+    question: Question
+
+
+class CitationOut(BaseModel):
+    """A passage an answer rests on, and its page where the document has pages."""
+
+    page: int | None
+    quote: str
+
+
+class AnswerOut(BaseModel):
+    text: str
+    citations: list[CitationOut]
+
+
 class Proposal(BaseModel):
     """A bill as read from its file, to be checked and corrected before it is saved.
 
     ``sources`` says where each value came from: "qr" for the invoice's fiscal QR code, "text" for
-    the PDF's own text, "ocr" for text read from the image of a page.
+    the PDF's own text, "ocr" for text read from the image of a page, "claude" for what Claude
+    read where the others found nothing.
     """
 
     supplier_id: int | None

@@ -4,6 +4,16 @@ Every release of House costs, newest first. The image is `ghcr.io/jmerhar/house-
 follow semantic versioning: a major release needs something done by whoever runs it, and says
 what under **Upgrading**. Before 1.0, a minor release may.
 
+## Unreleased
+
+### Added
+
+- Claude, optionally, with `ANTHROPIC_API_KEY` (or `ANTHROPIC_API_KEY_FILE`) and `CLAUDE_MODEL`:
+  it reads the parts of a bill the app cannot, marked as read by Claude; proposes a contract's
+  end date, renewal, lock-in, notice and billing interval, with a summary, for its service; and
+  answers questions about a document, citing its pages. Files are sent to Anthropic's API only
+  while a key is set.
+
 ## 0.5.0 — 2026-10-26
 
 ### Added

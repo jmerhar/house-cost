@@ -9,6 +9,8 @@ type Schemas = components["schemas"];
 export type Health = Schemas["Health"];
 export type Me = Schemas["Me"];
 export type MeUpdate = Schemas["MeUpdate"];
+export type Terms = Schemas["Terms"];
+export type AnswerOut = Schemas["AnswerOut"];
 export type SessionOut = Schemas["SessionOut"];
 export type SetupIn = Schemas["SetupIn"];
 export type Household = Schemas["HouseholdOut"];
@@ -143,6 +145,9 @@ export class Api {
   documents = (query: Query = {}) => this.request<DocumentMatch[]>("GET", "/documents", undefined, query);
   updateDocument = (id: number, body: DocumentUpdate) => this.request<DocumentInfo>("PUT", `/documents/${id}`, body);
   deleteDocument = (id: number) => this.request<void>("DELETE", `/documents/${id}`);
+  documentTerms = (id: number) => this.request<Terms>("POST", `/documents/${id}/terms`);
+  askDocument = (id: number, question: string) =>
+    this.request<AnswerOut>("POST", `/documents/${id}/ask`, { question });
 
   readings = (serviceId?: number) => this.request<ReadingPoint[]>("GET", "/readings", undefined, { service_id: serviceId });
 

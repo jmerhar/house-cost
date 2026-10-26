@@ -118,16 +118,16 @@ describe("a read bill in the form", () => {
     expect(update).not.toHaveProperty("id");
   });
 
-  it("warns of a duplicate, a total that disagrees, dropped items, OCR and an unknown supplier", async () => {
+  it("warns of a duplicate, a total that disagrees, dropped items, OCR, Claude and an unknown supplier", async () => {
     holdDraft({
       proposal: proposal({
         duplicate_bill_id: 7,
-        warnings: ["total_mismatch", "lines_dropped"],
+        warnings: ["total_mismatch", "lines_dropped", "claude_failed"],
         text_source: "ocr",
         supplier_id: null,
         supplier_name: null,
         service_id: null,
-        sources: {},
+        sources: { invoice_number: "claude" },
         lines: [],
         readings: [{ quantity: "water_m3", value: 9, unit_price: null }],
         service_changes: { ends_on: null, renews_automatically: null, lock_in_until: null },
@@ -141,6 +141,8 @@ describe("a read bill in the form", () => {
     expect(screen.getByText(/differs from the one in the QR code/)).toBeInTheDocument();
     expect(screen.getByText(/did not add up/)).toBeInTheDocument();
     expect(screen.getByText(/image of the page/)).toBeInTheDocument();
+    expect(screen.getByText(/Claude read some of it/)).toBeInTheDocument();
+    expect(screen.getByText(/Claude could not read this bill/)).toBeInTheDocument();
     expect(screen.getByText("The supplier with NIF 506743357 is not on file yet.")).toBeInTheDocument();
     expect(screen.getByText("Water: 9 m³ at €—/m³")).toBeInTheDocument();
     expect(screen.queryByText(/fiscal QR code/)).not.toBeInTheDocument();

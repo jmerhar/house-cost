@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { DocumentMatch, Service, Supplier } from "../lib/api";
 import { navigate } from "../lib/router.svelte";
-import { ELECTRICITY, ROAD, aBill, appFor, fakeApi, refuse, renderPage } from "../testing";
+import { ADMIN, ELECTRICITY, ROAD, aBill, appFor, fakeApi, refuse, renderPage } from "../testing";
 import BillForm from "./BillForm.svelte";
 import Documents from "./Documents.svelte";
 import Services from "./Services.svelte";
@@ -61,7 +61,7 @@ describe("Services", () => {
     expect(screen.getAllByText("CPE: PT0002000000000000XX")).toHaveLength(2);
     expect(screen.getByText(/^Renews on 15 Nov 2026$/)).toHaveClass("problem");
     expect(screen.getByText(/^Locked in until 12 Aug 2027$/)).not.toHaveClass("problem");
-    expect(screen.getByText("Notice: 30 days")).toBeInTheDocument();
+    expect(screen.getByText("Notice (days): 30")).toBeInTheDocument();
     expect(screen.getByText(/^Ends on 1 Jan 2030$/)).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Documents" })[0]).toHaveAttribute("href", "/documents?service=5");
     expect(screen.getAllByText("Inactive")).toHaveLength(2);
@@ -152,6 +152,91 @@ describe("Services", () => {
 
 describe("Documents", () => {
   const routes = (extra: Parameters<typeof fakeApi>[0] = {}) => ({ "GET /documents": [CONTRACT], "GET /suppliers": [MEO], "GET /services": [POWER], ...extra });
+
+  const TERMS = {
+    service_name: "Electricity",
+    supplier_name: "MEO Energia",
+    starts_on: "2026-09-18",
+    ends_on: "2027-09-18",
+    renews_automatically: true,
+    lock_in_until: null,
+    notice_days: 30,
+    billed_every_days: null,
+    summary: "No lock-in; 30 days' notice.",
+  };
+  const withClaude = { ...ADMIN, claude_enabled: true };
+
+  it("offers Claude only when it is set up", async () => {
+    const { api } = fakeApi(routes());
+    renderPage(Documents, appFor(api));
+    await screen.findByRole("link", { name: "MEO Energia contract" });
+    expect(screen.queryByRole("button", { name: "Ask Claude" })).not.toBeInTheDocument();
+  });
+
+  it("asks Claude about a document and updates its service from the terms", async () => {
+    const { api, calls } = fakeApi(
+      routes({
+        "POST /documents/9/ask": { text: "There is none.", citations: [{ page: 2, quote: "Sem fidelização" }, { page: null, quote: "x" }] },
+        "POST /documents/9/terms": TERMS,
+        "PUT /services/5": (call) => ({ ...POWER, ...(call.body as object) }),
+      }),
+    );
+    renderPage(Documents, appFor(api, withClaude));
+    await fireEvent.click(await screen.findByRole("button", { name: "Ask Claude" }));
+    expect(screen.getByRole("heading", { name: "Ask Claude about MEO Energia contract" })).toBeInTheDocument();
+
+    await fireEvent.input(screen.getByLabelText("Question"), { target: { value: "Lock-in?" } });
+    await fireEvent.submit(screen.getByLabelText("Question").closest("form")!);
+    expect(await screen.findByText("There is none.")).toBeInTheDocument();
+    expect(screen.getByText(/p\. 2: “Sem fidelização”/)).toBeInTheDocument();
+    expect(calls.find((c) => c.path === "/documents/9/ask")!.body).toEqual({ question: "Lock-in?" });
+
+    await fireEvent.click(screen.getByRole("button", { name: "Read the terms" }));
+    expect(await screen.findByText("No lock-in; 30 days' notice.")).toBeInTheDocument();
+    expect(screen.getByText("Notice (days): 30")).toBeInTheDocument();
+    await fireEvent.click(screen.getByRole("button", { name: "Update Electricity at the Quinta with these" }));
+
+    expect(await screen.findByText("Electricity at the Quinta: details updated.")).toBeInTheDocument();
+    const body = calls.find((c) => c.method === "PUT")!.body as Record<string, unknown>;
+    expect([body.ends_on, body.renews_automatically, body.notice_days, body.lock_in_until]).toEqual(["2027-09-18", true, 30, POWER.lock_in_until]);
+    expect(body).not.toHaveProperty("id");
+
+    await fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(screen.queryByLabelText("Question")).not.toBeInTheDocument();
+  });
+
+  it("describes every term Claude can find", async () => {
+    const unlinked = { ...CONTRACT, service_id: null, kind: "terms" as const };
+    const { api } = fakeApi(
+      routes({
+        "GET /documents": [unlinked],
+        "POST /documents/9/terms": { ...TERMS, renews_automatically: false, lock_in_until: "2027-08-12", billed_every_days: 30, ends_on: null, notice_days: null },
+      }),
+    );
+    renderPage(Documents, appFor(api, withClaude));
+    await fireEvent.click(await screen.findByRole("button", { name: "Ask Claude" }));
+    await fireEvent.click(screen.getByRole("button", { name: "Read the terms" }));
+
+    expect(await screen.findByText("Billed every (days): 30")).toBeInTheDocument();
+    expect(screen.getByText(/12 Aug 2027/)).toBeInTheDocument();
+    expect(screen.getByText("Link this document to a service to update it with these.")).toBeInTheDocument();
+  });
+
+  it("says why Claude gave no answer, and offers no terms for other documents", async () => {
+    const { api } = fakeApi(
+      routes({
+        "GET /documents": [{ ...CONTRACT, kind: "info" }],
+        "POST /documents/9/ask": () => refuse(502, "claude_declined"),
+      }),
+    );
+    renderPage(Documents, appFor(api, withClaude));
+    await fireEvent.click(await screen.findByRole("button", { name: "Ask Claude" }));
+    expect(screen.queryByRole("button", { name: "Read the terms" })).not.toBeInTheDocument();
+    await fireEvent.input(screen.getByLabelText("Question"), { target: { value: "Why?" } });
+    await fireEvent.submit(screen.getByLabelText("Question").closest("form")!);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Claude did not answer this one.");
+  });
 
   it("lists documents with their kind, date, supplier and service", async () => {
     const { api } = fakeApi(routes({ "GET /documents": [CONTRACT, { ...CONTRACT, id: 10, title: "Scan", has_text: false, dated: null, supplier_id: null, service_id: null, kind: "other" }] }));
