@@ -81,6 +81,7 @@ export class Api {
   logOut = () => this.request<void>("POST", "/auth/logout");
   me = () => this.request<Me>("GET", "/auth/me");
   updateMe = (body: MeUpdate) => this.request<Me>("PATCH", "/auth/me", body);
+  testNotification = () => this.request<Schemas["TestSent"]>("POST", "/auth/me/test-notification");
   sessions = () => this.request<SessionOut[]>("GET", "/auth/sessions");
   endSession = (id: number) => this.request<void>("DELETE", `/auth/sessions/${id}`);
   passkeys = () => this.request<Passkey[]>("GET", "/auth/passkeys");

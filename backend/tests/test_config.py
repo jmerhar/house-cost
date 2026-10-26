@@ -19,6 +19,19 @@ class TestBlankMeansUnset:
 
         assert settings.resolved_database_url == f"sqlite+aiosqlite:///{data_dir}/house-cost.db"
 
+    def test_a_blank_cookie_flag_follows_the_scheme(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("COOKIE_SECURE", "")
+        assert Settings().cookie_secure is None
+        monkeypatch.setenv("COOKIE_SECURE", "false")
+        assert Settings().cookie_secure is False
+
+    def test_the_time_zone_is_read_from_tz(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("TZ", "Europe/Lisbon")
+        assert Settings().timezone == "Europe/Lisbon"
+        monkeypatch.setenv("TZ", "Europe/Atlantis")
+        with pytest.raises(ValueError, match="unknown time zone"):
+            Settings()
+
     def test_a_real_value_is_kept(self, data_dir: Path) -> None:
         settings = Settings(static_dir=data_dir, database_url="sqlite+aiosqlite:///other.db")
 

@@ -446,6 +446,62 @@ describe("Account", () => {
     });
   });
 
+  it("saves where and what to be notified of, and sends a test", async () => {
+    const { api, calls } = fakeApi({
+      "GET /auth/sessions": [],
+      "GET /auth/passkeys": [],
+      "PATCH /auth/me": (call) => ({ ...ADMIN, ...(call.body as object), apprise_urls: "json://me.test" }),
+      "POST /auth/me/test-notification": { sent: true },
+    });
+    const app = appFor(api);
+    renderPage(Account, app);
+    expect(screen.queryByRole("button", { name: "Send a test" })).not.toBeInTheDocument();
+
+    await fireEvent.input(screen.getByLabelText(/^Where to send them/), { target: { value: " json://me.test\n" } });
+    await fireEvent.click(screen.getByLabelText("Bills another household adds"));
+    await fireEvent.submit(screen.getByLabelText(/^Where to send them/).closest("form")!);
+
+    expect(await screen.findByText("Notification settings saved.")).toBeInTheDocument();
+    expect(calls.find((c) => c.method === "PATCH")!.body).toEqual({
+      name: "Graça",
+      language: null,
+      apprise_urls: " json://me.test\n",
+      notify_on: { new_bill: false, price_change: true, contract: true, missing_bill: true },
+    });
+    expect(screen.getByLabelText(/^Where to send them/)).toHaveValue("json://me.test");
+
+    await fireEvent.click(screen.getByRole("button", { name: "Send a test" }));
+    expect(await screen.findByText("Test sent. Check that it arrived.")).toBeInTheDocument();
+  });
+
+  it("says when a test notification was not delivered, or was refused", async () => {
+    let answer: unknown = { sent: false };
+    const { api } = fakeApi({
+      "GET /auth/sessions": [],
+      "GET /auth/passkeys": [],
+      "POST /auth/me/test-notification": () => answer,
+    });
+    renderPage(Account, appFor(api, { ...ADMIN, apprise_urls: "json://me.test" }));
+
+    await fireEvent.click(screen.getByRole("button", { name: "Send a test" }));
+    expect(await screen.findByText(/could not be delivered/)).toBeInTheDocument();
+
+    answer = refuse(422, "no_urls");
+    await fireEvent.click(screen.getByRole("button", { name: "Send a test" }));
+    expect(await screen.findByText(/Add a URL/)).toBeInTheDocument();
+  });
+
+  it("shows why notification settings were not saved", async () => {
+    const { api } = fakeApi({
+      "GET /auth/sessions": [],
+      "GET /auth/passkeys": [],
+      "PATCH /auth/me": () => refuse(422, "no_urls"),
+    });
+    renderPage(Account, appFor(api));
+    await fireEvent.submit(screen.getByLabelText(/^Where to send them/).closest("form")!);
+    expect(await screen.findByRole("alert")).toHaveTextContent(/Add a URL/);
+  });
+
   it("saves a new language and reloads into it", async () => {
     const reload = vi.fn();
     const { api, calls } = fakeApi({ "GET /auth/sessions": [],

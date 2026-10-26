@@ -1235,6 +1235,10 @@
             "title": "Active",
             "type": "boolean"
           },
+          "apprise_urls": {
+            "title": "Apprise Urls",
+            "type": "string"
+          },
           "household_id": {
             "title": "Household Id",
             "type": "integer"
@@ -1270,6 +1274,21 @@
             "title": "Name",
             "type": "string"
           },
+          "notify_on": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "propertyNames": {
+              "enum": [
+                "new_bill",
+                "price_change",
+                "contract",
+                "missing_bill"
+              ]
+            },
+            "title": "Notify On",
+            "type": "object"
+          },
           "reconciliation_enabled": {
             "title": "Reconciliation Enabled",
             "type": "boolean"
@@ -1292,14 +1311,28 @@
           "household_id",
           "active",
           "household_name",
-          "reconciliation_enabled"
+          "reconciliation_enabled",
+          "apprise_urls",
+          "notify_on"
         ],
         "title": "Me",
         "type": "object"
       },
       "MeUpdate": {
-        "description": "A person's change to themselves. A new password needs the current one.",
+        "description": "A person's change to themselves. A new password needs the current one; notification\nsettings left out stay as they are.",
         "properties": {
+          "apprise_urls": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Apprise Urls"
+          },
           "current_password": {
             "anyOf": [
               {
@@ -1344,6 +1377,28 @@
               }
             ],
             "title": "New Password"
+          },
+          "notify_on": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "boolean"
+                },
+                "propertyNames": {
+                  "enum": [
+                    "new_bill",
+                    "price_change",
+                    "contract",
+                    "missing_bill"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notify On"
           }
         },
         "required": [
@@ -2921,6 +2976,19 @@
         "title": "SupplierOut",
         "type": "object"
       },
+      "TestSent": {
+        "properties": {
+          "sent": {
+            "title": "Sent",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "sent"
+        ],
+        "title": "TestSent",
+        "type": "object"
+      },
       "TransferOut": {
         "properties": {
           "amount_cents": {
@@ -3308,6 +3376,28 @@
           }
         },
         "summary": "Update Me",
+        "tags": [
+          "account"
+        ]
+      }
+    },
+    "/api/auth/me/test-notification": {
+      "post": {
+        "description": "Send a test notification to this person's own URLs.",
+        "operationId": "test_notification_api_auth_me_test_notification_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestSent"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Test Notification",
         "tags": [
           "account"
         ]
@@ -3711,7 +3801,7 @@
         ]
       },
       "post": {
-        "description": "Enter a bill. Each line is split by its category's rule in force on the bill's date.",
+        "description": "Enter a bill. Each line is split by its category's rule in force on the bill's date.\n\nOnce it is saved, the other households hear of it, and everyone of a price it changed.",
         "operationId": "create_bill_api_bills_post",
         "requestBody": {
           "content": {

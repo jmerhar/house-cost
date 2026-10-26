@@ -7,6 +7,7 @@ from ..audit import get_setting
 from ..auth import SESSION_LIFETIME
 from ..config import Settings
 from ..models import Person
+from ..notify import EVENTS
 from .deps import SESSION_COOKIE
 from .schemas import Me
 
@@ -54,4 +55,6 @@ async def describe(db: AsyncSession, person: Person) -> Me:
         active=person.active,
         household_name=person.household.name,
         reconciliation_enabled=await get_setting(db, "reconciliation_enabled"),
+        apprise_urls=person.apprise_urls or "",
+        notify_on={event: person.notify_on.get(event, True) for event in EVENTS},
     )

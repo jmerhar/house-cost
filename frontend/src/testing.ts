@@ -61,6 +61,8 @@ export const ADMIN: Me = {
   active: true,
   household_name: GRACA.name,
   reconciliation_enabled: false,
+  apprise_urls: "",
+  notify_on: { new_bill: true, price_change: true, contract: true, missing_bill: true },
 };
 export const MEMBER: Me = { ...ADMIN, id: 2, name: "Jure", login: "jure", role: "member", household_id: OWNERS.id, household_name: OWNERS.name };
 

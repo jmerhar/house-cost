@@ -30,7 +30,7 @@ def data_dir() -> Iterator[Path]:
 @pytest.fixture
 def settings(data_dir: Path) -> Settings:
     """Settings pointed at the throwaway directory, serving no built frontend."""
-    return Settings(data_dir=data_dir, static_dir=None)
+    return Settings(data_dir=data_dir, static_dir=None, scheduler_enabled=False)
 
 
 @pytest.fixture

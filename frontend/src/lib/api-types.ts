@@ -141,6 +141,26 @@ export interface paths {
         patch: operations["update_me_api_auth_me_patch"];
         trace?: never;
     };
+    "/api/auth/me/test-notification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Test Notification
+         * @description Send a test notification to this person's own URLs.
+         */
+        post: operations["test_notification_api_auth_me_test_notification_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/passkey-login": {
         parameters: {
             query?: never;
@@ -327,6 +347,8 @@ export interface paths {
         /**
          * Create Bill
          * @description Enter a bill. Each line is split by its category's rule in force on the bill's date.
+         *
+         *     Once it is saved, the other households hear of it, and everyone of a price it changed.
          */
         post: operations["create_bill_api_bills_post"];
         delete?: never;
@@ -1450,6 +1472,8 @@ export interface components {
         Me: {
             /** Active */
             active: boolean;
+            /** Apprise Urls */
+            apprise_urls: string;
             /** Household Id */
             household_id: number;
             /** Household Name */
@@ -1462,6 +1486,10 @@ export interface components {
             login: string;
             /** Name */
             name: string;
+            /** Notify On */
+            notify_on: {
+                [key: string]: boolean;
+            };
             /** Reconciliation Enabled */
             reconciliation_enabled: boolean;
             /**
@@ -1472,9 +1500,12 @@ export interface components {
         };
         /**
          * MeUpdate
-         * @description A person's change to themselves. A new password needs the current one.
+         * @description A person's change to themselves. A new password needs the current one; notification
+         *     settings left out stay as they are.
          */
         MeUpdate: {
+            /** Apprise Urls */
+            apprise_urls?: string | null;
             /** Current Password */
             current_password?: string | null;
             /** Language */
@@ -1483,6 +1514,10 @@ export interface components {
             name: string;
             /** New Password */
             new_password?: string | null;
+            /** Notify On */
+            notify_on?: {
+                [key: string]: boolean;
+            } | null;
         };
         /** MonthTotal */
         MonthTotal: {
@@ -2059,6 +2094,11 @@ export interface components {
             /** Notes */
             notes: string;
         };
+        /** TestSent */
+        TestSent: {
+            /** Sent */
+            sent: boolean;
+        };
         /** TransferOut */
         TransferOut: {
             /** Amount Cents */
@@ -2315,6 +2355,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    test_notification_api_auth_me_test_notification_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestSent"];
                 };
             };
         };
