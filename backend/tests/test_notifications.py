@@ -160,8 +160,13 @@ class TestAccount:
         as_admin = {p["login"]: p for p in await ok(client.get("/api/people"))}
         assert as_admin["tiago"]["email"] == "tiago@example.com"
         audit = await ok(member.get("/api/audit"))
-        assert any(entry["entity"] == "person" for entry in audit["items"])
-        assert "example.com" not in str(audit) and "912" not in str(audit)
+        people = [entry for entry in audit["items"] if entry["entity"] == "person"]
+        assert people
+        for entry in people:
+            for record in (entry["before"], entry["after"]):
+                assert not {"email", "phone"} & set(record or {})
+        # The stored forms, which no timestamp or id in the log can contain by chance.
+        assert "@example.com" not in str(audit) and "+351912345678" not in str(audit)
 
     async def test_an_admin_sets_someones_contacts(self, client, agreement, member) -> None:
         marta = await _person(
