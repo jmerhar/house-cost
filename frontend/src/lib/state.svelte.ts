@@ -10,6 +10,9 @@ export class AppState {
   me = $state<Me | null>(null);
   households = $state<Household[]>([]);
   categories = $state<Category[]>([]);
+  /** A message for the page an action leads to, such as "Bill saved." after saving; it is shown
+   *  on that page only, and cleared when the person moves on. */
+  flash = $state<{ text: string; problem: boolean; path: string } | null>(null);
 
   constructor(
     readonly api: Api,
@@ -31,6 +34,11 @@ export class AppState {
   /** A category's name, by id. */
   category(id: number): string {
     return this.categories.find((category) => category.id === id)?.name ?? `#${id}`;
+  }
+
+  /** Show ``text`` on the page at ``path``, the one about to be opened. */
+  say(text: string, path: string, problem = false): void {
+    this.flash = { text, problem, path };
   }
 
   get isAdmin(): boolean {

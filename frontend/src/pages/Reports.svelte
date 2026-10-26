@@ -59,12 +59,14 @@
   <p>{m.loading()}</p>
 {:else}
   {#if summary.years.length > 1}
+    <div class="filters">
     <label>
       {m.filter_year()}
       <select value={String(summary.year)} onchange={(event) => load(Number((event.currentTarget as HTMLSelectElement).value))}>
         {#each summary.years as year (year)}<option value={String(year)}>{year}</option>{/each}
       </select>
     </label>
+    </div>
   {/if}
 
   {#if summary.categories.length === 0}
@@ -104,7 +106,7 @@
       {#each summary.months as month (month.month)}
         <li>
           <span class="label">{monthName(month.month)}</span>
-          <span class="bar" style:width={`${(month.total_cents / largest) * 100}%`}></span>
+          <span class="fill" style:width={`${(month.total_cents / largest) * 100}%`}></span>
           <span class="num">{euros(month.total_cents)}</span>
         </li>
       {/each}
@@ -118,7 +120,7 @@
     {#each group.points as point (point.bill_id)}
       <li>
         <span class="label">{day(point.period_end ?? point.date)}</span>
-        <span class="bar" style:width={`${(point.value / group.largest) * 100}%`}></span>
+        <span class="fill" style:width={`${(point.value / group.largest) * 100}%`}></span>
         <span class="num">
           {point.value.toLocaleString(intlLocale())} {group.quantity === "electricity_kwh" ? "kWh" : "m³"}
           {#if point.unit_price !== null}<small class="muted">· {point.unit_price}</small>{/if}

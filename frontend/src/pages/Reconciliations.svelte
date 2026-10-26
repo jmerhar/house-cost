@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import type { Reconciliation, ReconciliationIn } from "../lib/api";
   import { useApp } from "../lib/context";
+  import { reveal } from "../lib/reveal";
   import { errorMessage } from "../lib/errors";
   import { day, euros, parsePercent, percentInput } from "../lib/format";
   import { m } from "../paraglide/messages.js";
@@ -44,6 +45,7 @@
       (reconciliation?.shares ?? []).map((s) => [key(s.category_id, s.household_id), percentInput(s.basis_points)]),
     );
     open = true;
+    reveal("#reconciliation-form");
   }
 
   function body(): ReconciliationIn | null {
@@ -88,6 +90,7 @@
   }
 
   async function discard(reconciliation: Reconciliation): Promise<void> {
+    if (!confirm(m.confirm_discard_reconciliation())) return;
     try {
       await app.api.deleteReconciliation(reconciliation.id);
       open = false;
@@ -106,7 +109,7 @@
 {#if error}<p role="alert">{error}</p>{/if}
 
 {#if open}
-  <form class="card" onsubmit={save}>
+  <form class="card" id="reconciliation-form" onsubmit={save}>
     <div class="grid">
       <label>{m.field_period_start()}<input type="date" bind:value={start} required /></label>
       <label>{m.field_period_end()}<input type="date" bind:value={end} min={start} required /></label>

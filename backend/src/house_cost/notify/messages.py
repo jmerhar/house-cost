@@ -16,29 +16,29 @@ CATALOGUE: dict[str, dict[str, tuple[str, str]]] = {
         ),
         "price_change": (
             "{supplier} changed its price",
-            "The {quantity} price on the bill of {date} is {new} per {unit}, against {old} on "
-            "the bill before.",
+            "The {quantity} price on the bill of {date} is {new} per {unit}, compared with {old} "
+            "on the bill before.",
         ),
         "contract_ends": (
-            "{service} ends {when}",
-            "{service} with {supplier} {ends} on {date}. Leaving needs notice of {notice}.",
+            "{service} {ends} {when}",
+            "{service} with {supplier} {ends} on {date}. {notice}",
         ),
         "lock_in_ends": (
-            "{service}: lock-in ends {when}",
-            "The lock-in of {service} with {supplier} ends on {date}; leaving after that costs "
-            "nothing.",
+            "{service}: minimum term ends {when}",
+            "The minimum term of {service} with {supplier} ends on {date}; leaving after that "
+            "has no penalty.",
         ),
         "missing_bill": (
             "No bill from {supplier} yet",
-            "The last bill for {service} was dated {date}, and one usually comes every {every}.",
+            "The last bill for {service} was dated {date}, and one usually comes {every}.",
         ),
         "test": ("Test notification", "Notifications from House costs reach you here."),
     },
     "pt-PT": {
         "new_bill": (
             "Nova fatura: {supplier}, {amount}",
-            "{person} adicionou uma fatura de {supplier} com data de {date}: {amount}, dos quais a "
-            "parte da sua família é {share}.",
+            "{person} adicionou uma fatura de {supplier} com data de {date}: {amount}, cabendo à "
+            "sua família {share}.",
         ),
         "price_change": (
             "{supplier} alterou o preço",
@@ -46,9 +46,8 @@ CATALOGUE: dict[str, dict[str, tuple[str, str]]] = {
             "na fatura anterior.",
         ),
         "contract_ends": (
-            "O contrato de {service} termina {when}",
-            "O contrato de {service} com {supplier} {ends} a {date}. Para rescindir, é preciso "
-            "avisar com {notice} de antecedência.",
+            "O contrato de {service} {ends} {when}",
+            "O contrato de {service} com {supplier} {ends} a {date}. {notice}",
         ),
         "lock_in_ends": (
             "{service}: a fidelização termina {when}",
@@ -57,7 +56,7 @@ CATALOGUE: dict[str, dict[str, tuple[str, str]]] = {
         ),
         "missing_bill": (
             "Ainda não chegou a fatura de {supplier}",
-            "A última fatura de {service} tem data de {date}, e costuma chegar uma a cada {every}.",
+            "A última fatura de {service} tem data de {date} e costuma chegar uma {every}.",
         ),
         "test": ("Notificação de teste", "Vai receber aqui as notificações das Despesas da casa."),
     },
@@ -70,10 +69,12 @@ WORDS: dict[str, dict[str, str]] = {
         "water_m3": "water",
         "renews": "renews",
         "ends": "ends",
-        "unknown": "an unknown number of days",
+        "notice": "You must give notice of {days} to leave.",
+        "notice_unknown": "Check the contract for the notice needed to leave.",
         "day": "{n} day",
         "days": "{n} days",
-        "daily": "day",
+        "daily": "every day",
+        "every": "every {n} days",
         "today": "today",
         "tomorrow": "tomorrow",
         "within": "in {n} days",
@@ -83,13 +84,15 @@ WORDS: dict[str, dict[str, str]] = {
         "water_m3": "água",
         "renews": "renova-se",
         "ends": "termina",
-        "unknown": "um número desconhecido de dias",
+        "notice": "Para rescindir, é preciso avisar com {days} de antecedência.",
+        "notice_unknown": "Confirme no contrato o pré-aviso necessário para o cancelar.",
         "day": "{n} dia",
         "days": "{n} dias",
-        "daily": "dia",
+        "daily": "por dia",
+        "every": "a cada {n} dias",
         "today": "hoje",
         "tomorrow": "amanhã",
-        "within": "dentro de {n} dias",
+        "within": "daqui a {n} dias",
     },
 }
 
@@ -130,8 +133,15 @@ def days(n: int, lang: str) -> str:
 
 
 def every(n: int, lang: str) -> str:
-    """How often, after "every": "day" for daily, else "30 days"."""
-    return WORDS[lang]["daily"] if n == 1 else days(n, lang)
+    """How often something comes: "every day", "every 30 days"."""
+    return WORDS[lang]["daily"] if n == 1 else WORDS[lang]["every"].format(n=n)
+
+
+def notice(n: int | None, lang: str) -> str:
+    """The sentence on the notice needed to leave, or on checking the contract for it."""
+    if n is None:
+        return WORDS[lang]["notice_unknown"]
+    return WORDS[lang]["notice"].format(days=days(n, lang))
 
 
 def within(n: int, lang: str) -> str:

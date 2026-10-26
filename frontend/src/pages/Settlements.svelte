@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import type { Attachment, Settlement } from "../lib/api";
   import { useApp } from "../lib/context";
+  import { reveal } from "../lib/reveal";
   import { errorMessage } from "../lib/errors";
   import { amountInput, day, euros, parseAmount, today } from "../lib/format";
   import { m } from "../paraglide/messages.js";
@@ -49,6 +50,7 @@
     amount = amountInput(settlement.amount_cents);
     note = settlement.note;
     open = true;
+    reveal("#settlement-form");
   }
 
   onMount(() => {
@@ -111,12 +113,12 @@
 </div>
 
 {#if open}
-  <form class="card" onsubmit={save}>
+  <form class="card" id="settlement-form" onsubmit={save}>
     <h2>{editing ? m.settlement_edit() : m.settlement_new()}</h2>
     <div class="grid">
       <label>{m.field_date()}<input type="date" bind:value={date} required /></label>
       <label>
-        {m.field_amount()}<input bind:value={amount} inputmode="decimal" required placeholder="0,00" />
+        {m.field_amount()}<input bind:value={amount} inputmode="decimal" required placeholder={amountInput(0)} />
       </label>
       <label>
         {m.field_from()}
@@ -171,7 +173,7 @@
           <button type="button" class="link" onclick={() => edit(settlement)}>{m.edit()}</button>
           <label class="link">
             {m.files_add()}
-            <input type="file" accept="application/pdf,image/*" hidden onchange={(event) => attach(settlement, event)} />
+            <input type="file" accept="application/pdf,image/*" class="file-input" onchange={(event) => attach(settlement, event)} />
           </label>
         </span>
       </li>

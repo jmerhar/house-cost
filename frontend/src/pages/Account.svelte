@@ -238,6 +238,8 @@
       </span>
       <button type="button" class="link" onclick={() => removePasskey(passkey)}>{m.passkey_remove()}</button>
     </li>
+  {:else}
+    <li class="muted">{m.passkeys_empty()}</li>
   {/each}
 </ul>
 {#if app.authenticator.supported()}

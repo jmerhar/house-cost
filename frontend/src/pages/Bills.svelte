@@ -93,7 +93,7 @@
   <span class="row-actions">
     <label class="button secondary" aria-busy={reading}>
       {reading ? m.reading_file() : m.bill_read()}
-      <input type="file" accept="application/pdf,image/*" hidden disabled={reading} onchange={readFile} />
+      <input type="file" accept="application/pdf,image/*" class="file-input" disabled={reading} onchange={readFile} />
     </label>
     <a class="button" href="/bills/new">{m.bill_new()}</a>
   </span>

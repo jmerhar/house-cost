@@ -57,10 +57,10 @@ describe("Services", () => {
     renderPage(Services, appFor(api));
 
     expect(await screen.findByRole("heading", { name: "MEO Energia" })).toBeInTheDocument();
-    expect(screen.getByText("NIF: 506743357")).toBeInTheDocument();
+    expect(screen.getByText("NIF 506743357")).toBeInTheDocument();
     expect(screen.getAllByText("CPE: PT0002000000000000XX")).toHaveLength(2);
     expect(screen.getByText(/^Renews on 15 Nov 2026$/)).toHaveClass("problem");
-    expect(screen.getByText(/^Locked in until 28 Jul 2027$/)).not.toHaveClass("problem");
+    expect(screen.getByText(/^Minimum term ends 28 Jul 2027$/)).not.toHaveClass("problem");
     expect(screen.getByText("Notice (days): 30")).toBeInTheDocument();
     expect(screen.getByText(/^Ends on 1 Jan 2030$/)).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Documents" })[0]).toHaveAttribute("href", "/documents?service=5");
@@ -74,7 +74,7 @@ describe("Services", () => {
 
     await fireEvent.click(screen.getByRole("button", { name: "Add a supplier" }));
     await fireEvent.input(screen.getByLabelText("Name"), { target: { value: "SMAS" } });
-    await fireEvent.input(screen.getByLabelText("NIF"), { target: { value: "" } });
+    await fireEvent.input(screen.getByLabelText("NIF (tax number)"), { target: { value: "" } });
     await fireEvent.submit(screen.getByRole("button", { name: "Save" }).closest("form")!);
     await waitFor(() => expect(calls.find((c) => c.method === "POST" && c.path === "/suppliers")?.body).toEqual({
       name: "SMAS", nif: null, default_category_id: null, notes: "", active: true,
@@ -111,7 +111,7 @@ describe("Services", () => {
     const edits = screen.getAllByRole("button", { name: "Edit" });
     await fireEvent.click(edits[0]);
     const supplierForm = screen.getByRole("button", { name: "Save" }).closest("form")!;
-    expect(within(supplierForm).getByLabelText("NIF")).toHaveValue("506743357");
+    expect(within(supplierForm).getByLabelText("NIF (tax number)")).toHaveValue("506743357");
     await fireEvent.click(within(supplierForm).getByLabelText("Active"));
     await fireEvent.submit(supplierForm);
     await waitFor(() => expect(calls.find((c) => c.method === "PUT" && c.path === "/suppliers/1")?.body).toMatchObject({ active: false }));
@@ -120,7 +120,7 @@ describe("Services", () => {
     await fireEvent.click(screen.getAllByRole("button", { name: "Edit" })[1]);
     const serviceForm = screen.getByRole("button", { name: "Save" }).closest("form")!;
     expect(within(serviceForm).getByLabelText(/References/)).toHaveValue("CPE: PT0002000000000000XX");
-    await fireEvent.click(within(serviceForm).getByLabelText("Renews by itself"));
+    await fireEvent.click(within(serviceForm).getByLabelText("Renews automatically"));
     await fireEvent.submit(serviceForm);
     await waitFor(() => expect(calls.find((c) => c.method === "PUT" && c.path === "/services/5")?.body).toMatchObject({ renews_automatically: false, notice_days: 30 }));
   });
@@ -128,7 +128,7 @@ describe("Services", () => {
   it("shows refusals, an empty list, and cancels forms", async () => {
     const { api } = fakeApi({ "GET /suppliers": [], "GET /services": [], "POST /suppliers": refuse(409, "supplier_exists") });
     renderPage(Services, appFor(api));
-    expect(await screen.findByText("No suppliers yet.")).toBeInTheDocument();
+    expect(await screen.findByText(/^No suppliers yet\./)).toBeInTheDocument();
     await fireEvent.click(screen.getByRole("button", { name: "Add a supplier" }));
     await fireEvent.input(screen.getByLabelText("Name"), { target: { value: "MEO" } });
     await fireEvent.submit(screen.getByRole("button", { name: "Save" }).closest("form")!);
@@ -250,14 +250,14 @@ describe("Documents", () => {
   it("searches the text and shows where it matched", async () => {
     const { api, calls } = fakeApi(routes({ "GET /documents": (call) => (call.query.get("q") ? [{ ...CONTRACT, excerpt: "…pré-aviso máximo de 1 mês…" }] : []) }));
     renderPage(Documents, appFor(api));
-    expect(await screen.findByText("No documents yet.")).toBeInTheDocument();
+    expect(await screen.findByText(/^No documents yet\./)).toBeInTheDocument();
 
     await fireEvent.input(screen.getByLabelText("Search"), { target: { value: "pré-aviso" } });
     vi.advanceTimersByTime(300);
     expect(await screen.findByText("…pré-aviso máximo de 1 mês…")).toBeInTheDocument();
     expect(calls.at(-1)!.query.get("q")).toBe("pré-aviso");
 
-    await fireEvent.change(screen.getByLabelText("Kind"), { target: { value: "terms" } });
+    await fireEvent.change(screen.getByLabelText("Type"), { target: { value: "terms" } });
     await waitFor(() => expect(calls.at(-1)!.query.get("kind")).toBe("terms"));
   });
 
@@ -279,7 +279,7 @@ describe("Documents", () => {
 
     const form = screen.getByRole("button", { name: "Save" }).closest("form")!;
     expect(within(form).getByLabelText("Title")).toHaveValue("Condições");
-    await fireEvent.change(within(form).getByLabelText("Kind"), { target: { value: "terms" } });
+    await fireEvent.change(within(form).getByLabelText("Type"), { target: { value: "terms" } });
     await fireEvent.input(within(form).getByLabelText("Date on the document"), { target: { value: "2026-09-05" } });
     await fireEvent.change(within(form).getByLabelText("Supplier"), { target: { value: String(MEO.id) } });
     await fireEvent.submit(form);
