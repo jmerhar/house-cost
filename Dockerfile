@@ -14,6 +14,11 @@ RUN npm run build
 
 FROM python:3.14-slim AS app
 
+# Tesseract reads the bills whose PDFs carry no usable text, in Portuguese and English.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-por tesseract-ocr-eng \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     # No .pyc files, so the image runs with a read-only root filesystem.

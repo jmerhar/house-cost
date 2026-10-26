@@ -21,6 +21,9 @@ dependencies = [
     "python-multipart>=0.0.20",
     "webauthn>=3.0,<4",
     "pypdfium2>=5.14",
+    # Reading bills: the fiscal QR code (zxing-cpp) in pages rendered as images (Pillow).
+    "zxing-cpp>=3.1",
+    "pillow>=12.3,<13",
 ]
 
 [project.optional-dependencies]

@@ -4,6 +4,18 @@ Every release of House costs, newest first. The image is `ghcr.io/jmerhar/house-
 follow semantic versioning: a major release needs something done by whoever runs it, and says
 what under **Upgrading**. Before 1.0, a minor release may.
 
+## Unreleased
+
+### Added
+
+- Reading a bill: upload its PDF or a photo and the bill form opens filled in with what it says,
+  to be checked before saving. The invoice's fiscal QR code gives the date, number and total; the
+  page gives the period, due date, consumption and contract dates, read by OCR where the PDF has
+  no usable text. MEO Energia's and MEO's bills are read in full, others for what invoices share.
+  A bill already entered is pointed out, and the service's contract dates can be updated from it.
+- Consumption: electricity and water readings saved with each bill, and charted on the reports
+  page.
+
 ## 0.3.0 — 2026-10-26
 
 ### Added

@@ -43,6 +43,9 @@ export type ServiceIn = Schemas["ServiceIn"];
 export type DocumentInfo = Schemas["DocumentOut"];
 export type DocumentMatch = Schemas["DocumentMatch"];
 export type DocumentUpdate = Schemas["DocumentUpdate"];
+export type Proposal = Schemas["Proposal"];
+export type ReadingPoint = Schemas["ReadingPoint"];
+export type Reading = Schemas["ReadingIn"];
 
 /** The header every write carries; the API refuses a write without it. */
 export const WRITE_HEADER = { "X-Requested-With": "house-cost" };
@@ -139,6 +142,15 @@ export class Api {
   documents = (query: Query = {}) => this.request<DocumentMatch[]>("GET", "/documents", undefined, query);
   updateDocument = (id: number, body: DocumentUpdate) => this.request<DocumentInfo>("PUT", `/documents/${id}`, body);
   deleteDocument = (id: number) => this.request<void>("DELETE", `/documents/${id}`);
+
+  readings = (serviceId?: number) => this.request<ReadingPoint[]>("GET", "/readings", undefined, { service_id: serviceId });
+
+  /** Read a bill's PDF or photo into a proposed bill, which nothing saves yet. */
+  readBill(file: File): Promise<Proposal> {
+    const form = new FormData();
+    form.append("file", file);
+    return this.request<Proposal>("POST", "/bills/read", form);
+  }
 
   /** Keep a file in the document library, with its details. */
   addDocument(file: File, details: DocumentUpdate): Promise<DocumentInfo> {

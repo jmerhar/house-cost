@@ -31,12 +31,17 @@ jobs:
           python-version: "3.14"
 
       - name: Install
-        run: pip install -e "backend[test]"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-por
+          pip install -e "backend[test]"
 
       - name: Run tests with coverage
         env:
           # The runner's own Python, rather than the virtualenv a local run uses.
           PYTHON: python
+          # The OCR tests run here rather than skipping, as they do where Tesseract is missing.
+          REQUIRE_TESSERACT: "1"
         # Through the same script as `make test-backend`, so CI and a local run cannot drift.
         run: >-
           bin/test-backend.sh -v --junitxml=junit/backend.xml

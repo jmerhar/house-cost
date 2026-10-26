@@ -26,7 +26,10 @@ backend/src/house_cost/
   audit.py         record() for the audit log; the app's settings and their defaults
   storage.py       uploaded files under their SHA-256, and recognising their type by content;
                    attachments and library documents share it (attachments.held)
-  extraction/      reading documents: pdf.py is a PDF's text layer
+  extraction/      reading bills: pdf.py (a PDF's text layer), atcud.py (the fiscal QR code),
+                   ocr.py (Tesseract, and spotting a garbled text layer), text.py (amounts and
+                   dates as Portuguese bills write them), parsers.py (one per supplier NIF, and
+                   a generic one), pipeline.py (all of it, with where each value came from)
   api/
     app.py         create_app: routers under /api, the write guard, the interface and its SPA
                    fallback
@@ -80,6 +83,11 @@ CHANGELOG.md       every release's notes; new work goes under `## Unreleased`
   adjustments, and closed periods lock nothing.
 - **Passkeys belong to the host name of `PUBLIC_URL`** (else the request's own host). Changing
   the address the app is served at orphans every passkey made under the old one.
+- **Real bills never go in tests.** Parsers are tested on synthetic PDFs (tests/synthetic.py)
+  laid out like the real ones; `make test-samples` reads the real files in the ignored samples/
+  directory against samples/expected.json, locally only.
+- **What a bill's QR code states wins over the page.** The pipeline records where each value came
+  from, and the interface says so; a page total that disagrees is flagged, not trusted.
 - **First-run setup is open to whoever arrives first** while no person exists, and closed for good
   after; a new deployment stays unreachable from outside until it is set up.
 - **The interface's types come from the API's schema.** Changing a response model means running
@@ -104,6 +112,7 @@ make install        # backend/.venv and frontend/node_modules
 make dev            # API :8000 + Vite :5173 with hot reload
 make test           # both suites; ARGS=... passes through to pytest or vitest
 make coverage       # both suites with coverage and the combined summary
+make test-samples   # read the real bills in samples/ (ignored by git) against expected.json
 make lint           # shellcheck, ruff, lockfile, versions, compose files
 make contract       # the committed schema and generated types are current
 make check          # all of the above and the Bruno collection: gate a commit on this
