@@ -558,6 +558,16 @@ tfoot td {
   min-width: 2px;
 }
 
+/* A form's one main action across its whole width, such as logging in with a passkey. */
+.wide-button {
+  width: 100%;
+}
+
+.or {
+  text-align: center;
+  margin: 0.75rem 0;
+}
+
 footer {
   max-width: 52rem;
   margin: 0 auto;

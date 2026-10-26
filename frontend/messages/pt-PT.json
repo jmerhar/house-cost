@@ -186,10 +186,10 @@
   "session_this": "Este navegador",
   "session_end": "Terminar",
   "session_last_seen": "Última utilização: {when}",
-  "login_passkey": "Entrar com uma chave de acesso",
-  "passkeys_title": "Chaves de acesso",
-  "passkeys_intro": "Uma chave de acesso permite entrar com a impressão digital, o reconhecimento facial ou o bloqueio de ecrã deste dispositivo, em vez da palavra-passe.",
-  "passkey_add": "Adicionar uma chave de acesso neste dispositivo",
+  "login_passkey": "Entrar com impressão digital ou rosto",
+  "passkeys_title": "Iniciar sessão com impressão digital ou rosto (chaves de acesso)",
+  "passkeys_intro": "Entre com a impressão digital, o reconhecimento facial ou o bloqueio de ecrã deste dispositivo, em vez da palavra-passe. Para isso, fica guardada uma chave de acesso no dispositivo.",
+  "passkey_add": "Configurar neste dispositivo",
   "passkey_label": "Dê um nome a esta chave de acesso",
   "passkey_added": "Chave de acesso adicionada. Da próxima vez, entre com ela.",
   "passkey_remove": "Remover",
@@ -318,5 +318,11 @@
   "confirm_discard_reconciliation": "Eliminar este rascunho?",
   "logging_in": "A entrar…",
   "saved": "Guardado.",
-  "nif_value": "NIF {nif}"
+  "nif_value": "NIF {nif}",
+  "login_passkey_hint": "Funciona com uma chave de acesso guardada neste dispositivo. O dispositivo pode pedir o PIN em vez disso. No telemóvel, também pode aparecer ao tocar no campo «Nome de utilizador».",
+  "login_or_password": "ou com a palavra-passe",
+  "passkey_offer": "Quer entrar mais depressa da próxima vez com a impressão digital ou o rosto?",
+  "passkey_offer_accept": "Configurar",
+  "passkey_offer_later": "Agora não",
+  "passkey_offer_done": "Pronto. Da próxima vez, pode entrar com a impressão digital ou o rosto."
 }

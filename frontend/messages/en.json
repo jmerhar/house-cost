@@ -186,10 +186,10 @@
   "session_this": "This browser",
   "session_end": "Log out",
   "session_last_seen": "Last used {when}",
-  "login_passkey": "Log in with a passkey",
-  "passkeys_title": "Passkeys",
-  "passkeys_intro": "A passkey lets you log in with this device's fingerprint, face recognition or screen lock instead of your password.",
-  "passkey_add": "Add a passkey on this device",
+  "login_passkey": "Log in with fingerprint or face",
+  "passkeys_title": "Fingerprint and face login (passkeys)",
+  "passkeys_intro": "Log in with this device's fingerprint, face recognition or screen lock instead of your password. A passkey is saved on the device for this.",
+  "passkey_add": "Set up on this device",
   "passkey_label": "Name this passkey",
   "passkey_added": "Passkey added. Next time, log in with it.",
   "passkey_remove": "Remove",
@@ -318,5 +318,11 @@
   "confirm_discard_reconciliation": "Delete this draft?",
   "logging_in": "Logging in…",
   "saved": "Saved.",
-  "nif_value": "NIF {nif}"
+  "nif_value": "NIF {nif}",
+  "login_passkey_hint": "Uses a passkey saved on this device; it may ask for your PIN instead. On a phone, it may also appear when you tap the Username box.",
+  "login_or_password": "or with your password",
+  "passkey_offer": "Log in faster next time with your fingerprint or face?",
+  "passkey_offer_accept": "Set it up",
+  "passkey_offer_later": "Not now",
+  "passkey_offer_done": "All set. Next time you can log in with your fingerprint or face."
 }

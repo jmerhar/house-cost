@@ -10,6 +10,10 @@ what under **Upgrading**. Before 1.0, a minor release may.
 
 - The app can be added to a phone's home screen and opens as an app of its own, named in the
   phone's language, with its own icon.
+- Logging in with a fingerprint or face is easier to find: on a phone, tapping the username box
+  offers it among the saved logins; the button says "Log in with fingerprint or face" and comes
+  first on a device that has used it; and after a password login on a device that can, the app
+  offers to set it up in one tap.
 - The footer shows the version installed and, for an image built by CI, the commit it was built
   from, linked to its source; `/api/health` reports it as `revision`.
 
