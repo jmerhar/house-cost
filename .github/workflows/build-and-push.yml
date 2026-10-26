@@ -30,10 +30,17 @@ jobs:
         with:
           python-version: "3.14"
 
+      # Tesseract's packages, kept between runs: Ubuntu's mirror can take minutes for them. A
+      # new key each run saves whatever newer versions apt fetched; the prefix restores the last.
+      - uses: actions/cache@v5
+        with:
+          path: ~/apt-cache
+          key: apt-ocr-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: apt-ocr-${{ runner.os }}-
+
       - name: Install
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-por
+          bin/install-ocr.sh ~/apt-cache
           pip install -e "backend[test]"
 
       - name: Run tests with coverage
