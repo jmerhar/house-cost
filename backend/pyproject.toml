@@ -20,6 +20,7 @@ dependencies = [
     # Multipart form parsing, which FastAPI's file uploads need.
     "python-multipart>=0.0.20",
     "webauthn>=3.0,<4",
+    "pypdfium2>=5.14",
 ]
 
 [project.optional-dependencies]
@@ -29,6 +30,9 @@ test = [
     "pytest-cov>=7.1",
     "httpx>=0.28",
     "hypothesis>=6.140",
+    # Synthetic bills and contracts for the tests, in place of real ones with personal details.
+    "reportlab>=5.0,<5.1",
+    "segno>=1.6",
     "ruff>=0.16",
 ]
 

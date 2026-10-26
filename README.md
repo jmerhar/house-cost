@@ -16,7 +16,10 @@ everyone can see what they have paid, what they owe and to whom.
   different categories, such as an invoice mixing shared internet with someone's own phone.
 - **Shows who owes whom.** What each household has paid, its share, and the transfers that would
   settle everyone up, which can then be recorded as settlements.
-- **Keeps the paperwork.** A bill's PDF or a photo of it, and a receipt for each transfer.
+- **Keeps the paperwork.** A bill's PDF or a photo of it, a receipt for each transfer, and a
+  library of contracts and terms searched by their text.
+- **Knows the contracts.** Each service's references, when it ends or renews, its lock-in and
+  notice period.
 - **Reports by year, category and month**, with a CSV export of every bill line.
 - **Records every change**: who added, corrected or deleted what, visible to everyone.
 - **Optional annual reconciliation**: split a closed period's bills again by shares agreed at its

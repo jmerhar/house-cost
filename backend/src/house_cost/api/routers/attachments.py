@@ -1,6 +1,7 @@
 """Files attached to bills and settlements: uploaded, downloaded, removed."""
 
 from pathlib import PurePath
+from typing import Annotated
 from urllib.parse import quote
 
 from fastapi import APIRouter, Form, HTTPException, UploadFile, status
@@ -9,7 +10,7 @@ from sqlalchemy import exists, select
 
 from ...audit import record
 from ...bills import is_locked, locked_periods
-from ...models import Attachment, Bill, Settlement
+from ...models import Attachment, Bill, Document, Settlement
 from ...storage import TooLarge, path_for, save, sniff
 from ..deps import DbDep, PersonDep, ServicesDep, get_or_404
 from ..schemas import AttachmentOut
@@ -21,7 +22,7 @@ router = APIRouter(prefix="/attachments", tags=["attachments"])
 SANDBOX = "sandbox; default-src 'none'; img-src 'self'; style-src 'unsafe-inline'"
 
 
-def _clean_name(name: str | None) -> str:
+def clean_name(name: str | None) -> str:
     """The upload's own file name without any directory part, never empty."""
     base = PurePath((name or "").replace("\\", "/")).name.strip()
     return base[:255] or "file"
@@ -40,8 +41,13 @@ async def _owner(db, bill_id: int | None, settlement_id: int | None) -> Bill | S
     return owner
 
 
-async def _referenced(db, sha256: str) -> bool:
-    return (await db.execute(select(exists().where(Attachment.sha256 == sha256)))).scalar_one()
+async def held(db, sha256: str) -> bool:
+    """Whether an attachment or a library document already holds these bytes, which then stay
+    on disk when another upload of them is refused."""
+    for model in (Attachment, Document):
+        if (await db.execute(select(exists().where(model.sha256 == sha256)))).scalar_one():
+            return True
+    return False
 
 
 async def _refuse_if_locked(db, owner: Bill | Settlement) -> None:
@@ -55,8 +61,8 @@ async def upload(
     person: PersonDep,
     db: DbDep,
     services: ServicesDep,
-    bill_id: int | None = Form(None),
-    settlement_id: int | None = Form(None),
+    bill_id: Annotated[int | None, Form()] = None,
+    settlement_id: Annotated[int | None, Form()] = None,
 ) -> AttachmentOut:
     """Attach a PDF or a photo (JPEG, PNG, WebP, HEIC) to a bill or a settlement."""
     owner = await _owner(db, bill_id, settlement_id)
@@ -70,13 +76,13 @@ async def upload(
     content_type = sniff(head)
     if content_type is None:
         # Removed again, unless an attachment already holds the same bytes.
-        if not await _referenced(db, sha256):
+        if not await held(db, sha256):
             path_for(services.settings.files_dir, sha256).unlink(missing_ok=True)
         raise HTTPException(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, "unsupported_file")
     attachment = Attachment(
         bill_id=bill_id,
         settlement_id=settlement_id,
-        filename=_clean_name(file.filename),
+        filename=clean_name(file.filename),
         content_type=content_type,
         size=size,
         sha256=sha256,

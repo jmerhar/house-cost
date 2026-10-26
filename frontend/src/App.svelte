@@ -17,6 +17,8 @@
   import Login from "./pages/Login.svelte";
   import Reconciliations from "./pages/Reconciliations.svelte";
   import Reports from "./pages/Reports.svelte";
+  import Documents from "./pages/Documents.svelte";
+  import Services from "./pages/Services.svelte";
   import Settlements from "./pages/Settlements.svelte";
   import Setup from "./pages/Setup.svelte";
 
@@ -94,6 +96,8 @@
     { href: "/bills", label: m.nav_bills() },
     { href: "/settlements", label: m.nav_settlements() },
     { href: "/reports", label: m.nav_reports() },
+    { href: "/services", label: m.nav_services() },
+    { href: "/documents", label: m.nav_documents() },
     { href: "/activity", label: m.nav_activity() },
     ...(app.isAdmin ? [{ href: "/admin", label: m.nav_admin() }] : []),
     ...(app.me?.reconciliation_enabled ? [{ href: "/reconciliation", label: m.reconciliations_title() }] : []),
@@ -141,6 +145,10 @@
         <Settlements />
       {:else if route.path === "/reports"}
         <Reports />
+      {:else if route.path === "/services"}
+        <Services />
+      {:else if route.path === "/documents"}
+        <Documents />
       {:else if route.path === "/activity"}
         <Activity />
       {:else if route.path === "/account"}

@@ -407,6 +407,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Documents
+         * @description Documents newest first, narrowed by kind, supplier, service, and words in their title,
+         *     notes, file name or text.
+         */
+        get: operations["list_documents_api_documents_get"];
+        put?: never;
+        /**
+         * Upload
+         * @description Keep a PDF or a photo in the library; a PDF's text is read so it can be searched.
+         */
+        post: operations["upload_api_documents_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Document
+         * @description One document's details.
+         */
+        get: operations["get_document_api_documents__document_id__get"];
+        /**
+         * Update Document
+         * @description Change a document's title, kind, date, links or notes.
+         */
+        put: operations["update_document_api_documents__document_id__put"];
+        post?: never;
+        /**
+         * Delete Document
+         * @description Remove a document from the library. Its bytes stay on disk, as an attachment's do.
+         */
+        delete: operations["delete_document_api_documents__document_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/documents/{document_id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download
+         * @description The document's file, shown in the browser where it can be, under the same sandbox as an
+         *     attachment.
+         */
+        get: operations["download_api_documents__document_id__file_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -679,6 +753,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Services
+         * @description Every service, by supplier and name.
+         */
+        get: operations["list_services_api_services_get"];
+        put?: never;
+        /**
+         * Create Service
+         * @description Add a service, with what its contract says.
+         */
+        post: operations["create_service_api_services_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/services/{service_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Service
+         * @description Correct a service, or mark it ended by deactivating it.
+         */
+        put: operations["update_service_api_services__service_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/settings": {
         parameters: {
             query?: never;
@@ -795,6 +913,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/suppliers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Suppliers
+         * @description Every supplier, by name.
+         */
+        get: operations["list_suppliers_api_suppliers_get"];
+        put?: never;
+        /**
+         * Create Supplier
+         * @description Add a supplier. Its tax number, when given, must be its own.
+         */
+        post: operations["create_supplier_api_suppliers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/suppliers/{supplier_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update Supplier
+         * @description Correct a supplier's details.
+         */
+        put: operations["update_supplier_api_suppliers__supplier_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -903,6 +1065,8 @@ export interface components {
             period_end?: string | null;
             /** Period Start */
             period_start?: string | null;
+            /** Service Id */
+            service_id?: number | null;
             /**
              * Supplier
              * @default
@@ -946,6 +1110,8 @@ export interface components {
             period_end: string | null;
             /** Period Start */
             period_start: string | null;
+            /** Service Id */
+            service_id: number | null;
             /** Supplier */
             supplier: string;
             /** Total Cents */
@@ -971,6 +1137,30 @@ export interface components {
             file: string;
             /** Settlement Id */
             settlement_id?: number | null;
+        };
+        /** Body_upload_api_documents_post */
+        Body_upload_api_documents_post: {
+            /** Dated */
+            dated?: string | null;
+            /** File */
+            file: string;
+            /**
+             * Kind
+             * @default other
+             * @enum {string}
+             */
+            kind?: "contract" | "terms" | "agreement" | "bill" | "info" | "other";
+            /**
+             * Notes
+             * @default
+             */
+            notes?: string;
+            /** Service Id */
+            service_id?: number | null;
+            /** Supplier Id */
+            supplier_id?: number | null;
+            /** Title */
+            title: string;
         };
         /** CategoryIn */
         CategoryIn: {
@@ -1008,6 +1198,103 @@ export interface components {
             shares: components["schemas"]["HouseholdAmount"][];
             /** Total Cents */
             total_cents: number;
+        };
+        /**
+         * DocumentMatch
+         * @description A document found by a search, with the text around the first match.
+         */
+        DocumentMatch: {
+            /** Content Type */
+            content_type: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Dated */
+            dated: string | null;
+            /** Excerpt */
+            excerpt: string;
+            /** Filename */
+            filename: string;
+            /** Has Text */
+            has_text: boolean;
+            /** Id */
+            id: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "contract" | "terms" | "agreement" | "bill" | "info" | "other";
+            /** Notes */
+            notes: string;
+            /** Pages */
+            pages: number | null;
+            /** Service Id */
+            service_id: number | null;
+            /** Size */
+            size: number;
+            /** Supplier Id */
+            supplier_id: number | null;
+            /** Title */
+            title: string;
+        };
+        /** DocumentOut */
+        DocumentOut: {
+            /** Content Type */
+            content_type: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Dated */
+            dated: string | null;
+            /** Filename */
+            filename: string;
+            /** Has Text */
+            has_text: boolean;
+            /** Id */
+            id: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "contract" | "terms" | "agreement" | "bill" | "info" | "other";
+            /** Notes */
+            notes: string;
+            /** Pages */
+            pages: number | null;
+            /** Service Id */
+            service_id: number | null;
+            /** Size */
+            size: number;
+            /** Supplier Id */
+            supplier_id: number | null;
+            /** Title */
+            title: string;
+        };
+        /** DocumentUpdate */
+        DocumentUpdate: {
+            /** Dated */
+            dated?: string | null;
+            /**
+             * Kind
+             * @default other
+             * @enum {string}
+             */
+            kind?: "contract" | "terms" | "agreement" | "bill" | "info" | "other";
+            /**
+             * Notes
+             * @default
+             */
+            notes?: string;
+            /** Service Id */
+            service_id?: number | null;
+            /** Supplier Id */
+            supplier_id?: number | null;
+            /** Title */
+            title: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1383,6 +1670,75 @@ export interface components {
             /** Household Id */
             household_id: number;
         };
+        /** ServiceIn */
+        ServiceIn: {
+            /**
+             * Active
+             * @default true
+             */
+            active?: boolean;
+            /** Billed Every Days */
+            billed_every_days?: number | null;
+            /** Default Category Id */
+            default_category_id?: number | null;
+            /** Ends On */
+            ends_on?: string | null;
+            /** Identifiers */
+            identifiers?: {
+                [key: string]: string;
+            };
+            /** Lock In Until */
+            lock_in_until?: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Notes
+             * @default
+             */
+            notes?: string;
+            /** Notice Days */
+            notice_days?: number | null;
+            /**
+             * Renews Automatically
+             * @default true
+             */
+            renews_automatically?: boolean;
+            /** Starts On */
+            starts_on?: string | null;
+            /** Supplier Id */
+            supplier_id: number;
+        };
+        /** ServiceOut */
+        ServiceOut: {
+            /** Active */
+            active: boolean;
+            /** Billed Every Days */
+            billed_every_days: number | null;
+            /** Default Category Id */
+            default_category_id: number | null;
+            /** Ends On */
+            ends_on: string | null;
+            /** Id */
+            id: number;
+            /** Identifiers */
+            identifiers: {
+                [key: string]: string;
+            };
+            /** Lock In Until */
+            lock_in_until: string | null;
+            /** Name */
+            name: string;
+            /** Notes */
+            notes: string;
+            /** Notice Days */
+            notice_days: number | null;
+            /** Renews Automatically */
+            renews_automatically: boolean;
+            /** Starts On */
+            starts_on: string | null;
+            /** Supplier Id */
+            supplier_id: number;
+        };
         /** SessionOut */
         SessionOut: {
             /**
@@ -1507,6 +1863,40 @@ export interface components {
             year: number;
             /** Years */
             years: number[];
+        };
+        /** SupplierIn */
+        SupplierIn: {
+            /**
+             * Active
+             * @default true
+             */
+            active?: boolean;
+            /** Default Category Id */
+            default_category_id?: number | null;
+            /** Name */
+            name: string;
+            /** Nif */
+            nif?: string | null;
+            /**
+             * Notes
+             * @default
+             */
+            notes?: string;
+        };
+        /** SupplierOut */
+        SupplierOut: {
+            /** Active */
+            active: boolean;
+            /** Default Category Id */
+            default_category_id: number | null;
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Nif */
+            nif: string | null;
+            /** Notes */
+            notes: string;
         };
         /** TransferOut */
         TransferOut: {
@@ -2248,6 +2638,197 @@ export interface operations {
             };
         };
     };
+    list_documents_api_documents_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                kind?: ("contract" | "terms" | "agreement" | "bill" | "info" | "other") | null;
+                supplier_id?: number | null;
+                service_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentMatch"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_api_documents_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_api_documents_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_document_api_documents__document_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_document_api_documents__document_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_document_api_documents__document_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_api_documents__document_id__file_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     health_api_health_get: {
         parameters: {
             query?: never;
@@ -2776,6 +3357,94 @@ export interface operations {
             };
         };
     };
+    list_services_api_services_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceOut"][];
+                };
+            };
+        };
+    };
+    create_service_api_services_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_service_api_services__service_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_settings_api_settings_get: {
         parameters: {
             query?: never;
@@ -3031,6 +3700,94 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SplitPreview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_suppliers_api_suppliers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierOut"][];
+                };
+            };
+        };
+    };
+    create_supplier_api_suppliers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplierIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_supplier_api_suppliers__supplier_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplier_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplierIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierOut"];
                 };
             };
             /** @description Validation Error */
