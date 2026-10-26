@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- The favicon's house and euro on an opaque square: home screens fill a transparent icon with
+       a colour of their own. The drawing stays within the central circle Android keeps when it
+       crops an icon to its own shape (radius 40% of the side). -->
+  <rect width="512" height="512" fill="#2f6f5e"/>
+  <path d="M256 146 366 244h-26v120a12 12 0 0 1-12 12H184a12 12 0 0 1-12-12V244h-26z" fill="#f7f6f2"/>
+  <path d="M284 280a38 38 0 1 0 0 50" fill="none" stroke="#2f6f5e" stroke-width="13" stroke-linecap="round"/>
+  <path d="M218 298h44M218 314h44" fill="none" stroke="#2f6f5e" stroke-width="10" stroke-linecap="round"/>
+</svg>

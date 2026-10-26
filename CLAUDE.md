@@ -46,6 +46,7 @@ backend/src/house_cost/
     deps.py        Services (built once per process) and the request dependencies
     schemas.py     every request and response model; the interface's types come from these
     session_cookie.py  issuing and clearing the session cookie, and describing the person
+    manifest.py    /manifest.webmanifest, in the browser's language, for adding to a home screen
     routers/       one module per resource
   healthcheck.py   `python -m house_cost.healthcheck`, the image's HEALTHCHECK
   __main__.py      `python -m house_cost [--reload]`
@@ -64,6 +65,8 @@ frontend/          Svelte 5, Vite, TypeScript, Paraglide
   src/lib/language.ts  which language: the person's choice, else the browser's, else English
   src/lib/passkeys.ts  the browser's half of the passkey ceremonies, replaceable in tests
   src/testing.ts   a stand-in API answering by method and path, and the agreement's examples
+  icons/app-icon.svg  the home-screen icon; `make app-icons` renders the committed PNGs in
+                   public/icons, which the manifest and index.html's apple-touch-icon name
   messages/        en.json and pt-PT.json; Paraglide compiles them into src/paraglide
                    (generated); GLOSSARY.md fixes the words for the main ideas
   openapi.json     the API's schema, committed so `make contract` can prove it current
