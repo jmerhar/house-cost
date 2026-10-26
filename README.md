@@ -16,6 +16,8 @@ everyone can see what they have paid, what they owe and to whom.
   different categories, such as an invoice mixing shared internet with someone's own phone.
 - **Shows who owes whom.** What each household has paid, its share, and the transfers that would
   settle everyone up, which can then be recorded as settlements.
+- **Reads bills.** Upload a bill's PDF or a photo, and the form opens filled in from its fiscal
+  QR code and its text, to be checked before saving.
 - **Keeps the paperwork.** A bill's PDF or a photo of it, a receipt for each transfer, and a
   library of contracts and terms searched by their text.
 - **Knows the contracts.** Each service's references, when it ends or renews, its lock-in and

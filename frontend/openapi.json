@@ -294,6 +294,14 @@
             ],
             "title": "Period Start"
           },
+          "readings": {
+            "items": {
+              "$ref": "#/components/schemas/ReadingIn"
+            },
+            "maxItems": 10,
+            "title": "Readings",
+            "type": "array"
+          },
           "service_id": {
             "anyOf": [
               {
@@ -414,6 +422,13 @@
             ],
             "title": "Period Start"
           },
+          "readings": {
+            "items": {
+              "$ref": "#/components/schemas/ReadingIn"
+            },
+            "title": "Readings",
+            "type": "array"
+          },
           "service_id": {
             "anyOf": [
               {
@@ -454,6 +469,7 @@
           "notes",
           "lines",
           "attachments",
+          "readings",
           "created_at",
           "updated_at",
           "locked"
@@ -480,6 +496,20 @@
           "total"
         ],
         "title": "BillPage",
+        "type": "object"
+      },
+      "Body_read_bill_api_bills_read_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_read_bill_api_bills_read_post",
         "type": "object"
       },
       "Body_upload_api_attachments_post": {
@@ -1607,6 +1637,349 @@
         "title": "PersonUpdate",
         "type": "object"
       },
+      "Proposal": {
+        "description": "A bill as read from its file, to be checked and corrected before it is saved.\n\n``sources`` says where each value came from: \"qr\" for the invoice's fiscal QR code, \"text\" for\nthe PDF's own text, \"ocr\" for text read from the image of a page.",
+        "properties": {
+          "date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "duplicate_bill_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duplicate Bill Id"
+          },
+          "invoice_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invoice Number"
+          },
+          "issuer_nif": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issuer Nif"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/ProposedLine"
+            },
+            "title": "Lines",
+            "type": "array"
+          },
+          "period_end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period End"
+          },
+          "period_start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Start"
+          },
+          "readings": {
+            "items": {
+              "$ref": "#/components/schemas/ReadingIn"
+            },
+            "title": "Readings",
+            "type": "array"
+          },
+          "service_changes": {
+            "$ref": "#/components/schemas/ServiceChanges"
+          },
+          "service_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Id"
+          },
+          "sources": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "object"
+          },
+          "supplier_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supplier Id"
+          },
+          "supplier_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supplier Name"
+          },
+          "text_source": {
+            "enum": [
+              "text",
+              "ocr",
+              "none"
+            ],
+            "title": "Text Source",
+            "type": "string"
+          },
+          "total_cents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Cents"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "supplier_id",
+          "supplier_name",
+          "issuer_nif",
+          "service_id",
+          "date",
+          "invoice_number",
+          "total_cents",
+          "period_start",
+          "period_end",
+          "due_date",
+          "lines",
+          "readings",
+          "service_changes",
+          "sources",
+          "warnings",
+          "text_source",
+          "duplicate_bill_id"
+        ],
+        "title": "Proposal",
+        "type": "object"
+      },
+      "ProposedLine": {
+        "properties": {
+          "amount_cents": {
+            "title": "Amount Cents",
+            "type": "integer"
+          },
+          "category_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category Id"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          }
+        },
+        "required": [
+          "description",
+          "amount_cents",
+          "category_id"
+        ],
+        "title": "ProposedLine",
+        "type": "object"
+      },
+      "ReadingIn": {
+        "description": "A quantity the bill measures, and its unit price in euros before tax.",
+        "properties": {
+          "quantity": {
+            "enum": [
+              "electricity_kwh",
+              "water_m3"
+            ],
+            "title": "Quantity",
+            "type": "string"
+          },
+          "unit_price": {
+            "anyOf": [
+              {
+                "maximum": 1000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Price"
+          },
+          "value": {
+            "maximum": 10000000.0,
+            "minimum": 0.0,
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "quantity",
+          "value"
+        ],
+        "title": "ReadingIn",
+        "type": "object"
+      },
+      "ReadingPoint": {
+        "description": "One bill's reading, for a consumption chart.",
+        "properties": {
+          "bill_id": {
+            "title": "Bill Id",
+            "type": "integer"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "period_end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period End"
+          },
+          "period_start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Start"
+          },
+          "quantity": {
+            "enum": [
+              "electricity_kwh",
+              "water_m3"
+            ],
+            "title": "Quantity",
+            "type": "string"
+          },
+          "service_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Id"
+          },
+          "unit_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Price"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "bill_id",
+          "date",
+          "period_start",
+          "period_end",
+          "service_id",
+          "quantity",
+          "value",
+          "unit_price"
+        ],
+        "title": "ReadingPoint",
+        "type": "object"
+      },
       "ReconciliationIn": {
         "properties": {
           "note": {
@@ -1870,6 +2243,48 @@
           "basis_points"
         ],
         "title": "RuleShare",
+        "type": "object"
+      },
+      "ServiceChanges": {
+        "description": "What the bill says about its service's contract that differs from what is on file.",
+        "properties": {
+          "ends_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends On"
+          },
+          "lock_in_until": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lock In Until"
+          },
+          "renews_automatically": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Renews Automatically"
+          }
+        },
+        "title": "ServiceChanges",
         "type": "object"
       },
       "ServiceIn": {
@@ -3336,6 +3751,48 @@
         ]
       }
     },
+    "/api/bills/read": {
+      "post": {
+        "description": "Read a bill's PDF or photo into a proposed bill, which nothing saves until a person has\nchecked it. The file is not kept; it is attached when the bill is saved.",
+        "operationId": "read_bill_api_bills_read_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_read_bill_api_bills_read_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read Bill",
+        "tags": [
+          "reading"
+        ]
+      }
+    },
     "/api/bills/{bill_id}": {
       "delete": {
         "description": "Delete a bill. It is only marked, and stays in the audit log.",
@@ -4155,6 +4612,60 @@
         "summary": "Update Person",
         "tags": [
           "people"
+        ]
+      }
+    },
+    "/api/readings": {
+      "get": {
+        "description": "Every reading of bills not deleted, oldest first, optionally for one service.",
+        "operationId": "readings_api_readings_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "service_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Service Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReadingPoint"
+                  },
+                  "title": "Response Readings Api Readings Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Readings",
+        "tags": [
+          "reading"
         ]
       }
     },

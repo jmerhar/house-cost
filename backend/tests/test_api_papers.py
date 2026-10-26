@@ -320,3 +320,11 @@ class TestDocuments:
         assert (bad.status_code, bad.json()["detail"]) == (422, "unknown_service")
         missing = await client.get(f"/api/documents/{kept['id']}/file")
         assert (missing.status_code, missing.json()["detail"]) == (404, "file_missing")
+
+
+async def test_a_title_match_has_no_excerpt(client, admin) -> None:
+    await ok(_upload(client, CONTRACT, title="Electricity agreement"), 201)
+    found = await ok(client.get("/api/documents", params={"q": "agreement"}))
+
+    assert [d["title"] for d in found] == ["Electricity agreement"]
+    assert found[0]["excerpt"] == ""

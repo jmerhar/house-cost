@@ -3,7 +3,9 @@
   import type { Bill } from "../lib/api";
   import { useApp } from "../lib/context";
   import { errorMessage } from "../lib/errors";
+  import { holdDraft } from "../lib/draft";
   import { day, euros } from "../lib/format";
+  import { navigate } from "../lib/router.svelte";
   import { m } from "../paraglide/messages.js";
 
   const PAGE = 50;
@@ -61,6 +63,26 @@
     return () => clearTimeout(timer);
   });
 
+  let reading = $state(false);
+
+  /** Read a bill's file and open the bill form with what it says, to be checked. */
+  async function readFile(event: Event): Promise<void> {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = "";
+    if (!file) return;
+    reading = true;
+    error = "";
+    try {
+      holdDraft({ proposal: await app.api.readBill(file), file });
+      navigate("/bills/new");
+    } catch (failure) {
+      error = errorMessage(failure);
+    } finally {
+      reading = false;
+    }
+  }
+
   function categories(bill: Bill): string {
     return [...new Set(bill.lines.map((line) => app.category(line.category_id)))].join(", ");
   }
@@ -68,7 +90,13 @@
 
 <div class="heading">
   <h1>{m.bills_title()}</h1>
-  <a class="button" href="/bills/new">{m.bill_new()}</a>
+  <span class="row-actions">
+    <label class="button secondary" aria-busy={reading}>
+      {reading ? m.reading_file() : m.bill_read()}
+      <input type="file" accept="application/pdf,image/*" hidden disabled={reading} onchange={readFile} />
+    </label>
+    <a class="button" href="/bills/new">{m.bill_new()}</a>
+  </span>
 </div>
 
 <div class="filters">

@@ -14,7 +14,7 @@ from ...bills import (
     locked_periods,
     set_lines,
 )
-from ...models import Bill, BillLine, Household, Service, utcnow
+from ...models import Bill, BillLine, BillReading, Household, Service, utcnow
 from ...splitting import NoRule, households_in_order
 from ..deps import DbDep, PersonDep, get_or_404
 from ..schemas import BillIn, BillOut, BillPage
@@ -88,8 +88,9 @@ async def _apply(db, bill: Bill, body: BillIn, *, date_changed: bool) -> None:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "unknown_household")
     if body.service_id is not None and await db.get(Service, body.service_id) is None:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "unknown_service")
-    for key, value in body.model_dump(exclude={"lines"}).items():
+    for key, value in body.model_dump(exclude={"lines", "readings"}).items():
         setattr(bill, key, value)
+    bill.readings = [BillReading(**reading.model_dump()) for reading in body.readings]
     drafts = [
         LineDraft(line.id, line.description, line.category_id, line.amount_cents)
         for line in body.lines
@@ -114,7 +115,7 @@ async def create_bill(body: BillIn, person: PersonDep, db: DbDep) -> BillOut:
     """Enter a bill. Each line is split by its category's rule in force on the bill's date."""
     periods = await locked_periods(db)
     _refuse_if_locked(body.date, periods)
-    bill = Bill(created_by_id=person.id, lines=[], attachments=[])
+    bill = Bill(created_by_id=person.id, lines=[], attachments=[], readings=[])
     await _apply(db, bill, body, date_changed=True)
     db.add(bill)
     await db.flush()

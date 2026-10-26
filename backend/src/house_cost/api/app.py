@@ -23,6 +23,7 @@ from .routers import (
     overview,
     passkeys,
     people,
+    reading,
     reconciliations,
     services,
     settlements,
@@ -46,6 +47,7 @@ PUBLIC_ROUTERS = (health, setup, account, passkeys)
 PROTECTED_ROUTERS = (
     people,
     categories,
+    reading,
     bills,
     settlements,
     attachments,

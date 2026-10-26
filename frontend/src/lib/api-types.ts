@@ -335,6 +335,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/bills/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Read Bill
+         * @description Read a bill's PDF or photo into a proposed bill, which nothing saves until a person has
+         *     checked it. The file is not kept; it is attached when the bill is saved.
+         */
+        post: operations["read_bill_api_bills_read_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/bills/{bill_id}": {
         parameters: {
             query?: never;
@@ -588,6 +609,26 @@ export interface paths {
          *     password or a deactivation ends the person's sessions.
          */
         put: operations["update_person_api_people__person_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/readings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Readings
+         * @description Every reading of bills not deleted, oldest first, optionally for one service.
+         */
+        get: operations["readings_api_readings_get"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -1065,6 +1106,8 @@ export interface components {
             period_end?: string | null;
             /** Period Start */
             period_start?: string | null;
+            /** Readings */
+            readings?: components["schemas"]["ReadingIn"][];
             /** Service Id */
             service_id?: number | null;
             /**
@@ -1110,6 +1153,8 @@ export interface components {
             period_end: string | null;
             /** Period Start */
             period_start: string | null;
+            /** Readings */
+            readings: components["schemas"]["ReadingIn"][];
             /** Service Id */
             service_id: number | null;
             /** Supplier */
@@ -1128,6 +1173,11 @@ export interface components {
             items: components["schemas"]["BillOut"][];
             /** Total */
             total: number;
+        };
+        /** Body_read_bill_api_bills_read_post */
+        Body_read_bill_api_bills_read_post: {
+            /** File */
+            file: string;
         };
         /** Body_upload_api_attachments_post */
         Body_upload_api_attachments_post: {
@@ -1538,6 +1588,105 @@ export interface components {
              */
             role: "admin" | "member";
         };
+        /**
+         * Proposal
+         * @description A bill as read from its file, to be checked and corrected before it is saved.
+         *
+         *     ``sources`` says where each value came from: "qr" for the invoice's fiscal QR code, "text" for
+         *     the PDF's own text, "ocr" for text read from the image of a page.
+         */
+        Proposal: {
+            /** Date */
+            date: string | null;
+            /** Due Date */
+            due_date: string | null;
+            /** Duplicate Bill Id */
+            duplicate_bill_id: number | null;
+            /** Invoice Number */
+            invoice_number: string | null;
+            /** Issuer Nif */
+            issuer_nif: string | null;
+            /** Lines */
+            lines: components["schemas"]["ProposedLine"][];
+            /** Period End */
+            period_end: string | null;
+            /** Period Start */
+            period_start: string | null;
+            /** Readings */
+            readings: components["schemas"]["ReadingIn"][];
+            service_changes: components["schemas"]["ServiceChanges"];
+            /** Service Id */
+            service_id: number | null;
+            /** Sources */
+            sources: {
+                [key: string]: string;
+            };
+            /** Supplier Id */
+            supplier_id: number | null;
+            /** Supplier Name */
+            supplier_name: string | null;
+            /**
+             * Text Source
+             * @enum {string}
+             */
+            text_source: "text" | "ocr" | "none";
+            /** Total Cents */
+            total_cents: number | null;
+            /** Warnings */
+            warnings: string[];
+        };
+        /** ProposedLine */
+        ProposedLine: {
+            /** Amount Cents */
+            amount_cents: number;
+            /** Category Id */
+            category_id: number | null;
+            /** Description */
+            description: string;
+        };
+        /**
+         * ReadingIn
+         * @description A quantity the bill measures, and its unit price in euros before tax.
+         */
+        ReadingIn: {
+            /**
+             * Quantity
+             * @enum {string}
+             */
+            quantity: "electricity_kwh" | "water_m3";
+            /** Unit Price */
+            unit_price?: number | null;
+            /** Value */
+            value: number;
+        };
+        /**
+         * ReadingPoint
+         * @description One bill's reading, for a consumption chart.
+         */
+        ReadingPoint: {
+            /** Bill Id */
+            bill_id: number;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Period End */
+            period_end: string | null;
+            /** Period Start */
+            period_start: string | null;
+            /**
+             * Quantity
+             * @enum {string}
+             */
+            quantity: "electricity_kwh" | "water_m3";
+            /** Service Id */
+            service_id: number | null;
+            /** Unit Price */
+            unit_price: number | null;
+            /** Value */
+            value: number;
+        };
         /** ReconciliationIn */
         ReconciliationIn: {
             /**
@@ -1669,6 +1818,18 @@ export interface components {
             basis_points: number;
             /** Household Id */
             household_id: number;
+        };
+        /**
+         * ServiceChanges
+         * @description What the bill says about its service's contract that differs from what is on file.
+         */
+        ServiceChanges: {
+            /** Ends On */
+            ends_on?: string | null;
+            /** Lock In Until */
+            lock_in_until?: string | null;
+            /** Renews Automatically */
+            renews_automatically?: boolean | null;
         };
         /** ServiceIn */
         ServiceIn: {
@@ -2455,6 +2616,39 @@ export interface operations {
             };
         };
     };
+    read_bill_api_bills_read_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_read_bill_api_bills_read_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Proposal"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_bill_api_bills__bill_id__get: {
         parameters: {
             query?: never;
@@ -3012,6 +3206,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PersonOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    readings_api_readings_get: {
+        parameters: {
+            query?: {
+                service_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadingPoint"][];
                 };
             };
             /** @description Validation Error */

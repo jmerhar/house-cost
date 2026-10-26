@@ -214,6 +214,19 @@ class AttachmentOut(Out):
     size: int
 
 
+Quantity = Literal["electricity_kwh", "water_m3"]
+
+
+class ReadingIn(BaseModel):
+    """A quantity the bill measures, and its unit price in euros before tax."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    quantity: Quantity
+    value: Annotated[float, Field(ge=0, le=10_000_000)]
+    unit_price: Annotated[float, Field(ge=0, le=1000)] | None = None
+
+
 class BillOut(Out):
     id: int
     date: date
@@ -229,6 +242,7 @@ class BillOut(Out):
     notes: str
     lines: list[LineOut]
     attachments: list[AttachmentOut]
+    readings: list[ReadingIn]
     created_at: datetime
     updated_at: datetime
     locked: bool = False
@@ -260,6 +274,7 @@ class BillIn(BaseModel):
     service_id: int | None = None
     notes: Text = ""
     lines: list[LineIn] = Field(min_length=1, max_length=50)
+    readings: list[ReadingIn] = Field(default_factory=list, max_length=10)
 
     @model_validator(mode="after")
     def _period_in_order(self) -> BillIn:
@@ -399,6 +414,62 @@ class DocumentMatch(DocumentOut):
     """A document found by a search, with the text around the first match."""
 
     excerpt: str
+
+
+# --- Reading bills ------------------------------------------------------------------------------
+
+
+class ProposedLine(BaseModel):
+    description: str
+    amount_cents: int
+    category_id: int | None
+
+
+class ServiceChanges(BaseModel):
+    """What the bill says about its service's contract that differs from what is on file."""
+
+    ends_on: date | None = None
+    renews_automatically: bool | None = None
+    lock_in_until: date | None = None
+
+
+class Proposal(BaseModel):
+    """A bill as read from its file, to be checked and corrected before it is saved.
+
+    ``sources`` says where each value came from: "qr" for the invoice's fiscal QR code, "text" for
+    the PDF's own text, "ocr" for text read from the image of a page.
+    """
+
+    supplier_id: int | None
+    supplier_name: str | None
+    issuer_nif: str | None
+    service_id: int | None
+    date: date | None
+    invoice_number: str | None
+    total_cents: int | None
+    period_start: date | None
+    period_end: date | None
+    due_date: date | None
+    lines: list[ProposedLine]
+    readings: list[ReadingIn]
+    service_changes: ServiceChanges
+    sources: dict[str, str]
+    warnings: list[str]
+    text_source: Literal["text", "ocr", "none"]
+    duplicate_bill_id: int | None
+
+
+class ReadingPoint(BaseModel):
+    """One bill's reading, for a consumption chart."""
+
+    bill_id: int
+    date: date
+    period_start: date | None
+    period_end: date | None
+    service_id: int | None
+    quantity: Quantity
+    value: float
+    unit_price: float | None
 
 
 # --- Balances and reports -----------------------------------------------------------------------
