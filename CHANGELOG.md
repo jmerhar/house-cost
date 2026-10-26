@@ -17,6 +17,12 @@ what under **Upgrading**. Before 1.0, a minor release may.
 
 - The icon shows a euro sign.
 
+### Fixed
+
+- Upgrading no longer loses data that points at people. Upgrading to 0.7.0 deleted every passkey
+  and session (everyone was logged out) and removed the person from every activity-log entry,
+  which then reads "Someone". Add passkeys again after upgrading from before 0.7.0.
+
 ## 0.8.0 — 2026-10-26
 
 ### Changed
