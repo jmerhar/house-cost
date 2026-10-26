@@ -17,6 +17,7 @@ const BY_CODE: Record<string, () => string> = {
   unsupported_file: m.error_unsupported_file,
   too_large: m.error_too_large,
   wrong_password: m.error_wrong_password,
+  no_urls: m.error_no_urls,
   overlaps_closed_period: m.error_overlaps_closed_period,
   already_closed: m.error_already_closed,
   already_set_up: m.error_already_set_up,

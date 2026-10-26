@@ -2,15 +2,16 @@
 
 from functools import lru_cache
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from pydantic import model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     """Everything the application reads from its environment."""
 
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", populate_by_name=True)
 
     # Where all mutable state lives: the database, uploaded files and backups. One directory means
     # a deployment has exactly one thing to persist.
@@ -34,9 +35,35 @@ class Settings(BaseSettings):
     # The largest file accepted as an attachment.
     max_upload_bytes: int = 20 * 1024 * 1024
 
+    # Where the house is, which decides when the day's backup and reminders are due. Read from TZ,
+    # which the container's clock follows too.
+    timezone: str = Field("UTC", validation_alias="TZ")
+    # The daily backup: from what time of day, and how many daily snapshots are kept.
+    backup_time: str = Field("03:30", pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
+    backups_kept: int = Field(14, ge=1)
+    # The scheduled work runs inside the app; tests turn it off and call it themselves.
+    scheduler_enabled: bool = True
+    scheduler_tick_seconds: int = 600
+
     # Where the built single-page app is served from. Absent, the API runs on its own, which is
     # how the dev stack works (Vite serves the app and proxies /api).
     static_dir: Path | None = None
+
+    @field_validator("cookie_secure", mode="before")
+    @classmethod
+    def _blank_flag_is_unset(cls, value: object) -> object:
+        """An empty ``COOKIE_SECURE``, as compose passes an unset one, means "follow the scheme"."""
+        return None if isinstance(value, str) and not value.strip() else value
+
+    @field_validator("timezone")
+    @classmethod
+    def _known_zone(cls, value: str) -> str:
+        """A time zone the scheduler can use, so a typo stops the app at startup."""
+        try:
+            ZoneInfo(value)
+        except (ZoneInfoNotFoundError, ValueError) as error:
+            raise ValueError(f"unknown time zone {value!r}") from error
+        return value
 
     @model_validator(mode="after")
     def _blank_means_unset(self) -> Settings:
@@ -58,6 +85,11 @@ class Settings(BaseSettings):
         if self.database_url:
             return self.database_url
         return f"sqlite+aiosqlite:///{self.data_dir / 'house-cost.db'}"
+
+    @property
+    def backups_dir(self) -> Path:
+        """Where the daily snapshots of the database are kept."""
+        return self.data_dir / "backups"
 
     @property
     def files_dir(self) -> Path:

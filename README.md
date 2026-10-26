@@ -26,6 +26,10 @@ everyone can see what they have paid, what they owe and to whom.
 - **Records every change**: who added, corrected or deleted what, visible to everyone.
 - **Optional annual reconciliation**: split a closed period's bills again by shares agreed at its
   end, and settle the difference.
+- **Notifications** through [Apprise](https://github.com/caronc/apprise) (email, Telegram,
+  ntfy and the rest), each person choosing where and which: a bill another household adds, a
+  unit price that changed, a contract ending or a lock-in expiring in 30 and 7 days, and a regular
+  bill that has not arrived.
 - **Passkeys**: log in with a fingerprint, face or screen lock instead of a password.
 - **In English and Portuguese**, on a phone or a computer.
 
@@ -60,10 +64,17 @@ Set in the compose file's environment, or in `.env` beside it.
 | `COOKIE_SECURE` | | `true` or `false` to force the session cookie's Secure flag; unset, it follows the request's scheme. |
 | `MAX_UPLOAD_BYTES` | `20971520` | The largest file that can be attached. |
 | `LOGIN_ATTEMPTS_PER_MINUTE` | `10` | Failed logins allowed per address per minute. |
-| `TZ` | `UTC` | Time zone for log lines and scheduled jobs. |
+| `TZ` | `UTC` | Time zone of the house: log lines, the daily backup and reminders follow it. |
+| `BACKUP_TIME` | `03:30` | From when each day the database is copied to `data/backups`. |
+| `BACKUPS_KEPT` | `14` | How many daily copies are kept. |
 | `LOG_LEVEL` | `INFO` | `DEBUG`, `INFO`, `WARNING` or `ERROR`. |
 
-Everything the app keeps is in `./data`. Back that directory up and there is nothing else to keep.
+Everything the app keeps is in `./data`. Back that directory up and there is nothing else to keep;
+`data/backups` holds a consistent copy of the database from each day, so a backup that catches
+the live database mid-write still has one to restore.
+
+Each person sets where their notifications go on the account page, as Apprise URLs. The
+container needs to reach whatever those URLs name, such as a mail server or an Apprise API.
 
 ## Development
 

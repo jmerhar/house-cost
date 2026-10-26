@@ -12,7 +12,9 @@ from ..auth import LoginThrottle, find_session
 from ..config import Settings
 from ..db import create_engine, create_sessionmaker, session_scope
 from ..models import Person, Session
+from ..notify import AppriseSender, Sender
 from ..passkeys import Ceremonies
+from ..scheduler import Scheduler
 
 #: The cookie a browser's session token travels in.
 SESSION_COOKIE = "hc_session"
@@ -26,6 +28,8 @@ class Services:
     engine: AsyncEngine
     sessionmaker: async_sessionmaker[AsyncSession]
     throttle: LoginThrottle
+    sender: Sender
+    scheduler: Scheduler
     #: Passkey challenges waiting for the authenticator's answer.
     ceremonies: Ceremonies = field(default_factory=Ceremonies)
     #: Held while the first administrator is created, so two browsers racing through setup
@@ -36,11 +40,15 @@ class Services:
 def build_services(settings: Settings) -> Services:
     """Build the services for ``settings``. Opens no connection until one is used."""
     engine = create_engine(settings)
+    sessionmaker = create_sessionmaker(engine)
+    sender = AppriseSender()
     return Services(
         settings=settings,
         engine=engine,
-        sessionmaker=create_sessionmaker(engine),
+        sessionmaker=sessionmaker,
         throttle=LoginThrottle(settings.login_attempts_per_minute),
+        sender=sender,
+        scheduler=Scheduler(settings, engine, sessionmaker, sender),
     )
 
 

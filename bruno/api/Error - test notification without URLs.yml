@@ -1,0 +1,26 @@
+info:
+  name: Error - test notification without URLs
+  type: http
+  seq: 29
+
+http:
+  method: POST
+  url: "{{base_url}}/api/auth/me/test-notification"
+  headers:
+    - name: X-Requested-With
+      value: house-cost
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "422"
+    - expression: res.body.detail
+      operator: eq
+      value: "no_urls"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0

@@ -24,6 +24,11 @@ backend/src/house_cost/
   auth.py          argon2 passwords, server-side sessions, the login throttle, the origin check
   passkeys.py      the relying party for a request, and WebAuthn challenges waiting for answers
   audit.py         record() for the audit log; the app's settings and their defaults
+  notify/          Apprise delivery (AppriseSender, behind the Sender protocol), send_to and
+                   once(); messages.py is the catalogue in each language; events.py decides who
+                   hears of a new bill, a price change, a contract ending or a missing bill
+  scheduler.py     the in-process loop: the daily VACUUM INTO backup and the daily reminders,
+                   each tick() testable with a given time
   storage.py       uploaded files under their SHA-256, and recognising their type by content;
                    attachments and library documents share it (attachments.held)
   extraction/      reading bills: pdf.py (a PDF's text layer), atcud.py (the fiscal QR code),
@@ -102,6 +107,14 @@ CHANGELOG.md       every release's notes; new work goes under `## Unreleased`
   writes no bytecode (`PYTHONDONTWRITEBYTECODE`).
 - **The lockfile records only the public npm registry.** Regenerate it with `make lockfile`, never
   a plain `npm install`; `bin/check-lockfile.sh` guards it.
+- **Notifications are sent after the request, never inside it.** A new bill is committed before
+  its notification is scheduled, and `notify.events` logs its own failures, so a broken Apprise URL
+  cannot fail a save. Scheduled ones are sent once each, keyed in `sent_notification` by what
+  they are about (`notify.once`).
+- **Apprise URLs carry passwords and tokens.** They are returned only to their owner (`Me`),
+  never in `PersonOut` or the audit log, and never logged.
+- **Notification text lives in `notify/messages.py`, not Paraglide**, since the server sends it;
+  every key needs both languages with the same placeholders, which a test checks.
 - **Real bills and contracts never enter the repository.** They hold names, tax numbers and bank
   details; `samples/` is ignored for local runs only.
 

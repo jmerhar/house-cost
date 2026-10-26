@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import JSON, Boolean, ForeignKey, Integer, LargeBinary, String
+from sqlalchemy import JSON, Boolean, ForeignKey, Integer, LargeBinary, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, TimestampMixin, UtcDateTime, utcnow
@@ -53,8 +53,21 @@ class Person(TimestampMixin, Base):
     webauthn_handle: Mapped[bytes | None] = mapped_column(
         LargeBinary(64), nullable=True, unique=True
     )
+    #: Where this person's notifications go: Apprise URLs, one per line. Their own to see.
+    apprise_urls: Mapped[str] = mapped_column(Text, default="")
+    #: Which notifications they want, by event; an event not named is wanted.
+    notify_on: Mapped[dict[str, bool]] = mapped_column(JSON, default=dict)
 
     household: Mapped[Household] = relationship(back_populates="people", lazy="joined")
+
+    @property
+    def urls(self) -> list[str]:
+        """This person's notification URLs."""
+        return [line.strip() for line in self.apprise_urls.splitlines() if line.strip()]
+
+    def wants(self, event: str) -> bool:
+        """Whether this person wants notifications of ``event``, and has somewhere to get them."""
+        return self.active and bool(self.urls) and self.notify_on.get(event, True)
 
     @property
     def is_admin(self) -> bool:

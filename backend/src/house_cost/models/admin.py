@@ -111,3 +111,12 @@ class Adjustment(Base):
     amount_cents: Mapped[int] = mapped_column(Integer)
 
     reconciliation: Mapped[Reconciliation] = relationship(back_populates="adjustments")
+
+
+class SentNotification(Base):
+    """A notification sent, by a key naming what it was about, so the scheduler sends it once."""
+
+    __tablename__ = "sent_notification"
+
+    key: Mapped[str] = mapped_column(String(200), primary_key=True)
+    sent_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)

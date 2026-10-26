@@ -4,6 +4,22 @@ Every release of House costs, newest first. The image is `ghcr.io/jmerhar/house-
 follow semantic versioning: a major release needs something done by whoever runs it, and says
 what under **Upgrading**. Before 1.0, a minor release may.
 
+## Unreleased
+
+### Added
+
+- Notifications through Apprise, set by each person on the account page: where to send them,
+  which to get, and a test. A bill another household adds, a unit price that differs from the
+  service's previous bill, a contract ending or a lock-in expiring in 30 and 7 days, and a
+  regular bill a week overdue. Each comes in the person's language.
+- A daily copy of the database in `data/backups`, from `BACKUP_TIME` (03:30), keeping
+  `BACKUPS_KEPT` (14), timed by `TZ`.
+
+### Fixed
+
+- `COOKIE_SECURE`, `MAX_UPLOAD_BYTES` and `LOGIN_ATTEMPTS_PER_MINUTE` set in `.env` reach the
+  container.
+
 ## 0.4.0 — 2026-10-26
 
 ### Added

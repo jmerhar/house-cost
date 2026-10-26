@@ -66,9 +66,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         services = build_services(settings)
         app.state.services = services
+        services.scheduler.start()
         try:
             yield
         finally:
+            await services.scheduler.stop()
             await services.engine.dispose()
 
     app = FastAPI(
