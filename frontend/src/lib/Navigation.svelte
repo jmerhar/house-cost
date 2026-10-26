@@ -115,14 +115,11 @@
             <li><a href="/admin" aria-current={current("/admin") ? "page" : undefined}><Settings />{m.nav_admin()}</a></li>
           {/if}
           <li class="theme" role="group" aria-label={m.theme_label()}>
-            <span>{m.theme_label()}</span>
-            <span class="theme-choices">
-              {#each THEMES as [value, label, Icon] (value)}
-                <button type="button" aria-pressed={theme === value} aria-label={label()} title={label()} onclick={() => pick(value)}>
-                  <Icon />
-                </button>
-              {/each}
-            </span>
+            {#each THEMES as [value, label, Icon] (value)}
+              <button type="button" aria-pressed={theme === value} aria-label={label()} title={label()} onclick={() => pick(value)}>
+                <Icon />
+              </button>
+            {/each}
           </li>
           <li><button type="button" onclick={onLogOut}><LogOut />{m.nav_log_out()}</button></li>
         </ul>
