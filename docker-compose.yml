@@ -39,6 +39,10 @@ services:
       # The daily snapshot of the database into data/backups: from what time, and how many kept.
       BACKUP_TIME: ${BACKUP_TIME:-03:30}
       BACKUPS_KEPT: ${BACKUPS_KEPT:-14}
+      # Optional: an Anthropic API key lets Claude read bills the app does not know, contracts'
+      # terms, and questions about documents. Those files are sent to Anthropic's API.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      CLAUDE_MODEL: ${CLAUDE_MODEL:-claude-opus-5-5}
     ports:
       # Loopback, for a reverse proxy to publish. Until the first administrator is created, the
       # first person to open the interface becomes one, so finish setup before anyone else can

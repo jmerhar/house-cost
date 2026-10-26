@@ -9,6 +9,7 @@ from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from ..auth import LoginThrottle, find_session
+from ..claude import Claude
 from ..config import Settings
 from ..db import create_engine, create_sessionmaker, session_scope
 from ..models import Person, Session
@@ -30,6 +31,8 @@ class Services:
     throttle: LoginThrottle
     sender: Sender
     scheduler: Scheduler
+    #: Present only when an Anthropic API key is set.
+    claude: Claude | None = None
     #: Passkey challenges waiting for the authenticator's answer.
     ceremonies: Ceremonies = field(default_factory=Ceremonies)
     #: Held while the first administrator is created, so two browsers racing through setup
@@ -49,12 +52,21 @@ def build_services(settings: Settings) -> Services:
         throttle=LoginThrottle(settings.login_attempts_per_minute),
         sender=sender,
         scheduler=Scheduler(settings, engine, sessionmaker, sender),
+        claude=Claude(key, settings.claude_model) if (key := settings.claude_key) else None,
     )
 
 
 def get_services(request: Request) -> Services:
     """The services the running application was started with."""
     return request.app.state.services
+
+
+def get_claude(request: Request) -> Claude:
+    """Claude, for the routes that need it; without an API key they answer 404."""
+    claude = get_services(request).claude
+    if claude is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "claude_off")
+    return claude
 
 
 async def get_db(request: Request) -> AsyncIterator[AsyncSession]:
@@ -65,6 +77,7 @@ async def get_db(request: Request) -> AsyncIterator[AsyncSession]:
 
 ServicesDep = Annotated[Services, Depends(get_services)]
 DbDep = Annotated[AsyncSession, Depends(get_db)]
+ClaudeDep = Annotated[Claude, Depends(get_claude)]
 
 
 async def get_session(request: Request, db: DbDep) -> Session:

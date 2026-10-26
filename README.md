@@ -31,6 +31,9 @@ everyone can see what they have paid, what they owe and to whom.
   unit price that changed, a contract ending or a lock-in expiring in 30 and 7 days, and a regular
   bill that has not arrived.
 - **Passkeys**: log in with a fingerprint, face or screen lock instead of a password.
+- **Claude, optionally**: with an Anthropic API key, Claude reads the bills whose layout the app
+  does not know, proposes a contract's dates and notice for its service, and answers questions
+  about a document with the pages it rests on. The file in question is sent to Anthropic's API.
 - **In English and Portuguese**, on a phone or a computer.
 
 ## Running it
@@ -67,6 +70,9 @@ Set in the compose file's environment, or in `.env` beside it.
 | `TZ` | `UTC` | Time zone of the house: log lines, the daily backup and reminders follow it. |
 | `BACKUP_TIME` | `03:30` | From when each day the database is copied to `data/backups`. |
 | `BACKUPS_KEPT` | `14` | How many daily copies are kept. |
+| `ANTHROPIC_API_KEY` | | Turns on Claude. Leave it unset to keep every file on the server. |
+| `ANTHROPIC_API_KEY_FILE` | | A file holding the key, such as a Docker secret, in place of the variable. |
+| `CLAUDE_MODEL` | `claude-opus-5-5` | The model Claude's requests use. |
 | `LOG_LEVEL` | `INFO` | `DEBUG`, `INFO`, `WARNING` or `ERROR`. |
 
 Everything the app keeps is in `./data`. Back that directory up and there is nothing else to keep;

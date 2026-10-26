@@ -233,4 +233,4 @@ async def log_in_with_passkey(
     token = await open_session(db, person, request.headers.get("user-agent", ""))
     session_cookie.issue(response, request, services.settings, token)
     response.delete_cookie(CEREMONY_COOKIE, path="/api/auth")
-    return await session_cookie.describe(db, person)
+    return await session_cookie.describe(db, person, services.claude is not None)

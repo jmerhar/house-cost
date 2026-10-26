@@ -45,6 +45,12 @@ class Settings(BaseSettings):
     scheduler_enabled: bool = True
     scheduler_tick_seconds: int = 600
 
+    # Claude, for reading bills no parser knows, contracts' terms and questions about documents.
+    # Off without a key; the key can also be read from a file, such as a Docker secret.
+    anthropic_api_key: str | None = None
+    anthropic_api_key_file: Path | None = None
+    claude_model: str = "claude-opus-5-5"
+
     # Where the built single-page app is served from. Absent, the API runs on its own, which is
     # how the dev stack works (Vite serves the app and proxies /api).
     static_dir: Path | None = None
@@ -73,7 +79,13 @@ class Settings(BaseSettings):
         an empty string. Left alone, an empty ``static_dir`` becomes ``Path(".")``, a real
         directory, and the application would serve its own working directory as the interface.
         """
-        for field in ("static_dir", "database_url", "public_url"):
+        for field in (
+            "static_dir",
+            "database_url",
+            "public_url",
+            "anthropic_api_key",
+            "anthropic_api_key_file",
+        ):
             value = getattr(self, field)
             if value is not None and str(value).strip() in ("", "."):
                 object.__setattr__(self, field, None)
@@ -85,6 +97,15 @@ class Settings(BaseSettings):
         if self.database_url:
             return self.database_url
         return f"sqlite+aiosqlite:///{self.data_dir / 'house-cost.db'}"
+
+    @property
+    def claude_key(self) -> str | None:
+        """The Anthropic API key, from the variable or else the file; nothing turns Claude off."""
+        if self.anthropic_api_key:
+            return self.anthropic_api_key.strip()
+        if self.anthropic_api_key_file:
+            return self.anthropic_api_key_file.read_text().strip() or None
+        return None
 
     @property
     def backups_dir(self) -> Path:

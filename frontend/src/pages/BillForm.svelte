@@ -283,6 +283,8 @@
       {#if draft.proposal.text_source === "ocr"}<p>{m.read_ocr()}</p>{/if}
       {#if draft.proposal.warnings.includes("total_mismatch")}<p class="problem">{m.read_total_mismatch()}</p>{/if}
       {#if draft.proposal.warnings.includes("lines_dropped")}<p>{m.read_lines_dropped()}</p>{/if}
+      {#if Object.values(draft.proposal.sources).includes("claude")}<p>{m.read_claude()}</p>{/if}
+      {#if draft.proposal.warnings.some((w) => w.startsWith("claude_"))}<p>{m.read_claude_failed()}</p>{/if}
       {#if !draft.proposal.supplier_id && draft.proposal.issuer_nif}
         <p>{m.read_unknown_supplier({ nif: draft.proposal.issuer_nif })}</p>
       {/if}

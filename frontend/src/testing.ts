@@ -61,6 +61,7 @@ export const ADMIN: Me = {
   active: true,
   household_name: LUCIA.name,
   reconciliation_enabled: false,
+  claude_enabled: false,
   apprise_urls: "",
   notify_on: { new_bill: true, price_change: true, contract: true, missing_bill: true },
 };

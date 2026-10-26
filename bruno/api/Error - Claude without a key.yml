@@ -1,0 +1,26 @@
+info:
+  name: Error - Claude without a key
+  type: http
+  seq: 30
+
+http:
+  method: POST
+  url: "{{base_url}}/api/documents/1/terms"
+  headers:
+    - name: X-Requested-With
+      value: house-cost
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "404"
+    - expression: res.body.detail
+      operator: eq
+      value: "claude_off"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0

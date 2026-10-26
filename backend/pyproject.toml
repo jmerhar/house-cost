@@ -25,6 +25,8 @@ dependencies = [
     "zxing-cpp>=3.1",
     "pillow>=12.3,<13",
     "apprise>=2.0,<2.1",
+    # Optional: Claude reads what the local parsers cannot, when an API key is set.
+    "anthropic>=1.13,<1.14",
     # Time zones for TZ, which the slim base image may not carry.
     "tzdata>=2026.5",
 ]
