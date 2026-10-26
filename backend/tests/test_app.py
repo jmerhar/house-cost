@@ -17,7 +17,23 @@ async def test_health_reports_the_database_and_version(client: httpx.AsyncClient
     response = await client.get("/api/health")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "database": "connected", "version": __version__}
+    assert response.json() == {
+        "status": "ok",
+        "database": "connected",
+        "version": __version__,
+        "revision": None,
+    }
+
+
+async def test_health_names_the_commit_an_image_was_built_from(data_dir: Path) -> None:
+    app = create_app(Settings(data_dir=data_dir, static_dir=None, revision="0048894abcdef"))
+    async with (
+        app.router.lifespan_context(app),
+        httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://house-cost.test"
+        ) as client,
+    ):
+        assert (await client.get("/api/health")).json()["revision"] == "0048894abcdef"
 
 
 async def test_without_a_built_frontend_only_the_api_answers(client: httpx.AsyncClient) -> None:

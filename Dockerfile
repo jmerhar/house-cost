@@ -35,6 +35,11 @@ COPY backend/alembic ./alembic
 COPY --from=frontend /build/dist ./web
 COPY bin/entrypoint.sh /usr/local/bin/entrypoint.sh
 
+# The commit the image was built from, shown in the interface's footer beside the version, which
+# names only the last release. Declared late, so a new commit does not invalidate the layers above.
+ARG REVISION=""
+ENV HOUSE_COST_REVISION=$REVISION
+
 # Unprivileged, so everything written into the mounted data directory belongs to a real account
 # on the host rather than to root.
 RUN mkdir -p /data && chown 1000:1000 /data

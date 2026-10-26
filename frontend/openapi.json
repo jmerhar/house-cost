@@ -1069,6 +1069,17 @@
             "title": "Database",
             "type": "string"
           },
+          "revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision"
+          },
           "status": {
             "title": "Status",
             "type": "string"
@@ -1081,7 +1092,8 @@
         "required": [
           "status",
           "database",
-          "version"
+          "version",
+          "revision"
         ],
         "title": "Health",
         "type": "object"

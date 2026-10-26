@@ -1438,6 +1438,8 @@ export interface components {
         Health: {
             /** Database */
             database: string;
+            /** Revision */
+            revision: string | null;
             /** Status */
             status: string;
             /** Version */

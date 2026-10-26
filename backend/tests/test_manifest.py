@@ -45,12 +45,13 @@ async def test_the_manifest_is_in_the_browsers_language(client) -> None:
 
 
 def test_the_browsers_first_known_language_is_taken() -> None:
-    assert [language(h) for h in (None, "", "de-DE,pt;q=0.5", "en-GB,pt", "fr")] == [
+    assert [language(h) for h in (None, "", "de-DE,pt;q=0.5", "en-GB,pt", "fr", "pt-BR")] == [
         "en",
         "en",
         "pt-PT",
         "en",
         "en",
+        "pt-PT",
     ]
 
 

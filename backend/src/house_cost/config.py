@@ -59,6 +59,9 @@ class Settings(BaseSettings):
     anthropic_api_key_file: Path | None = None
     claude_model: str = "claude-opus-5-5"
 
+    # The commit the image was built from, which the Dockerfile records; unset outside an image.
+    revision: str | None = Field(None, validation_alias="HOUSE_COST_REVISION")
+
     # Where the built single-page app is served from. Absent, the API runs on its own, which is
     # how the dev stack works (Vite serves the app and proxies /api).
     static_dir: Path | None = None
@@ -95,6 +98,7 @@ class Settings(BaseSettings):
             "anthropic_api_key_file",
             "notify_email_url",
             "notify_signal_url",
+            "revision",
         ):
             value = getattr(self, field)
             if value is not None and str(value).strip() in ("", "."):
