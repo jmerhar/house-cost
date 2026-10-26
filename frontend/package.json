@@ -1,7 +1,7 @@
 {
   "name": "house-cost-web",
   "private": true,
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "House costs' interface: a thin client of its API",
   "type": "module",
   "scripts": {
