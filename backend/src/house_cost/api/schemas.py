@@ -372,6 +372,8 @@ class SupplierOut(Out):
     default_category_id: int | None
     notes: str
     active: bool
+    #: Whether a service or a document refers to it, which keeps it from being deleted.
+    in_use: bool = False
 
 
 class SupplierIn(BaseModel):
@@ -405,6 +407,8 @@ class ServiceOut(Out):
     billed_every_days: int | None
     notes: str
     active: bool
+    #: Whether a bill or a document refers to it, which keeps it from being deleted.
+    in_use: bool = False
 
 
 class ServiceIn(BaseModel):

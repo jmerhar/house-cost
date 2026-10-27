@@ -18,6 +18,9 @@ runtime:
     - expression: res.body[0].notice_days
       operator: eq
       value: "30"
+    - expression: res.body[0].in_use
+      operator: eq
+      value: "true"
 
 settings:
   encodeUrl: true

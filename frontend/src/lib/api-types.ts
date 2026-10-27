@@ -895,7 +895,14 @@ export interface paths {
          */
         put: operations["update_service_api_services__service_id__put"];
         post?: never;
-        delete?: never;
+        /**
+         * Delete Service
+         * @description Remove a service added by mistake; one with bills or documents cannot be removed.
+         *
+         *     The reminders already sent about it go too, since SQLite can give a later service the same
+         *     id, which would then never be reminded of its own contract.
+         */
+        delete: operations["delete_service_api_services__service_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1055,7 +1062,11 @@ export interface paths {
          */
         put: operations["update_supplier_api_suppliers__supplier_id__put"];
         post?: never;
-        delete?: never;
+        /**
+         * Delete Supplier
+         * @description Remove a supplier added by mistake; one with services or documents cannot be removed.
+         */
+        delete: operations["delete_supplier_api_suppliers__supplier_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2040,6 +2051,11 @@ export interface components {
             identifiers: {
                 [key: string]: string;
             };
+            /**
+             * In Use
+             * @default false
+             */
+            in_use: boolean;
             /** Lock In Until */
             lock_in_until: string | null;
             /** Name */
@@ -2220,6 +2236,11 @@ export interface components {
             default_category_id: number | null;
             /** Id */
             id: number;
+            /**
+             * In Use
+             * @default false
+             */
+            in_use: boolean;
             /** Name */
             name: string;
             /** Nif */
@@ -3953,6 +3974,35 @@ export interface operations {
             };
         };
     };
+    delete_service_api_services__service_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_settings_api_settings_get: {
         parameters: {
             query?: never;
@@ -4297,6 +4347,35 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SupplierOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_supplier_api_suppliers__supplier_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                supplier_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

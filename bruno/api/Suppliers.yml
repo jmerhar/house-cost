@@ -15,6 +15,9 @@ runtime:
     - expression: res.body[0].nif
       operator: eq
       value: '"506743357"'
+    - expression: res.body[0].in_use
+      operator: eq
+      value: "true"
 
 settings:
   encodeUrl: true

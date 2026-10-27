@@ -10,9 +10,11 @@ from zoneinfo import ZoneInfo
 import pytest
 from conftest import MAIL_URL, SIGNAL_URL
 from helpers import PASSWORD, Agreement, bill, ok
+from sqlalchemy import select
 
 from house_cost.config import Settings
 from house_cost.db import session_scope
+from house_cost.models import SentNotification
 from house_cost.notify import AppriseSender, Notifier, with_recipient, with_target
 from house_cost.notify.events import bill_added, contract_reminders, missing_bills
 from house_cost.notify.messages import (
@@ -395,6 +397,28 @@ class TestReminders:
             recorder.sent[0][2] == "Electricity with MEO Energia renews on 11 Dec 2026. "
             "You must give notice of 30 days to leave."
         )
+
+    async def test_a_deleted_services_reminders_go_with_it(
+        self, client, admin, electricity, app, recorder
+    ) -> None:
+        await _notify_me(client, "lucia@example.com")
+        await self._run(app, recorder, date(2026, 12, 4), contract_reminders)
+        await ok(client.delete(f"/api/services/{electricity['id']}"), 204)
+        # The same contract added again; SQLite gives it the id that was freed.
+        again = await ok(client.post("/api/services", json=electricity), 201)
+        assert again["id"] == electricity["id"]
+        await self._run(app, recorder, date(2026, 12, 4), contract_reminders)
+
+        assert [title for _, title, _ in recorder.sent] == [
+            "Electricity renews in 7 days",
+            "Electricity renews in 7 days",
+        ]
+        async with session_scope(app.state.services.sessionmaker) as db:
+            keys = (await db.execute(select(SentNotification.key))).scalars().all()
+        assert sorted(keys) == [
+            f"contract_ends:{again['id']}:2026-12-11:30",
+            f"contract_ends:{again['id']}:2026-12-11:7",
+        ]
 
     async def test_a_service_first_seen_inside_a_week_gets_one_reminder(
         self, client, admin, electricity, app, recorder

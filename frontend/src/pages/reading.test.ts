@@ -11,7 +11,7 @@ import Reports from "./Reports.svelte";
 const SERVICE: Service = {
   id: 5, supplier_id: 1, name: "Electricity", identifiers: {}, default_category_id: ELECTRICITY.id,
   starts_on: null, ends_on: "2026-11-30", renews_automatically: true, lock_in_until: null,
-  notice_days: 30, billed_every_days: 30, notes: "", active: true,
+  notice_days: 30, billed_every_days: 30, notes: "", active: true, in_use: false,
 };
 
 function proposal(overrides: Partial<Proposal> = {}): Proposal {
@@ -180,7 +180,7 @@ describe("a read bill in the form", () => {
       "GET /suppliers": [],
       "POST /bills": aBill({ id: 43 }),
       "POST /attachments": { id: 1, filename: "bill.pdf", content_type: "application/pdf", size: 4, created_at: "2026-10-26T20:00:00Z" },
-      "POST /suppliers": { id: 8, name: "MEO", nif: "504615947", default_category_id: ELECTRICITY.id, notes: "", active: true },
+      "POST /suppliers": { id: 8, name: "MEO", nif: "504615947", default_category_id: ELECTRICITY.id, notes: "", active: true, in_use: false },
       "POST /services": { ...SERVICE, id: 9, supplier_id: 8 },
       "PUT /bills/43": aBill({ id: 43 }),
     });
@@ -225,7 +225,7 @@ describe("a read bill in the form", () => {
       "GET /suppliers": [],
       "POST /bills": aBill({ id: 43 }),
       "POST /attachments": { id: 1, filename: "bill.pdf", content_type: "application/pdf", size: 4, created_at: "2026-10-26T20:00:00Z" },
-      "POST /suppliers": { id: 8, name: "MEO", nif: "506743357", default_category_id: null, notes: "", active: true },
+      "POST /suppliers": { id: 8, name: "MEO", nif: "506743357", default_category_id: null, notes: "", active: true, in_use: false },
     });
     renderPage(BillForm, appFor(api));
     await fireEvent.click(screen.getByLabelText("Also add the service"));

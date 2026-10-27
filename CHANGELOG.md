@@ -4,6 +4,14 @@ Every release of House costs, newest first. The image is `ghcr.io/jmerhar/house-
 follow semantic versioning: a major release needs something done by whoever runs it, and says
 what under **Upgrading**. Before 1.0, a minor release may.
 
+## Unreleased
+
+### Added
+
+- A supplier without services or documents, and a service without bills or documents, can be
+  deleted from the Services page, after a confirmation. One still in use says what keeps it, and
+  can be set aside by unticking "Active" instead.
+
 ## 1.0.0 — 2026-10-27
 
 ### Added

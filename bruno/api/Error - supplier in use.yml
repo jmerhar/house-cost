@@ -1,0 +1,31 @@
+info:
+  name: Error - supplier in use
+  type: http
+  seq: 32
+
+http:
+  method: DELETE
+  url: "{{base_url}}/api/suppliers/1"
+  headers:
+    - name: X-Requested-With
+      value: house-cost
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "409"
+    - expression: res.body.detail
+      operator: eq
+      value: "supplier_in_use"
+
+docs:
+  content: |-
+    MEO Energia still has its service, so it is kept; delete the service first.
+  type: text/markdown
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: false
+  maxRedirects: 0

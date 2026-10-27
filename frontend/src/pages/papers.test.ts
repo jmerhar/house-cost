@@ -7,8 +7,8 @@ import BillForm from "./BillForm.svelte";
 import Documents from "./Documents.svelte";
 import Services from "./Services.svelte";
 
-const MEO: Supplier = { id: 1, name: "MEO Energia", nif: "506743357", default_category_id: ELECTRICITY.id, notes: "", active: true };
-const SMAS: Supplier = { id: 2, name: "SMAS", nif: null, default_category_id: null, notes: "", active: false };
+const MEO: Supplier = { id: 1, name: "MEO Energia", nif: "506743357", default_category_id: ELECTRICITY.id, notes: "", active: true, in_use: true };
+const SMAS: Supplier = { id: 2, name: "SMAS", nif: null, default_category_id: null, notes: "", active: false, in_use: false };
 const POWER: Service = {
   id: 5,
   supplier_id: MEO.id,
@@ -23,6 +23,7 @@ const POWER: Service = {
   billed_every_days: 30,
   notes: "",
   active: true,
+  in_use: true,
 };
 const CONTRACT: DocumentMatch = {
   id: 9,
@@ -67,6 +68,35 @@ describe("Services", () => {
     expect(screen.getByText(/^Ends on 1 Jan 2030$/)).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Documents" })[0]).toHaveAttribute("href", "/documents?service=5");
     expect(screen.getAllByText("Inactive")).toHaveLength(2);
+  });
+
+  it("deletes a supplier or service nothing refers to, once confirmed", async () => {
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+    const spare = { ...POWER, id: 6, name: "Old line", in_use: false };
+    const { api, calls } = fakeApi({
+      "GET /suppliers": [MEO, SMAS],
+      "GET /services": [POWER, spare],
+      "DELETE /services/6": () => undefined,
+      "DELETE /suppliers/2": refuse(409, "supplier_in_use"),
+    });
+    renderPage(Services, appFor(api));
+
+    const meo = (await screen.findByRole("heading", { name: "MEO Energia" })).closest("article")!;
+    expect(within(meo).queryByRole("button", { name: "Delete supplier" })).not.toBeInTheDocument();
+    expect(within(meo).getAllByRole("button", { name: "Delete service" })).toHaveLength(1);
+    await fireEvent.click(within(meo).getByRole("button", { name: "Delete service" }));
+    expect(confirm).toHaveBeenCalledWith("Delete the service Old line?");
+    expect(calls.some((c) => c.method === "DELETE")).toBe(false);
+
+    confirm.mockReturnValue(true);
+    await fireEvent.click(within(meo).getByRole("button", { name: "Delete service" }));
+    await waitFor(() => expect(calls.filter((c) => c.method === "DELETE").map((c) => c.path)).toEqual(["/services/6"]));
+    await waitFor(() => expect(calls.filter((c) => c.path === "/services").length).toBe(2));
+
+    const smas = screen.getByRole("heading", { name: /^SMAS/ }).closest("article")!;
+    await fireEvent.click(within(smas).getByRole("button", { name: "Delete supplier" }));
+    expect(confirm).toHaveBeenLastCalledWith("Delete SMAS?");
+    expect(await screen.findByRole("alert")).toHaveTextContent("still has services or documents");
   });
 
   it("adds a supplier and a service with its references", async () => {

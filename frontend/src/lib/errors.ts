@@ -32,6 +32,8 @@ const BY_CODE: Record<string, () => string> = {
   passkey_expired: m.error_passkey_expired,
   passkey_exists: m.error_passkey_exists,
   supplier_exists: m.error_supplier_exists,
+  supplier_in_use: m.error_supplier_in_use,
+  service_in_use: m.error_service_in_use,
   read_timeout: m.error_read_timeout,
   unreadable: m.error_unreadable,
 };

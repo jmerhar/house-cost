@@ -140,9 +140,11 @@ export class Api {
   suppliers = () => this.request<Supplier[]>("GET", "/suppliers");
   createSupplier = (body: SupplierIn) => this.request<Supplier>("POST", "/suppliers", body);
   updateSupplier = (id: number, body: SupplierIn) => this.request<Supplier>("PUT", `/suppliers/${id}`, body);
+  deleteSupplier = (id: number) => this.request<void>("DELETE", `/suppliers/${id}`);
   services = () => this.request<Service[]>("GET", "/services");
   createService = (body: ServiceIn) => this.request<Service>("POST", "/services", body);
   updateService = (id: number, body: ServiceIn) => this.request<Service>("PUT", `/services/${id}`, body);
+  deleteService = (id: number) => this.request<void>("DELETE", `/services/${id}`);
   documents = (query: Query = {}) => this.request<DocumentMatch[]>("GET", "/documents", undefined, query);
   updateDocument = (id: number, body: DocumentUpdate) => this.request<DocumentInfo>("PUT", `/documents/${id}`, body);
   deleteDocument = (id: number) => this.request<void>("DELETE", `/documents/${id}`);

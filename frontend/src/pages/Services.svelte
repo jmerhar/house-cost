@@ -3,6 +3,7 @@
   import Plug from "@lucide/svelte/icons/plug";
   import Pencil from "@lucide/svelte/icons/pencil";
   import Plus from "@lucide/svelte/icons/plus";
+  import Trash2 from "@lucide/svelte/icons/trash-2";
   import { onMount } from "svelte";
   import type { Service, ServiceIn, Supplier, SupplierIn } from "../lib/api";
   import { useApp } from "../lib/context";
@@ -84,6 +85,14 @@
     if (await attempt(() => (id === null ? app.api.createSupplier(body) : app.api.updateSupplier(id, body)))) {
       supplierForm = null;
     }
+  }
+
+  function deleteSupplier(supplier: Supplier): void {
+    if (confirm(m.confirm_delete_supplier({ name: supplier.name }))) attempt(() => app.api.deleteSupplier(supplier.id));
+  }
+
+  function deleteService(service: Service): void {
+    if (confirm(m.confirm_delete_service({ name: service.name }))) attempt(() => app.api.deleteService(service.id));
   }
 
   // --- Service form ---
@@ -251,6 +260,9 @@
         <span class="row-actions">
           <button type="button" class="link" onclick={() => editService(null, supplier)}><Plus />{m.service_add()}</button>
           <button type="button" class="link" onclick={() => editSupplier(supplier)}><Pencil />{m.edit()}</button>
+          {#if !supplier.in_use}
+            <button type="button" class="link danger" onclick={() => deleteSupplier(supplier)}><Trash2 />{m.supplier_delete()}</button>
+          {/if}
         </span>
       </div>
       <h3 class="subheading">{m.nav_services()}</h3>
@@ -281,6 +293,9 @@
             <span class="row-actions">
               <a href={`/documents?service=${service.id}`}>{m.nav_documents()}</a>
               <button type="button" class="link" onclick={() => editService(service)}><Pencil />{m.edit()}</button>
+              {#if !service.in_use}
+                <button type="button" class="link danger" onclick={() => deleteService(service)}><Trash2 />{m.service_delete()}</button>
+              {/if}
             </span>
           </li>
         {/each}

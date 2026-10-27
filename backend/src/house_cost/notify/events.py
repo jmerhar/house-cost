@@ -19,6 +19,15 @@ REMINDER_DAYS = (30, 7)
 GRACE_DAYS = 7
 #: Unit prices this close are the same price.
 PRICE_TOLERANCE = 0.00005
+#: The reminders about a service, each the start of its keys in ``sent_notification``.
+CONTRACT_REMINDERS = (("ends_on", "contract_ends"), ("lock_in_until", "lock_in_ends"))
+MISSING_BILL = "missing"
+
+
+def service_key_prefixes(service_id: int) -> tuple[str, ...]:
+    """How the keys of every reminder sent about a service begin, so they can go with it."""
+    kinds = [message for _, message in CONTRACT_REMINDERS] + [MISSING_BILL]
+    return tuple(f"{kind}:{service_id}:" for kind in kinds)
 
 
 async def _people(db: AsyncSession) -> list[Person]:
@@ -130,7 +139,7 @@ async def contract_reminders(db: AsyncSession, notifier: Notifier, today: date) 
     people = await _people(db)
     rows = await db.execute(select(Service, Supplier).join(Supplier).where(Service.active))
     for service, supplier in rows.all():
-        for field, message in (("ends_on", "contract_ends"), ("lock_in_until", "lock_in_ends")):
+        for field, message in CONTRACT_REMINDERS:
             when: date | None = getattr(service, field)
             if when is None:
                 continue
@@ -170,7 +179,7 @@ async def missing_bills(db: AsyncSession, notifier: Notifier, today: date) -> No
     for service, supplier, last in rows.all():
         if today <= last + timedelta(days=service.billed_every_days + GRACE_DAYS):
             continue
-        if not await once(db, f"missing:{service.id}:{last.isoformat()}"):
+        if not await once(db, f"{MISSING_BILL}:{service.id}:{last.isoformat()}"):
             continue
         await notifier.send_to(
             people,

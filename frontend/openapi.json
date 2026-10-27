@@ -2768,6 +2768,11 @@
             "title": "Identifiers",
             "type": "object"
           },
+          "in_use": {
+            "default": false,
+            "title": "In Use",
+            "type": "boolean"
+          },
           "lock_in_until": {
             "anyOf": [
               {
@@ -2833,7 +2838,8 @@
           "notice_days",
           "billed_every_days",
           "notes",
-          "active"
+          "active",
+          "in_use"
         ],
         "title": "ServiceOut",
         "type": "object"
@@ -3233,6 +3239,11 @@
             "title": "Id",
             "type": "integer"
           },
+          "in_use": {
+            "default": false,
+            "title": "In Use",
+            "type": "boolean"
+          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -3259,7 +3270,8 @@
           "nif",
           "default_category_id",
           "notes",
-          "active"
+          "active",
+          "in_use"
         ],
         "title": "SupplierOut",
         "type": "object"
@@ -5783,6 +5795,40 @@
       }
     },
     "/api/services/{service_id}": {
+      "delete": {
+        "description": "Remove a service added by mistake; one with bills or documents cannot be removed.\n\nThe reminders already sent about it go too, since SQLite can give a later service the same\nid, which would then never be reminded of its own contract.",
+        "operationId": "delete_service_api_services__service_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "service_id",
+            "required": true,
+            "schema": {
+              "title": "Service Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Service",
+        "tags": [
+          "services"
+        ]
+      },
       "put": {
         "description": "Correct a service, or mark it ended by deactivating it.",
         "operationId": "update_service_api_services__service_id__put",
@@ -6283,6 +6329,40 @@
       }
     },
     "/api/suppliers/{supplier_id}": {
+      "delete": {
+        "description": "Remove a supplier added by mistake; one with services or documents cannot be removed.",
+        "operationId": "delete_supplier_api_suppliers__supplier_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "supplier_id",
+            "required": true,
+            "schema": {
+              "title": "Supplier Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Supplier",
+        "tags": [
+          "services"
+        ]
+      },
       "put": {
         "description": "Correct a supplier's details.",
         "operationId": "update_supplier_api_suppliers__supplier_id__put",

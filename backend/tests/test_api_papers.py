@@ -110,6 +110,67 @@ class TestSuppliers:
         assert (renamed.status_code, renamed.json()["detail"]) == (409, "supplier_exists")
 
 
+class TestDeleting:
+    async def test_an_unused_supplier_and_service_can_be_deleted(
+        self, client, member, meo: dict, electricity: dict
+    ) -> None:
+        busy = await member.delete(f"/api/suppliers/{meo['id']}")
+        assert (busy.status_code, busy.json()["detail"]) == (409, "supplier_in_use")
+        assert [s["in_use"] for s in await ok(client.get("/api/suppliers"))] == [True]
+        assert [s["in_use"] for s in await ok(client.get("/api/services"))] == [False]
+
+        await ok(member.delete(f"/api/services/{electricity['id']}"), 204)
+        assert [s["in_use"] for s in await ok(client.get("/api/suppliers"))] == [False]
+        await ok(member.delete(f"/api/suppliers/{meo['id']}"), 204)
+
+        assert await ok(client.get("/api/services")) == []
+        assert await ok(client.get("/api/suppliers")) == []
+        log = await ok(client.get("/api/audit", params={"limit": 2}))
+        assert [(e["action"], e["entity"], e["before"]["name"]) for e in log["items"]] == [
+            ("delete", "supplier", "MEO Energia"),
+            ("delete", "service", "Electricity at the Quinta"),
+        ]
+        gone = await member.delete(f"/api/suppliers/{meo['id']}")
+        assert gone.status_code == 404
+
+    async def test_a_service_with_a_bill_is_kept_until_the_bill_is_deleted(
+        self, client, electricity: dict, agreement: Agreement
+    ) -> None:
+        created = await ok(
+            client.post(
+                "/api/bills",
+                json=bill(
+                    "2026-10-18",
+                    agreement.owners,
+                    (agreement.electricity, 100),
+                    service_id=electricity["id"],
+                ),
+            ),
+            201,
+        )
+        assert [s["in_use"] for s in await ok(client.get("/api/services"))] == [True]
+        busy = await client.delete(f"/api/services/{electricity['id']}")
+        assert (busy.status_code, busy.json()["detail"]) == (409, "service_in_use")
+
+        await ok(client.delete(f"/api/bills/{created['id']}"), 204)
+
+        assert [s["in_use"] for s in await ok(client.get("/api/services"))] == [False]
+        await ok(client.delete(f"/api/services/{electricity['id']}"), 204)
+
+    async def test_a_document_keeps_its_service(self, client, electricity: dict) -> None:
+        await ok(_upload(client, CONTRACT, service_id=electricity["id"]), 201)
+        refused = await client.delete(f"/api/services/{electricity['id']}")
+
+        assert (refused.status_code, refused.json()["detail"]) == (409, "service_in_use")
+
+    async def test_a_document_keeps_its_supplier(self, client, meo: dict) -> None:
+        await ok(_upload(client, CONTRACT, supplier_id=meo["id"]), 201)
+        refused = await client.delete(f"/api/suppliers/{meo['id']}")
+
+        assert (refused.status_code, refused.json()["detail"]) == (409, "supplier_in_use")
+        assert [s["in_use"] for s in await ok(client.get("/api/suppliers"))] == [True]
+
+
 class TestServices:
     async def test_a_service_keeps_what_its_contract_says(self, client, electricity: dict) -> None:
         assert electricity["identifiers"] == {"CPE": "PT0002000000000000XX", "Cliente": "123"}
