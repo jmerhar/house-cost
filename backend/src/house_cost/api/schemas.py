@@ -629,6 +629,8 @@ class AuditOut(BaseModel):
     entity_id: int | None
     before: dict | None
     after: dict | None
+    #: Whether the record still exists to open: a deleted bill does not.
+    exists: bool
 
 
 class AuditPage(BaseModel):

@@ -96,7 +96,7 @@
   }
 
   function link(entry: AuditEntry): string | null {
-    return entry.entity === "bill" && entry.action !== "delete" && entry.entity_id ? `/bills/${entry.entity_id}` : null;
+    return entry.entity === "bill" && entry.exists && entry.entity_id ? `/bills/${entry.entity_id}` : null;
   }
 </script>
 

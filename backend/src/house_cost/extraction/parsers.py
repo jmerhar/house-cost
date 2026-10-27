@@ -105,8 +105,9 @@ MEO_GROUPS = (("pacotes", "Package"), ("telemovel", "Mobile"), ("adesoes", "Acti
 
 def _item_period(flat: str, issued: date | None) -> tuple[date, date] | None:
     """The period a bill covers when it gives one per item ("14 set a 30 set") rather than one for
-    the whole bill: the earliest start to the latest end. The year comes from the issue date; a
-    month after the issue's belongs to the year before, as a December item on a January bill does.
+    the whole bill: the earliest start to the latest end. Items give no year, so each date takes
+    the year that puts it nearest the issue date: a December item on a January bill is the year
+    before, a January item billed ahead on a December bill the year after.
     """
     if issued is None:
         return None
@@ -116,12 +117,14 @@ def _item_period(flat: str, issued: date | None) -> tuple[date, date] | None:
         if first_month not in MONTHS or last_month not in MONTHS:
             continue
         for number_, month in ((first, first_month), (last, last_month)):
-            month_number = MONTHS[month]
-            year = issued.year - (month_number > issued.month)
-            try:
-                days.append(date(year, month_number, int(number_)))
-            except ValueError:
-                continue
+            candidates = []
+            for year in (issued.year - 1, issued.year, issued.year + 1):
+                try:
+                    candidates.append(date(year, MONTHS[month], int(number_)))
+                except ValueError:
+                    continue
+            if candidates:
+                days.append(min(candidates, key=lambda day_: abs((day_ - issued).days)))
     return (min(days), max(days)) if days else None
 
 

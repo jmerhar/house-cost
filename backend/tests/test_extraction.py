@@ -177,6 +177,15 @@ class TestParsers:
             date(2026, 12, 16),
             date(2027, 1, 15),
         )
+        # Billed ahead: a December invoice for January is the year after.
+        assert _item_period("item 1 jan a 31 jan 9,99", date(2026, 12, 23)) == (
+            date(2027, 1, 1),
+            date(2027, 1, 31),
+        )
+        assert _item_period("item 14 set a 30 set", date(2026, 9, 21)) == (
+            date(2026, 9, 14),
+            date(2026, 9, 30),
+        )
         assert _item_period("item 31 fev a 30 xyz", date(2027, 1, 23)) is None
         assert _item_period("item 14 set a 30 set", None) is None
 

@@ -1104,6 +1104,8 @@ export interface components {
             entity: string;
             /** Entity Id */
             entity_id: number | null;
+            /** Exists */
+            exists: boolean;
             /** Id */
             id: number;
             /** Person Id */

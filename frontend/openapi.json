@@ -100,6 +100,10 @@
             ],
             "title": "Entity Id"
           },
+          "exists": {
+            "title": "Exists",
+            "type": "boolean"
+          },
           "id": {
             "title": "Id",
             "type": "integer"
@@ -136,7 +140,8 @@
           "entity",
           "entity_id",
           "before",
-          "after"
+          "after",
+          "exists"
         ],
         "title": "AuditOut",
         "type": "object"

@@ -136,6 +136,30 @@ class TestAudit:
         update = page["items"][1]
         assert (update["before"]["total_cents"], update["after"]["total_cents"]) == (100, 200)
         assert page["total"] == 3
+        assert {entry["exists"] for entry in page["items"]} == {False}
+
+    async def test_entries_say_whether_their_bill_is_still_there(
+        self, client, agreement: Agreement
+    ) -> None:
+        kept = await ok(
+            client.post(
+                "/api/bills", json=bill("2026-10-01", agreement.owners, (agreement.road, 1))
+            ),
+            201,
+        )
+        gone = await ok(
+            client.post(
+                "/api/bills", json=bill("2026-10-02", agreement.owners, (agreement.road, 2))
+            ),
+            201,
+        )
+        await client.delete(f"/api/bills/{gone['id']}")
+        page = await ok(client.get("/api/audit", params={"limit": 500}))
+        exists = {(e["entity"], e["entity_id"], e["action"]): e["exists"] for e in page["items"]}
+
+        assert exists[("bill", kept["id"], "create")] is True
+        assert exists[("bill", gone["id"], "create")] is False
+        assert all(e["exists"] for e in page["items"] if e["entity"] != "bill")
 
     async def test_the_setup_and_the_agreement_are_in_it(
         self, client, agreement: Agreement

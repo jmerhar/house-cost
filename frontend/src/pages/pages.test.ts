@@ -366,6 +366,7 @@ describe("Activity", () => {
     entity_id: 7,
     before: null,
     after: { supplier: "MEO Energia", total_cents: 28759 },
+    exists: true,
     ...overrides,
   });
 
@@ -374,10 +375,11 @@ describe("Activity", () => {
       "GET /audit": {
         items: [
           entry(1),
-          entry(2, { action: "delete", before: { supplier: "EDP" }, after: null }),
+          entry(2, { action: "delete", before: { supplier: "EDP" }, after: null, exists: false }),
           entry(3, { person_name: null, action: "frobnicate", entity: "widget", after: null }),
+          entry(4, { action: "update", entity_id: 8, exists: false }),
         ],
-        total: 3,
+        total: 4,
       },
     });
     renderPage(Activity, appFor(api));

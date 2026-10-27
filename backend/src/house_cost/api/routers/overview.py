@@ -203,6 +203,15 @@ async def audit_log(
         .limit(limit)
         .offset(offset)
     )
+    page = rows.all()
+    bill_ids = {event.entity_id for event, _ in page if event.entity == "bill" and event.entity_id}
+    live_bills = set(
+        (
+            await db.execute(
+                select(Bill.id).where(Bill.id.in_(bill_ids), Bill.deleted_at.is_(None))
+            )
+        ).scalars()
+    )
     return AuditPage(
         items=[
             AuditOut(
@@ -215,8 +224,9 @@ async def audit_log(
                 entity_id=event.entity_id,
                 before=event.before,
                 after=event.after,
+                exists=event.entity != "bill" or event.entity_id in live_bills,
             )
-            for event, name in rows.all()
+            for event, name in page
         ],
         total=total,
     )
