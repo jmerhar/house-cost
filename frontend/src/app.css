@@ -588,6 +588,18 @@ label.button {
   color: var(--muted);
 }
 
+/* An item's notes in a list, with the line breaks they were written with. */
+.notes {
+  margin-top: 0.2rem;
+  color: var(--fg);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+textarea {
+  resize: vertical;
+}
+
 .amount,
 .num {
   font-variant-numeric: tabular-nums;

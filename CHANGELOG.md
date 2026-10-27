@@ -11,6 +11,8 @@ what under **Upgrading**. Before 1.0, a minor release may.
 - A supplier without services or documents, and a service without bills or documents, can be
   deleted from the Services page, after a confirmation. One still in use says what keeps it, and
   can be set aside by unticking "Active" instead.
+- Notes show under each bill, document, supplier and service in their lists, with their line
+  breaks, and are written in a box of several lines.
 
 ## 1.0.0 — 2026-10-27
 

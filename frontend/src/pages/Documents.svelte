@@ -283,7 +283,7 @@
           {#each services as service (service.id)}<option value={String(service.id)}>{service.name}</option>{/each}
         </select>
       </label>
-      <label class="wide">{m.field_notes()}<input bind:value={form.notes} maxlength="2000" /></label>
+      <label class="wide">{m.field_notes()}<textarea bind:value={form.notes} rows="3" maxlength="2000"></textarea></label>
     </div>
     <div class="actions">
       <button type="submit" disabled={busy}>{busy ? m.saving() : m.save()}</button>
@@ -365,6 +365,7 @@
             {#if supplierName(document.supplier_id)}· {supplierName(document.supplier_id)}{/if}
             {#if serviceName(document.service_id)}· {serviceName(document.service_id)}{/if}
           </small>
+          {#if document.notes}<small class="notes">{document.notes}</small>{/if}
           {#if document.excerpt}<small class="excerpt">{document.excerpt}</small>{/if}
           {#if !document.has_text && document.content_type === "application/pdf"}<small>{m.document_no_text()}</small>{/if}
         </span>

@@ -150,6 +150,7 @@
           <span class="what">
             <strong>{bill.supplier || bill.description || categories(bill)}</strong>
             <small>{categories(bill)} · {m.bill_paid_by({ name: app.household(bill.paid_by_id) })}</small>
+            {#if bill.notes}<small class="notes">{bill.notes}</small>{/if}
           </span>
           <span class="amount">
             {euros(bill.total_cents)}

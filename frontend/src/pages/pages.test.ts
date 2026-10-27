@@ -132,7 +132,7 @@ describe("Balances", () => {
 describe("Bills", () => {
   it("lists bills with their categories, payer and total", async () => {
     const { api } = fakeApi({
-      "GET /bills": { items: [aBill(), aBill({ id: 8, supplier: "", description: "", locked: true })], total: 2 },
+      "GET /bills": { items: [aBill({ notes: "Package: shared.\nMobile: Lúcia's card." }), aBill({ id: 8, supplier: "", description: "", locked: true })], total: 2 },
       "GET /reports/summary": { year: 2026, years: [2026, 2025], total_cents: 0, shares: [], categories: [], months: [] },
     });
     renderPage(Bills, appFor(api));
@@ -141,6 +141,8 @@ describe("Bills", () => {
     expect(screen.getByText("Bills: 2")).toBeInTheDocument();
     expect(screen.getAllByText("Electricity · paid by Tiago + Marta")).toHaveLength(2);
     expect(screen.getByText("Locked")).toBeInTheDocument();
+    expect(document.querySelectorAll(".notes")).toHaveLength(1);
+    expect(document.querySelector(".notes")?.textContent).toBe("Package: shared.\nMobile: Lúcia's card.");
     expect(screen.getAllByRole("link")[1]).toHaveAttribute("href", "/bills/7");
     expect(await screen.findByRole("option", { name: "2025" })).toBeInTheDocument();
   });

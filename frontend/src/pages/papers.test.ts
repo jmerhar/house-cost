@@ -54,7 +54,7 @@ afterEach(() => {
 
 describe("Services", () => {
   it("lists suppliers with their services, flagging what ends soon", async () => {
-    const { api } = fakeApi({ "GET /suppliers": [MEO, SMAS], "GET /services": [POWER, { ...POWER, id: 6, name: "Old line", ends_on: "2030-01-01", lock_in_until: null, notice_days: null, renews_automatically: false, active: false }] });
+    const { api } = fakeApi({ "GET /suppliers": [{ ...MEO, notes: "Customer no. 123" }, SMAS], "GET /services": [{ ...POWER, notes: "No notice needed.\nRenews every 3 months." }, { ...POWER, id: 6, name: "Old line", ends_on: "2030-01-01", lock_in_until: null, notice_days: null, renews_automatically: false, active: false }] });
     renderPage(Services, appFor(api));
 
     expect(await screen.findByRole("heading", { name: "MEO Energia" })).toBeInTheDocument();
@@ -68,6 +68,10 @@ describe("Services", () => {
     expect(screen.getByText(/^Ends on 1 Jan 2030$/)).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Documents" })[0]).toHaveAttribute("href", "/documents?service=5");
     expect(screen.getAllByText("Inactive")).toHaveLength(2);
+    expect([...document.querySelectorAll(".notes")].map((note) => note.textContent)).toEqual([
+      "Customer no. 123",
+      "No notice needed.\nRenews every 3 months.",
+    ]);
   });
 
   it("deletes a supplier or service nothing refers to, once confirmed", async () => {
@@ -144,6 +148,7 @@ describe("Services", () => {
     await fireEvent.click(edits[0]);
     const supplierForm = screen.getByRole("button", { name: "Save" }).closest("form")!;
     expect(within(supplierForm).getByLabelText("NIF (tax number)")).toHaveValue("506743357");
+    expect(within(supplierForm).getByLabelText("Notes").tagName).toBe("TEXTAREA");
     await fireEvent.click(within(supplierForm).getByLabelText("Active"));
     await fireEvent.submit(supplierForm);
     await waitFor(() => expect(calls.find((c) => c.method === "PUT" && c.path === "/suppliers/1")?.body).toMatchObject({ active: false }));
@@ -271,12 +276,13 @@ describe("Documents", () => {
   });
 
   it("lists documents with their kind, date, supplier and service", async () => {
-    const { api } = fakeApi(routes({ "GET /documents": [CONTRACT, { ...CONTRACT, id: 10, title: "Scan", has_text: false, dated: null, supplier_id: null, service_id: null, kind: "other" }] }));
+    const { api } = fakeApi(routes({ "GET /documents": [{ ...CONTRACT, notes: "No minimum term.\nOne month's notice." }, { ...CONTRACT, id: 10, title: "Scan", has_text: false, dated: null, supplier_id: null, service_id: null, kind: "other" }] }));
     renderPage(Documents, appFor(api));
 
     expect(await screen.findByRole("link", { name: "MEO Energia contract" })).toHaveAttribute("href", "/api/documents/9/file");
     await waitFor(() => expect(screen.getByText(/Contract · 5 Sept? 2026 · MEO Energia · Electricity at the Quinta/)).toBeInTheDocument());
     expect(screen.getByText("No text found in this file to search by.")).toBeInTheDocument();
+    expect([...document.querySelectorAll(".notes")].map((note) => note.textContent)).toEqual(["No minimum term.\nOne month's notice."]);
   });
 
   it("searches the text and shows where it matched", async () => {
@@ -330,6 +336,7 @@ describe("Documents", () => {
     await fireEvent.click(await screen.findByRole("button", { name: "Edit" }));
     const form = screen.getByRole("button", { name: "Save" }).closest("form")!;
     expect(within(form).getByLabelText("Service")).toBeInTheDocument();
+    expect(within(form).getByLabelText(/Notes/).tagName).toBe("TEXTAREA");
     await fireEvent.input(within(form).getByLabelText("Title"), { target: { value: "Signed contract" } });
     await fireEvent.submit(screen.getByRole("button", { name: "Save" }).closest("form")!);
     await waitFor(() => expect(calls.find((c) => c.method === "PUT")?.body).toMatchObject({ title: "Signed contract", service_id: POWER.id, supplier_id: MEO.id, dated: "2026-09-05" }));

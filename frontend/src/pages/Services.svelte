@@ -189,7 +189,7 @@
           {#each app.categories as category (category.id)}<option value={String(category.id)}>{category.name}</option>{/each}
         </select>
       </label>
-      <label class="wide">{m.field_notes()}<input bind:value={supplierForm.notes} maxlength="2000" /></label>
+      <label class="wide">{m.field_notes()}<textarea bind:value={supplierForm.notes} rows="3" maxlength="2000"></textarea></label>
       {#if supplierForm.id !== null}
         <label class="check"><input type="checkbox" bind:checked={supplierForm.active} /> {m.active()}</label>
       {/if}
@@ -232,7 +232,7 @@
       {#if serviceForm.id !== null}
         <label class="check"><input type="checkbox" bind:checked={serviceForm.active} /> {m.active()}</label>
       {/if}
-      <label class="wide">{m.field_notes()}<textarea bind:value={serviceForm.notes} rows="2" maxlength="2000"></textarea></label>
+      <label class="wide">{m.field_notes()}<textarea bind:value={serviceForm.notes} rows="3" maxlength="2000"></textarea></label>
     </div>
     <div class="actions">
       <button type="submit">{m.save()}</button>
@@ -256,6 +256,7 @@
             {#if !supplier.active}<small class="tag">{m.inactive()}</small>{/if}
           </h2>
           <p class="muted caption">{m.field_supplier()}{#if supplier.nif}{" · "}{m.nif_value({ nif: supplier.nif })}{/if}</p>
+          {#if supplier.notes}<p class="caption notes">{supplier.notes}</p>{/if}
         </div>
         <span class="row-actions">
           <button type="button" class="link" onclick={() => editService(null, supplier)}><Plus />{m.service_add()}</button>
@@ -289,6 +290,7 @@
                 </small>
               {/if}
               {#if service.notice_days !== null}<small>{m.service_notice({ days: service.notice_days })}</small>{/if}
+              {#if service.notes}<small class="notes">{service.notes}</small>{/if}
             </span>
             <span class="row-actions">
               <a href={`/documents?service=${service.id}`}>{m.nav_documents()}</a>
