@@ -865,3 +865,43 @@ footer {
   background: var(--note-bg);
   color: var(--accent);
 }
+
+/* A section's title inside its box rather than on its border, as a fieldset's legend sits by
+   default; floated, which is what lets a legend take the box's width. */
+fieldset.card > legend {
+  float: left;
+  width: 100%;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  font-weight: 600;
+}
+
+fieldset.card > legend + * {
+  clear: both;
+}
+
+fieldset.card > legend label {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* A heading or name with its icon before it. */
+.with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.caption {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+}
+
+.subheading {
+  margin: 1rem 0 0.25rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

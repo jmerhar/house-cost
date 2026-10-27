@@ -337,5 +337,6 @@
   "service_from_bill": "Adicionar também o serviço",
   "field_service_name": "Nome do serviço",
   "service_references": "Referências: {list}",
-  "setup_from_bill_failed": "A fatura foi guardada, mas não foi possível adicionar o fornecedor ou o serviço. Adicione-os em Serviços."
+  "setup_from_bill_failed": "A fatura foi guardada, mas não foi possível adicionar o fornecedor ou o serviço. Adicione-os em Serviços.",
+  "services_none": "Ainda não há serviços."
 }

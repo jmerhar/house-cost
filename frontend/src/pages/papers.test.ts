@@ -57,7 +57,9 @@ describe("Services", () => {
     renderPage(Services, appFor(api));
 
     expect(await screen.findByRole("heading", { name: "MEO Energia" })).toBeInTheDocument();
-    expect(screen.getByText("NIF 506743357")).toBeInTheDocument();
+    expect(document.querySelector(".caption")?.textContent?.replace(/\s+/g, " ").trim()).toBe("Supplier · NIF 506743357");
+    expect(screen.getAllByRole("heading", { name: "Services", level: 3 }).length).toBeGreaterThan(0);
+    expect(screen.getByText("No services yet.")).toBeInTheDocument();
     expect(screen.getAllByText("CPE: PT0002000000000000XX")).toHaveLength(2);
     expect(screen.getByText(/^Renews on 15 Nov 2026$/)).toHaveClass("problem");
     expect(screen.getByText(/^Minimum term ends 28 Jul 2027$/)).not.toHaveClass("problem");

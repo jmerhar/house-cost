@@ -166,6 +166,20 @@ class TestParsers:
         )
         assert found.readings == []
 
+    def test_meo_takes_its_period_from_its_items(self) -> None:
+        found = meo("\n".join(line for page in meo_text() for line in page))
+        assert (found.period_start, found.period_end) == (date(2026, 9, 14), date(2026, 9, 30))
+
+    def test_a_period_across_new_year_and_one_that_cannot_be_read(self) -> None:
+        from house_cost.extraction.parsers import _item_period
+
+        assert _item_period("item 16 dez a 15 jan 9,99", date(2027, 1, 23)) == (
+            date(2026, 12, 16),
+            date(2027, 1, 15),
+        )
+        assert _item_period("item 31 fev a 30 xyz", date(2027, 1, 23)) is None
+        assert _item_period("item 14 set a 30 set", None) is None
+
     def test_meo_reads_its_groups_and_lock_in(self) -> None:
         found = meo("\n".join(line for page in meo_text() for line in page))
 
@@ -376,5 +390,6 @@ def test_real_samples() -> None:  # pragma: no cover - runs only against local, 
             "kwh": result.findings.readings[0].value if result.findings.readings else None,
             "lock_in_until": str(result.findings.lock_in_until),
             "ends_on": str(result.findings.ends_on),
+            "period": [str(result.findings.period_start), str(result.findings.period_end)],
         }
         assert {key: got[key] for key in want} == want, name

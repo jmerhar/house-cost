@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Building2 from "@lucide/svelte/icons/building-2";
+  import Plug from "@lucide/svelte/icons/plug";
   import Pencil from "@lucide/svelte/icons/pencil";
   import Plus from "@lucide/svelte/icons/plus";
   import { onMount } from "svelte";
@@ -239,22 +241,26 @@
     {@const own = services.filter((service) => service.supplier_id === supplier.id)}
     <article class="card">
       <div class="heading">
-        <h2>
-          {supplier.name}
-          {#if !supplier.active}<small class="tag">{m.inactive()}</small>{/if}
-        </h2>
+        <div>
+          <h2 class="with-icon">
+            <Building2 />{supplier.name}
+            {#if !supplier.active}<small class="tag">{m.inactive()}</small>{/if}
+          </h2>
+          <p class="muted caption">{m.field_supplier()}{#if supplier.nif}{" · "}{m.nif_value({ nif: supplier.nif })}{/if}</p>
+        </div>
         <span class="row-actions">
           <button type="button" class="link" onclick={() => editService(null, supplier)}><Plus />{m.service_add()}</button>
           <button type="button" class="link" onclick={() => editSupplier(supplier)}><Pencil />{m.edit()}</button>
         </span>
       </div>
-      {#if supplier.nif}<p class="muted">{m.nif_value({ nif: supplier.nif })}</p>{/if}
+      <h3 class="subheading">{m.nav_services()}</h3>
+      {#if own.length === 0}<p class="muted">{m.services_none()}</p>{/if}
       <ul class="list">
         {#each own as service (service.id)}
           <li>
             <span class="what">
-              <strong>
-                {service.name}
+              <strong class="with-icon">
+                <Plug />{service.name}
                 {#if !service.active}<small class="tag">{m.inactive()}</small>{/if}
               </strong>
               {#each Object.entries(service.identifiers) as [label, value] (label)}

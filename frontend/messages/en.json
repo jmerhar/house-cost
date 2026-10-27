@@ -337,5 +337,6 @@
   "service_from_bill": "Also add the service",
   "field_service_name": "Service name",
   "service_references": "References: {list}",
-  "setup_from_bill_failed": "The bill was saved, but its supplier or service could not be added. Add them under Services."
+  "setup_from_bill_failed": "The bill was saved, but its supplier or service could not be added. Add them under Services.",
+  "services_none": "No services yet."
 }

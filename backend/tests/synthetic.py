@@ -95,7 +95,9 @@ MEO_PAGES = [
     ],
     [
         "Total Adesoes € 0,990",
+        "Ativacao MEO Net Segura-oferta 3 meses 15 set 0,990 23,00",
         "M4 (TV+NET 500+VOZ+MOVEL 5GB) 14 set a 30 set 31,250 23,00",
+        "Mensalidade de cartao adicional 14 set a 30 set 4,410 23,00",
         "Total Pacotes € 18,372",
         "Total Telemovel € 0,612",
         "Total Equipamentos € 0,000",

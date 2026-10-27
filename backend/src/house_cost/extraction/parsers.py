@@ -9,7 +9,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date
 
-from .text import AMOUNT, DATE, after, cents, day, number, plain
+from .text import AMOUNT, DATE, MONTHS, after, cents, day, number, plain
 
 #: A unit price, which can have more decimals than an amount: "0,1525".
 PRICE = r"\d+[.,]\d+"
@@ -103,6 +103,28 @@ MEO_GROUPS = (("pacotes", "Package"), ("telemovel", "Mobile"), ("adesoes", "Acti
               ("equipamentos", "Equipment"))  # fmt: skip
 
 
+def _item_period(flat: str, issued: date | None) -> tuple[date, date] | None:
+    """The period a bill covers when it gives one per item ("14 set a 30 set") rather than one for
+    the whole bill: the earliest start to the latest end. The year comes from the issue date; a
+    month after the issue's belongs to the year before, as a December item on a January bill does.
+    """
+    if issued is None:
+        return None
+    days = []
+    for match in re.finditer(r"\b(\d{1,2}) ([a-z]{3})\.? a (\d{1,2}) ([a-z]{3})\b", flat):
+        first, first_month, last, last_month = match.groups()
+        if first_month not in MONTHS or last_month not in MONTHS:
+            continue
+        for number_, month in ((first, first_month), (last, last_month)):
+            month_number = MONTHS[month]
+            year = issued.year - (month_number > issued.month)
+            try:
+                days.append(date(year, month_number, int(number_)))
+            except ValueError:
+                continue
+    return (min(days), max(days)) if days else None
+
+
 def meo(text: str) -> Findings:
     """MEO's telecom invoice: also its groups of items as lines, and the lock-in it reports."""
     found = generic(text)
@@ -120,6 +142,8 @@ def meo(text: str) -> Findings:
     service = re.search(r"servico\s+(\d{8,12})", flat)
     if service:
         found.identifiers["Serviço"] = service.group(1)
+    if found.period_start is None and (period := _item_period(flat, found.on)):
+        found.period_start, found.period_end = period
     return found
 
 
