@@ -36,9 +36,15 @@ what under **Upgrading**. Before 1.0, a minor release may.
 
 - The icon shows a euro sign.
 - The administration page is called Settings, and its own settings section General.
+- The services page says which name is the supplier, with its NIF, and lists its services under
+  a Services heading.
+- A form section's title sits inside its box rather than on its border.
 
 ### Fixed
 
+- A MEO bill's period is filled in, from its items' dates, including items billed across New
+  Year.
+- The activity log no longer links to bills that have been deleted.
 - Upgrading no longer loses data that points at people. Upgrading to 0.7.0 deleted every passkey
   and session (everyone was logged out) and removed the person from every activity-log entry,
   which then reads "Someone". Add passkeys again after upgrading from before 0.7.0.
