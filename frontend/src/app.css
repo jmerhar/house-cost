@@ -552,10 +552,12 @@ label.button {
   border-top: 1px solid var(--line);
 }
 
+/* A row's date, amount and actions line up with its first line, its title, however many lines
+   of detail and notes follow it. */
 .list > li {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: baseline;
   gap: 0.25rem 0.75rem;
   padding: 0.65rem 0;
   border-bottom: 1px solid var(--line);
@@ -563,7 +565,7 @@ label.button {
 
 .list .row {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.75rem;
   width: 100%;
   color: inherit;
@@ -617,6 +619,19 @@ textarea {
   display: flex;
   gap: 0.75rem;
   align-items: center;
+}
+
+/* An action link in a list row is laid out inline, so its baseline is its text's and it lines up
+   with the row's title; as a flex box its baseline would be the icon's lower edge. */
+.list button.link {
+  display: inline-block;
+  line-height: 2.25rem;
+  white-space: nowrap;
+}
+
+.list button.link .lucide {
+  margin-right: 0.3rem;
+  vertical-align: -0.2em;
 }
 
 .tag {
@@ -791,6 +806,11 @@ footer {
 /* An activity entry's icon: what kind of record, tinted by what happened to it. */
 .entry {
   flex-wrap: nowrap;
+}
+
+/* An activity entry centres on its icon, which has no text line to align with. */
+.list > li.entry {
+  align-items: center;
 }
 
 .entry-icon {

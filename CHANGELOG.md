@@ -14,6 +14,11 @@ what under **Upgrading**. Before 1.0, a minor release may.
 - Notes show under each bill, document, supplier and service in their lists, with their line
   breaks, and are written in a box of several lines.
 
+### Changed
+
+- In lists, an item's date, amount and actions line up with its title rather than with the middle
+  of its notes.
+
 ## 1.0.0 — 2026-10-27
 
 ### Added
