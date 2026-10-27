@@ -12,21 +12,21 @@
     "coverage": "vitest run --coverage"
   },
   "devDependencies": {
-    "@inlang/paraglide-js": "2.26.0",
-    "@inlang/plugin-message-format": "4.4.5",
+    "@inlang/paraglide-js": "2.27.0",
+    "@inlang/plugin-message-format": "4.5.2",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/svelte": "5.4.2",
-    "@vitest/coverage-v8": "5.0.3",
+    "@vitest/coverage-v8": "5.0.4",
     "jsdom": "30.1.2",
     "svelte": "5.57.2",
     "svelte-check": "4.7.6",
     "typescript": "6.0.3",
-    "vite": "8.3.3",
-    "vitest": "5.0.3"
+    "vite": "8.3.4",
+    "vitest": "5.0.4"
   },
   "dependencies": {
-    "@lucide/svelte": "1.2.0",
+    "@lucide/svelte": "1.55.0",
     "@simplewebauthn/browser": "14.0.0"
   }
 }
