@@ -18,10 +18,9 @@ echo "Exporting the schema to frontend/openapi.json"
 
 echo "Generating frontend/src/lib/api-types.ts"
 # Run as a pinned package of its own rather than installed into the interface: it needs a
-# TypeScript major the interface has moved past. Like the interface's installs (frontend/.npmrc),
-# it takes nothing published in the last two weeks, and it is fetched through the registry this
+# TypeScript major the interface has moved past. It is fetched through the registry this
 # machine's npm reaches outside the project, whose .npmrc names the public one. A field with a
 # default stays optional (--default-non-nullable false), as the API treats it in a request.
 registry=$(cd / && npm config get registry)
-(cd frontend && npx --yes --registry="$registry" --min-release-age=14 \
+(cd frontend && npx --yes --registry="$registry" \
   openapi-typescript@7.13.0 openapi.json --default-non-nullable false -o src/lib/api-types.ts)

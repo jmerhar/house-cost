@@ -25,10 +25,8 @@ for attempt in $(seq 1 120); do
 done
 
 cd "$root/bruno"
-# The CLI is pinned but its dependencies resolve afresh; like the interface's installs
-# (frontend/.npmrc), take nothing published in the last two weeks.
 # The fixture server's administrator; see backend/tests/fixture_server.py.
-npx --yes --min-release-age=14 "$cli" run api -r --env local \
+npx --yes "$cli" run api -r --env local \
   --env-var "base_url=http://127.0.0.1:$port" \
   --env-var "login=lucia" \
   --env-var "password=correct horse battery"
