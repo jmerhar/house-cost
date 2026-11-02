@@ -1,7 +1,7 @@
 """Setting and clearing the session cookie, and describing the person it logs in."""
 
 from fastapi import Request, Response
-from jigkit.auth import clear_session_cookie, cookie_secure, issue_session_cookie
+from jigkit.auth import clear_session_cookie, issue_session_cookie
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..audit import get_setting
@@ -11,11 +11,6 @@ from ..models import Person
 from ..notify import EVENTS
 from .deps import SESSION_COOKIE
 from .schemas import Me
-
-
-def is_secure(request: Request, settings: Settings) -> bool:
-    """Whether the cookie gets the Secure flag: as configured, else when the request is HTTPS."""
-    return cookie_secure(request, settings.cookie_secure)
 
 
 def issue(response: Response, request: Request, settings: Settings, token: str) -> None:

@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request, status
+from jigkit.auth.passkeys import Ceremonies
 from jigkit.notify import AppriseSender
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
@@ -15,7 +16,6 @@ from ..config import Settings
 from ..db import create_engine, create_sessionmaker, session_scope
 from ..models import Person, Session
 from ..notify import Notifier
-from ..passkeys import Ceremonies
 from ..scheduler import Scheduler
 
 #: The cookie a browser's session token travels in.

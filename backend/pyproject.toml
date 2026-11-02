@@ -12,7 +12,7 @@ dependencies = [
     # Settings, database, migrations, logging, the web building blocks, the scheduler and the
     # Apprise sender shared with the other apps built on it. Pinned exactly; Dependabot proposes
     # each new release.
-    "jigkit[auth,db,notify,web]==0.5.0",
+    "jigkit[auth,db,notify,passkeys,web]==0.7.0",
     "fastapi>=0.141,<0.144",
     "uvicorn[standard]>=0.52",
     "sqlalchemy[asyncio]>=2.0.52",
@@ -22,7 +22,6 @@ dependencies = [
     "pydantic-settings>=2.15",
     # Multipart form parsing, which FastAPI's file uploads need.
     "python-multipart>=0.0.20",
-    "webauthn>=3.0,<4",
     "pypdfium2>=5.14",
     # Reading bills: the fiscal QR code (zxing-cpp) in pages rendered as images (Pillow).
     "zxing-cpp>=3.1",
@@ -36,7 +35,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
-    "jigkit[testing]==0.5.0",
+    "jigkit[testing]==0.7.0",
     "pytest>=9.1",
     "pytest-asyncio>=1.4",
     "pytest-cov>=7.1",

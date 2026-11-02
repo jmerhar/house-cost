@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from enum import StrEnum
 
+from jigkit.auth.passkeys import PasskeyMixin
 from jigkit.auth.sessions import SessionMixin
-from jigkit.models import Base, TimestampMixin, UtcDateTime, utcnow
+from jigkit.models import Base, TimestampMixin
 from sqlalchemy import JSON, Boolean, ForeignKey, Integer, LargeBinary, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -82,20 +82,11 @@ class Session(SessionMixin, Base):
     person: Mapped[Person] = relationship(lazy="joined")
 
 
-class Passkey(Base):
+class Passkey(PasskeyMixin, Base):
     """A passkey a person logs in with instead of their password."""
 
     __tablename__ = "passkey"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
     person_id: Mapped[int] = mapped_column(ForeignKey("person.id", ondelete="CASCADE"), index=True)
-    credential_id: Mapped[bytes] = mapped_column(LargeBinary(1024), unique=True)
-    public_key: Mapped[bytes] = mapped_column(LargeBinary(2048))
-    #: The authenticator's signature counter; one that goes backwards betrays a cloned key.
-    sign_count: Mapped[int] = mapped_column(Integer, default=0)
-    transports: Mapped[list[str]] = mapped_column(JSON, default=list)
-    label: Mapped[str] = mapped_column(String(100))
-    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
-    last_used_at: Mapped[datetime | None] = mapped_column(UtcDateTime, nullable=True)
 
     person: Mapped[Person] = relationship(lazy="joined")

@@ -2,9 +2,8 @@
 
 import pytest
 from helpers import ok
-from softauthn import SoftAuthenticator, b64
-
-from house_cost.passkeys import Ceremonies, party
+from jigkit.testing.passkeys import SoftAuthenticator
+from webauthn.helpers import bytes_to_base64url as b64
 
 ORIGIN = "http://house-cost.test"
 
@@ -217,30 +216,6 @@ class TestLoggingIn:
         response = await browser.post("/api/auth/passkey-login", json={"credential": {"id": "x"}})
 
         assert (response.status_code, response.json()["detail"]) == (429, "too_many_attempts")
-
-
-class TestParty:
-    def test_the_public_url_decides_where_passkeys_belong(self) -> None:
-        assert party("https://costs.example.com/", "http", "127.0.0.1:18091") == party(
-            "https://costs.example.com", "https", "anything"
-        )
-        assert (
-            party("https://costs.example.com:8443", "http", "x").origin
-            == "https://costs.example.com:8443"
-        )
-        assert party(None, "http", "localhost:5173").rp_id == "localhost"
-        assert party(None, "http", "localhost:5173").origin == "http://localhost:5173"
-
-
-class TestCeremonies:
-    def test_a_ceremony_expires(self) -> None:
-        now = [0.0]
-        ceremonies = Ceremonies(clock=lambda: now[0])
-        key = ceremonies.start(b"challenge", 1)
-        now[0] += 301
-
-        assert ceremonies.finish(key) is None
-        assert ceremonies.finish(None) is None
 
 
 async def test_a_passkey_presented_for_someone_else_is_refused(
