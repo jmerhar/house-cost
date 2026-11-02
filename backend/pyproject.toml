@@ -13,7 +13,7 @@ dependencies = [
     # Apprise sender shared with the other apps built on it. Pinned exactly; Dependabot proposes
     # each new release.
     "jigkit[auth,db,notify,passkeys,web]==0.7.0",
-    "fastapi>=0.141,<0.144",
+    "fastapi>=0.141,<0.163",
     "uvicorn[standard]>=0.52",
     "sqlalchemy[asyncio]>=2.0.52",
     "aiosqlite>=0.22",
@@ -25,10 +25,10 @@ dependencies = [
     "pypdfium2>=5.14",
     # Reading bills: the fiscal QR code (zxing-cpp) in pages rendered as images (Pillow).
     "zxing-cpp>=3.1",
-    "pillow>=12.3,<13",
-    "apprise>=2.0,<2.1",
+    "pillow>=12.3,<14",
+    "apprise>=2.0,<2.2",
     # Optional: Claude reads what the local parsers cannot, when an API key is set.
-    "anthropic>=1.13,<1.14",
+    "anthropic>=1.13,<2.4",
     # Time zones for TZ, which the slim base image may not carry.
     "tzdata>=2026.5",
 ]
@@ -42,7 +42,7 @@ test = [
     "httpx>=0.28",
     "hypothesis>=6.140",
     # Synthetic bills and contracts for the tests, in place of real ones with personal details.
-    "reportlab>=5.0,<5.1",
+    "reportlab>=5.0,<5.2",
     "segno>=1.6",
     "ruff>=0.16",
 ]
