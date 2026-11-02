@@ -29,8 +29,6 @@ junit/
 .pytest_cache/
 # Staging directory the coverage publish step assembles (CI only)
 coverage-upload/
-# Shared coverage tooling, fetched on demand by `make coverage`
-.coverage-report.py
 
 # Bruno: a deployment's own environment stays local
 bruno/environments/*

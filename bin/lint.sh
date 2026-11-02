@@ -15,9 +15,9 @@ run() {
 }
 
 run "shellcheck" shellcheck bin/*.sh
-run "ruff" env RUFF=backend/.venv/bin/ruff bin/ci-ruff.sh
+run "ruff" env RUFF=backend/.venv/bin/ruff .devtools/bin/ci-ruff.sh
 run "lockfile registry" bin/check-lockfile.sh
 run "versions agree" python3 bin/version.py check
-run "compose files parse" bin/check-compose.sh
+run "compose files parse" .devtools/bin/check-compose.sh
 
 exit "$status"

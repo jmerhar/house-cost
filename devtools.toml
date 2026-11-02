@@ -1,0 +1,22 @@
+# Shared build tooling from jmerhar/devtools, fetched into .devtools/ by bin/devtools-fetch.sh.
+[fetch]
+ref = "v1"
+files = [
+  "make/devtools.mk",
+  "config/ruff.toml",
+  "bin/ci-ruff.sh",
+  "bin/check-compose.sh",
+  "bin/dev.sh",
+]
+coverage = true
+
+# Each combination of compose files that is run, validated by `make lint` and CI.
+[compose]
+stacks = [
+  ["docker-compose.yml"],
+  ["docker-compose.yml", "docker-compose.build.yml"],
+]
+
+# The stack `make dev` starts with hot reload.
+[dev]
+compose_files = ["docker-compose.yml", "docker-compose.dev.yml"]

@@ -1,9 +1,12 @@
-.PHONY: help app-icons install dev up down logs shell build test test-backend test-frontend test-bruno test-samples \
+.PHONY: app-icons install dev up down logs shell build test test-backend test-frontend test-bruno test-samples \
         coverage lint openapi contract check migrate revision db-shell lockfile release clean
 
-help: ## Show available commands
-	@grep -E '^[a-zA-Z_-]+:.*##|^##@' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*## "}; /^##@/ {printf "\n\033[1m%s\033[0m\n", substr($$0, 5); next} {printf "  \033[36mmake %-16s\033[0m %s\n", $$1, $$2}'
+# help, devtools-update and coverage-tooling come from jmerhar/devtools; make fetches them on the
+# first run and whenever devtools.toml changes.
+.DEFAULT_GOAL := help
+include .devtools/make/devtools.mk
+.devtools/make/devtools.mk: devtools.toml bin/devtools-fetch.sh
+	bin/devtools-fetch.sh
 
 ##@ Setup
 
@@ -18,7 +21,7 @@ install: ## Create the backend virtualenv and install the frontend packages
 ##@ Development
 
 dev: ## Start the stack with hot reload (API on :8000, interface on :5173)
-	bin/dev.sh
+	.devtools/bin/dev.sh
 
 up: ## Build and start the production stack
 	docker compose -f docker-compose.yml -f docker-compose.build.yml up --build -d
@@ -93,5 +96,5 @@ release: ## Cut a release from CHANGELOG.md (usage: make release VERSION=X.Y.Z; 
 clean: ## Remove build and coverage output (all regenerable)
 	rm -rf backend/htmlcov backend/coverage.xml backend/coverage.json backend/.coverage \
 	       backend/junit frontend/coverage frontend/dist frontend/src/paraglide \
-	       coverage-upload .coverage-report.py
+	       coverage-upload
 	find . -name __pycache__ -type d -prune -exec rm -rf {} +

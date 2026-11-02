@@ -161,12 +161,16 @@ jobs:
       - name: Install ruff
         run: pip install ruff
 
+      # The shared scripts and ruff rules from jmerhar/devtools, at the ref devtools.toml pins.
+      - name: Fetch the shared tooling
+        run: bin/devtools-fetch.sh
+
       - name: Ruff
-        run: bin/ci-ruff.sh
+        run: .devtools/bin/ci-ruff.sh
 
       # The runner has Docker, so `config` resolves and validates each combination that is run.
       - name: Compose files parse
-        run: bin/check-compose.sh
+        run: .devtools/bin/check-compose.sh
 
   coverage:
     needs: [test-backend, test-frontend]
