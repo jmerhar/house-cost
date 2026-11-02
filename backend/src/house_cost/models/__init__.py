@@ -1,5 +1,7 @@
 """The database models. Importing this package registers every table on ``Base.metadata``."""
 
+from jigkit.models import Base, TimestampMixin, UtcDateTime, utcnow
+
 from .admin import (
     Adjustment,
     AppSetting,
@@ -9,7 +11,6 @@ from .admin import (
     ReconciliationStatus,
     SentNotification,
 )
-from .base import Base, TimestampMixin, UtcDateTime, utcnow
 from .ledger import (
     WHOLE,
     Attachment,

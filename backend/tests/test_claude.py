@@ -7,6 +7,7 @@ from pathlib import Path
 import httpx2
 import pytest
 from helpers import ok
+from pydantic import ValidationError
 from synthetic import meo_energia_bill, pdf
 from test_api_papers import _upload
 from test_api_reading import read
@@ -358,8 +359,13 @@ class TestSettings:
         assert Settings(anthropic_api_key="", anthropic_api_key_file=secret).claude_key == (
             "sk-from-file"
         )
-        assert Settings(anthropic_api_key_file=empty).claude_key is None
         assert Settings(anthropic_api_key="", anthropic_api_key_file="").claude_key is None
+        # A key file that holds nothing, or a key given both ways, is a mistake to fix, not a
+        # way to turn Claude off.
+        with pytest.raises(ValidationError, match="is empty"):
+            Settings(anthropic_api_key_file=empty)
+        with pytest.raises(ValidationError, match="exclusive"):
+            Settings(anthropic_api_key="sk-direct", anthropic_api_key_file=secret)
 
     def test_a_key_builds_claude(self, data_dir: Path) -> None:
         from house_cost.api.deps import build_services

@@ -47,5 +47,6 @@ USER 1000:1000
 
 EXPOSE 8000
 HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
-    CMD ["python", "-m", "house_cost.healthcheck"]
+    CMD ["python", "-m", "jigkit.healthcheck", "http://127.0.0.1:8000/api/health", \
+         "--expect", "database=connected"]
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

@@ -7,7 +7,7 @@ from sqlalchemy import Integer, MetaData, String, func, select, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from house_cost.config import Settings
-from house_cost.db import create_engine, create_sessionmaker, session_scope, wants_sqlite_pragmas
+from house_cost.db import create_engine, create_sessionmaker, session_scope
 from house_cost.models import TimestampMixin, UtcDateTime
 
 
@@ -45,14 +45,6 @@ async def test_sqlite_runs_with_foreign_keys_and_wal(settings: Settings) -> None
 
     assert foreign_keys == 1
     assert journal == "wal"
-
-
-@pytest.mark.parametrize(
-    ("url", "expected"),
-    [("sqlite+aiosqlite:///x.db", True), ("postgresql+asyncpg://db/house", False)],
-)
-def test_only_sqlite_gets_sqlite_pragmas(url: str, expected: bool) -> None:
-    assert wants_sqlite_pragmas(url) is expected
 
 
 class TestSessionScope:

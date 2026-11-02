@@ -1,49 +1,32 @@
-"""Runtime configuration, read from the environment."""
+"""Runtime configuration, read from the environment.
+
+Built on jigkit's ``AppSettings``, which supplies the data directory, the database URL, the log
+level, ``PUBLIC_URL``, ``COOKIE_SECURE``, ``FORWARDED_ALLOW_IPS``, ``TZ``, the scheduler switch,
+and the rules every app shares: a blank variable means unset, and a secret can be given as
+``X`` or ``X_FILE`` but not both.
+"""
 
 from functools import lru_cache
 from pathlib import Path
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from pydantic import Field, field_validator, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from jigkit.settings import AppSettings
+from pydantic import AliasChoices, Field
 
 
-class Settings(BaseSettings):
+class Settings(AppSettings):
     """Everything the application reads from its environment."""
 
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore", populate_by_name=True)
+    database_filename = "house-cost.db"
 
-    # Where all mutable state lives: the database, uploaded files and backups. One directory means
-    # a deployment has exactly one thing to persist.
-    data_dir: Path = Path("data")
-    database_url: str | None = None
-
-    log_level: str = "INFO"
-
-    # The address people open the app at, behind its reverse proxy (https://costs.example.com).
-    # Writes whose Origin is neither this nor the request's own host are refused.
-    public_url: str | None = None
-    # Forces the session cookie's Secure flag on or off. Unset, it follows the request's scheme,
-    # which uvicorn takes from X-Forwarded-Proto when the proxy is one it trusts.
-    cookie_secure: bool | None = None
-    # The proxies whose X-Forwarded-For and X-Forwarded-Proto are believed, as uvicorn's
-    # forwarded_allow_ips takes them: addresses or networks. Behind Docker's port publishing the
-    # proxy arrives from the bridge gateway, which the compose file adds. Never "*": uvicorn then
-    # believes the leftmost address, which the client wrote itself.
-    forwarded_allow_ips: str = "127.0.0.1"
     login_attempts_per_minute: int = 10
     # The largest file accepted as an attachment.
     max_upload_bytes: int = 20 * 1024 * 1024
 
-    # Where the house is, which decides when the day's backup and reminders are due. Read from TZ,
-    # which the container's clock follows too.
-    timezone: str = Field("UTC", validation_alias="TZ")
     # The daily backup: from what time of day, and how many daily snapshots are kept.
     backup_time: str = Field("03:30", pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
     backups_kept: int = Field(14, ge=1)
-    # The scheduled work runs inside the app; tests turn it off and call it themselves.
-    scheduler_enabled: bool = True
-    scheduler_tick_seconds: int = 600
+    # The scheduled work runs inside the app every ten minutes; tests turn it off and call it.
+    scheduler_tick_seconds: int = Field(600, ge=1)
 
     # How notifications are sent, by Apprise URLs without a recipient: a person's email address
     # is added to the mail URL as its "to", their phone number to the Signal URL's path. A
@@ -54,72 +37,20 @@ class Settings(BaseSettings):
     phone_country_code: str = Field("351", pattern=r"^\d{1,3}$")
 
     # Claude, for reading bills no parser knows, contracts' terms and questions about documents.
-    # Off without a key; the key can also be read from a file, such as a Docker secret.
+    # Off without a key; the key can instead be read from a file, such as a Docker secret.
     anthropic_api_key: str | None = None
     anthropic_api_key_file: Path | None = None
     claude_model: str = "claude-opus-5-5"
 
     # The commit the image was built from, which the Dockerfile records; unset outside an image.
-    revision: str | None = Field(None, validation_alias="HOUSE_COST_REVISION")
-
-    # Where the built single-page app is served from. Absent, the API runs on its own, which is
-    # how the dev stack works (Vite serves the app and proxies /api).
-    static_dir: Path | None = None
-
-    @field_validator("cookie_secure", mode="before")
-    @classmethod
-    def _blank_flag_is_unset(cls, value: object) -> object:
-        """An empty ``COOKIE_SECURE``, as compose passes an unset one, means "follow the scheme"."""
-        return None if isinstance(value, str) and not value.strip() else value
-
-    @field_validator("timezone")
-    @classmethod
-    def _known_zone(cls, value: str) -> str:
-        """A time zone the scheduler can use, so a typo stops the app at startup."""
-        try:
-            ZoneInfo(value)
-        except (ZoneInfoNotFoundError, ValueError) as error:
-            raise ValueError(f"unknown time zone {value!r}") from error
-        return value
-
-    @model_validator(mode="after")
-    def _blank_means_unset(self) -> Settings:
-        """Treat an empty value as absent.
-
-        Compose writes ``VAR: ${VAR:-}`` for an optional setting, so an unset variable arrives as
-        an empty string. Left alone, an empty ``static_dir`` becomes ``Path(".")``, a real
-        directory, and the application would serve its own working directory as the interface.
-        """
-        for field in (
-            "static_dir",
-            "database_url",
-            "public_url",
-            "anthropic_api_key",
-            "anthropic_api_key_file",
-            "notify_email_url",
-            "notify_signal_url",
-            "revision",
-        ):
-            value = getattr(self, field)
-            if value is not None and str(value).strip() in ("", "."):
-                object.__setattr__(self, field, None)
-        return self
-
-    @property
-    def resolved_database_url(self) -> str:
-        """The database URL, defaulting to a SQLite file inside the data directory."""
-        if self.database_url:
-            return self.database_url
-        return f"sqlite+aiosqlite:///{self.data_dir / 'house-cost.db'}"
+    revision: str | None = Field(
+        None, validation_alias=AliasChoices("HOUSE_COST_REVISION", "revision")
+    )
 
     @property
     def claude_key(self) -> str | None:
-        """The Anthropic API key, from the variable or else the file; nothing turns Claude off."""
-        if self.anthropic_api_key:
-            return self.anthropic_api_key.strip()
-        if self.anthropic_api_key_file:
-            return self.anthropic_api_key_file.read_text().strip() or None
-        return None
+        """The Anthropic API key, from the variable or its file (jigkit reads the file)."""
+        return self.anthropic_api_key.strip() if self.anthropic_api_key else None
 
     @property
     def backups_dir(self) -> Path:

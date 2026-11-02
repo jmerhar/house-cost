@@ -4,10 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from alembic.autogenerate import compare_metadata
-from alembic.config import Config
-from alembic.migration import MigrationContext
-from alembic.script import ScriptDirectory
+from jigkit.testing.migrations import MigrationProject
 from sqlalchemy import create_engine
 
 from house_cost.models import Base
@@ -15,41 +12,35 @@ from house_cost.models import Base
 BACKEND = Path(__file__).resolve().parents[1]
 
 
+#: The backend, with its alembic.ini, as jigkit's migration checks run it.
+PROJECT = MigrationProject(BACKEND, database_filename="house-cost.db")
+
+
 def test_the_migrations_produce_exactly_the_schema_the_models_describe(data_dir: Path) -> None:
     # The other tests build their schema with create_all, so nothing else would notice a model
-    # change that never got a migration. Run as `alembic upgrade head` in a subprocess, exactly
-    # as the container's entrypoint does, through the application's own env.py and settings.
-    database = data_dir / "house-cost.db"
-    subprocess.run(
-        [sys.executable, "-m", "alembic", "upgrade", "head"],
-        cwd=BACKEND,
-        env={"DATA_DIR": str(data_dir), "PATH": ""},
-        check=True,
-        capture_output=True,
-    )
-    engine = create_engine(f"sqlite:///{database}")
-    try:
-        with engine.connect() as connection:
-            context = MigrationContext.configure(
-                connection, opts={"compare_type": True, "render_as_batch": True}
-            )
-            differences = compare_metadata(context, Base.metadata)
-    finally:
-        engine.dispose()
-
-    assert differences == [], (
-        "the models and the migrations disagree; generate a migration with "
-        "`make revision m='what changed'`"
-    )
+    # change that never got a migration. Fix a failure with `make revision m='what changed'`.
+    PROJECT.assert_models_match(Base.metadata, data_dir)
 
 
 def test_there_is_exactly_one_head() -> None:
-    # Two heads means two migrations claim the same parent, and `upgrade head` fails on a
-    # deployment rather than in CI.
-    config = Config(str(BACKEND / "alembic.ini"))
-    config.set_main_option("script_location", str(BACKEND / "alembic"))
+    PROJECT.assert_single_head()
 
-    assert len(ScriptDirectory.from_config(config).get_heads()) == 1
+
+def test_rebuilding_any_table_keeps_the_rows_pointing_at_it(data_dir: Path, tmp_path: Path) -> None:
+    # Every table something points at is rebuilt by a throwaway migration over one synthetic row
+    # in every table; ON DELETE rules firing during the rebuild would lose rows.
+    PROJECT.assert_parent_rebuilds_keep_children(
+        Base.metadata,
+        data_dir,
+        tmp_path,
+        # A settlement is between two different households, and an attachment belongs to a bill
+        # or a settlement but not both: one attachment of each, so both parents are checked.
+        extra_rows={
+            "household": [{"id": 2, "name": "second", "position": 1}],
+            "attachment": [{"id": 2, "bill_id": None, "settlement_id": 1}],
+        },
+        overrides={"settlement": {"to_id": 2}, "attachment": {"settlement_id": None}},
+    )
 
 
 def test_upgrading_a_database_with_data_keeps_all_of_it(data_dir: Path) -> None:

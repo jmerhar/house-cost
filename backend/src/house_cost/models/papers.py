@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
+from jigkit.models import Base, TimestampMixin, UtcDateTime, utcnow
 from sqlalchemy import JSON, Boolean, Date, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from .base import Base, TimestampMixin, UtcDateTime, utcnow
 
 
 class Supplier(TimestampMixin, Base):

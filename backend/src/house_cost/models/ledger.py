@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
+from jigkit.models import Base, TimestampMixin, UtcDateTime, utcnow
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
@@ -21,7 +22,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base import Base, TimestampMixin, UtcDateTime, utcnow
 from .people import Household
 
 #: The basis points a whole split adds up to.

@@ -8,7 +8,7 @@ from house_cost.config import Settings, get_settings
 
 
 class TestBlankMeansUnset:
-    @pytest.mark.parametrize("value", ["", " ", "."])
+    @pytest.mark.parametrize("value", ["", " "])
     def test_a_blank_static_dir_serves_no_frontend(self, value: str) -> None:
         # Compose passes an unset optional variable as an empty string; Path("") is ".", a real
         # directory the app would otherwise try to serve.
