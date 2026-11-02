@@ -35,8 +35,11 @@ updates:
     directory: "/backend"
     schedule:
       interval: "weekly"
+    # jigkit, released from the same hands, is taken at once.
     cooldown:
       default-days: 3
+      exclude:
+        - "jigkit"
     groups:
       backend:
         patterns:
