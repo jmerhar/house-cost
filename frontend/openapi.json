@@ -1068,7 +1068,7 @@
         "type": "object"
       },
       "Health": {
-        "description": "The application's state as the health check sees it.",
+        "description": "The application's state as the health probe sees it.",
         "properties": {
           "database": {
             "title": "Database",
@@ -4956,7 +4956,7 @@
     },
     "/api/health": {
       "get": {
-        "description": "Report that the process is up and its database answers.\n\nUnauthenticated, and it queries the database rather than returning a constant: a container\nthat answers while its database cannot be opened is not healthy.",
+        "description": "Report that the process is up and its database answers.",
         "operationId": "health_api_health_get",
         "responses": {
           "200": {
@@ -4968,6 +4968,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         },
         "summary": "Health",

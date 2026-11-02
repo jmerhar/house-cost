@@ -575,9 +575,6 @@ export interface paths {
         /**
          * Health
          * @description Report that the process is up and its database answers.
-         *
-         *     Unauthenticated, and it queries the database rather than returning a constant: a container
-         *     that answers while its database cannot be opened is not healthy.
          */
         get: operations["health_api_health_get"];
         put?: never;
@@ -1446,7 +1443,7 @@ export interface components {
         };
         /**
          * Health
-         * @description The application's state as the health check sees it.
+         * @description The application's state as the health probe sees it.
          */
         Health: {
             /** Database */
@@ -3338,6 +3335,15 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Health"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
