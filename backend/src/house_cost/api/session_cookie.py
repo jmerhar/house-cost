@@ -1,6 +1,7 @@
 """Setting and clearing the session cookie, and describing the person it logs in."""
 
 from fastapi import Request, Response
+from jigkit.auth import clear_session_cookie, cookie_secure, issue_session_cookie
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..audit import get_setting
@@ -14,33 +15,24 @@ from .schemas import Me
 
 def is_secure(request: Request, settings: Settings) -> bool:
     """Whether the cookie gets the Secure flag: as configured, else when the request is HTTPS."""
-    if settings.cookie_secure is not None:
-        return settings.cookie_secure
-    return request.url.scheme == "https"
+    return cookie_secure(request, settings.cookie_secure)
 
 
 def issue(response: Response, request: Request, settings: Settings, token: str) -> None:
-    """Put a session token in the browser.
-
-    HttpOnly, so no script can read it; SameSite=Lax, so a page elsewhere cannot send it with a
-    write, while a link to the app from an email still arrives logged in.
-    """
-    response.set_cookie(
-        SESSION_COOKIE,
-        token,
-        max_age=int(SESSION_LIFETIME.total_seconds()),
-        httponly=True,
-        samesite="lax",
-        secure=is_secure(request, settings),
-        path="/",
+    """Put a session token in the browser: HttpOnly, SameSite=Lax, for the session's lifetime."""
+    issue_session_cookie(
+        response,
+        request,
+        name=SESSION_COOKIE,
+        token=token,
+        max_age_seconds=int(SESSION_LIFETIME.total_seconds()),
+        secure=settings.cookie_secure,
     )
 
 
 def clear(response: Response, request: Request, settings: Settings) -> None:
     """Remove the session token from the browser."""
-    response.delete_cookie(
-        SESSION_COOKIE, httponly=True, samesite="lax", secure=is_secure(request, settings), path="/"
-    )
+    clear_session_cookie(response, request, name=SESSION_COOKIE, secure=settings.cookie_secure)
 
 
 async def describe(

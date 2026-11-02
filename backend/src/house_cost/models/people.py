@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import StrEnum
 
+from jigkit.auth.sessions import SessionMixin
 from jigkit.models import Base, TimestampMixin, UtcDateTime, utcnow
 from sqlalchemy import JSON, Boolean, ForeignKey, Integer, LargeBinary, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -71,18 +72,12 @@ class Person(TimestampMixin, Base):
         return self.role == Role.ADMIN
 
 
-class Session(Base):
+class Session(SessionMixin, Base):
     """A browser's login. Only a hash of its token is kept, so the table cannot be replayed."""
 
     __tablename__ = "session"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     person_id: Mapped[int] = mapped_column(ForeignKey("person.id", ondelete="CASCADE"))
-    created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
-    last_seen_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
-    expires_at: Mapped[datetime] = mapped_column(UtcDateTime)
-    user_agent: Mapped[str] = mapped_column(String(300), default="")
 
     person: Mapped[Person] = relationship(lazy="joined")
 
