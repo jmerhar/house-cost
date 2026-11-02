@@ -7,9 +7,10 @@ from pathlib import Path
 import httpx
 import pytest
 from helpers import PASSWORD, ok
+from jigkit.web import IMMUTABLE
 
 from house_cost import __version__
-from house_cost.api.app import IMMUTABLE, create_app
+from house_cost.api.app import create_app
 from house_cost.config import Settings
 from house_cost.models import Base
 
@@ -129,6 +130,15 @@ class TestServingTheFrontend:
         response = await web_client.get(path)
 
         assert "not for the web" not in response.text
+
+
+async def test_every_answer_carries_the_security_headers(client: httpx.AsyncClient) -> None:
+    # Never sniffed into another type, never framed by another site.
+    response = await client.get("/api/health")
+
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["x-frame-options"] == "DENY"
+    assert response.headers["referrer-policy"] == "same-origin"
 
 
 async def test_a_build_without_assets_still_serves_its_shell(data_dir: Path) -> None:

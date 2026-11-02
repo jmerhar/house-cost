@@ -17,9 +17,10 @@ from pathlib import Path
 
 import httpx
 import uvicorn
+from jigkit.web import WRITE_HEADER
 
 from house_cost.api.app import create_app
-from house_cost.auth import WRITE_HEADER, WRITE_HEADER_VALUE
+from house_cost.auth import WRITE_HEADER_VALUE
 from house_cost.config import Settings
 
 BACKEND = Path(__file__).resolve().parents[1]

@@ -5,7 +5,6 @@ import secrets
 import time
 from collections import defaultdict, deque
 from datetime import datetime, timedelta
-from urllib.parse import urlsplit
 
 from argon2 import PasswordHasher
 from argon2.exceptions import Argon2Error, InvalidHashError
@@ -21,9 +20,9 @@ SESSION_LIFETIME = timedelta(days=90)
 #: How stale a session's expiry may grow before a request writes a new one, so an active browser
 #: does not cost a write on every request.
 SESSION_REFRESH = timedelta(days=1)
-#: The header every write must carry. A browser will not send a custom header across origins
-#: without a CORS preflight, which this app never grants, so a page elsewhere cannot forge it.
-WRITE_HEADER = "X-Requested-With"
+#: The value of the X-Requested-With header every write must carry (jigkit's write guard). A
+#: browser will not send a custom header across origins without a CORS preflight, which this app
+#: never grants, so a page elsewhere cannot forge it.
 WRITE_HEADER_VALUE = "house-cost"
 
 _hasher = PasswordHasher()
@@ -135,24 +134,3 @@ class LoginThrottle:
     def succeeded(self, address: str) -> None:
         """Forget ``address``'s failures after it logs in."""
         self._failures.pop(address, None)
-
-
-def origin_allowed(origin: str | None, host: str | None, public_url: str | None) -> bool:
-    """Whether a write's Origin header is this app's own.
-
-    No Origin at all is allowed: browsers send one on every cross-origin write, so its absence
-    means a same-origin request or a client that is not a browser, and the custom write header
-    still has to be there. Otherwise the origin must be the configured public URL's, or name the
-    host the request was sent to.
-    """
-    if origin is None:
-        return True
-    if origin == "null":
-        return False
-    allowed = set()
-    if public_url:
-        parts = urlsplit(public_url)
-        allowed.add(f"{parts.scheme}://{parts.netloc}".lower())
-    if host:
-        allowed.update({f"http://{host}".lower(), f"https://{host}".lower()})
-    return origin.lower() in allowed

@@ -13,9 +13,10 @@ import httpx
 import pytest
 from fastapi import FastAPI
 from helpers import PASSWORD, Agreement, ok
+from jigkit.web import WRITE_HEADER
 
 from house_cost.api.app import create_app
-from house_cost.auth import WRITE_HEADER, WRITE_HEADER_VALUE
+from house_cost.auth import WRITE_HEADER_VALUE
 from house_cost.config import Settings
 from house_cost.models import Base
 

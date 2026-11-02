@@ -4,13 +4,12 @@ People give an email address and a phone number; the deployment configures how e
 sent (``NOTIFY_EMAIL_URL``, ``NOTIFY_SIGNAL_URL``), and the two make a person's Apprise URLs.
 """
 
-import asyncio
 import logging
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from typing import Protocol
 from urllib.parse import quote, urlsplit, urlunsplit
 
+from jigkit.notify import Sender
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import Person, SentNotification
@@ -20,32 +19,6 @@ logger = logging.getLogger(__name__)
 
 #: The kinds of notification a person can turn off, by the name their preferences use.
 EVENTS = ("new_bill", "price_change", "contract", "missing_bill")
-
-
-class Sender(Protocol):
-    """Delivers one message to a set of Apprise URLs; returns whether any delivery succeeded."""
-
-    async def send(self, urls: list[str], title: str, body: str) -> bool: ...
-
-
-class AppriseSender:
-    """Delivers through the Apprise library, off the event loop since Apprise blocks."""
-
-    async def send(self, urls: list[str], title: str, body: str) -> bool:
-        return await asyncio.to_thread(self._send, urls, title, body)
-
-    @staticmethod
-    def _send(urls: list[str], title: str, body: str) -> bool:
-        import apprise
-
-        notifier = apprise.Apprise()
-        for url in urls:
-            if not notifier.add(url):
-                # Logged without the URL, which can carry a password or a token.
-                logger.warning("an Apprise URL was not recognised and is skipped")
-        if not len(notifier):
-            return False
-        return bool(notifier.notify(body=body, title=title))
 
 
 def with_recipient(url: str, email: str) -> str:

@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request, status
+from jigkit.notify import AppriseSender
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from ..auth import LoginThrottle, find_session
@@ -13,7 +14,7 @@ from ..claude import Claude
 from ..config import Settings
 from ..db import create_engine, create_sessionmaker, session_scope
 from ..models import Person, Session
-from ..notify import AppriseSender, Notifier
+from ..notify import Notifier
 from ..passkeys import Ceremonies
 from ..scheduler import Scheduler
 

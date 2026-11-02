@@ -1,12 +1,10 @@
 """The work the app does on its own: a daily copy of the database, and the daily reminders."""
 
-import asyncio
-import contextlib
 import logging
 from datetime import datetime, time
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
+from jigkit.scheduler import TickLoop
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from .config import Settings
@@ -19,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 def local_now(settings: Settings) -> datetime:
     """The time where the house is, which decides when the day's work is due."""
-    return datetime.now(ZoneInfo(settings.timezone))
+    return datetime.now(settings.zone)
 
 
 async def back_up(engine: AsyncEngine, directory: Path, today: str, keep: int) -> Path | None:
@@ -47,7 +45,7 @@ async def back_up(engine: AsyncEngine, directory: Path, today: str, keep: int) -
 
 
 class Scheduler:
-    """Runs ``tick`` every few minutes for as long as the app runs."""
+    """Runs ``tick`` every few minutes for as long as the app runs, on jigkit's tick loop."""
 
     def __init__(
         self,
@@ -60,8 +58,14 @@ class Scheduler:
         self.engine = engine
         self.sessionmaker = sessionmaker
         self.notifier = notifier
-        self._task: asyncio.Task | None = None
         self._last_reminded: str | None = None
+        # Looked up on each tick rather than bound now, so a test can replace ``tick``.
+        self._loop = TickLoop(
+            lambda: self.tick(),
+            settings.scheduler_tick_seconds,
+            enabled=settings.scheduler_enabled,
+            name="scheduler",
+        )
 
     async def tick(self, now: datetime | None = None) -> None:
         """Do whatever is due: the day's backup once its time has come, and the day's reminders
@@ -77,24 +81,15 @@ class Scheduler:
                 await missing_bills(db, self.notifier, now.date())
             self._last_reminded = today
 
-    async def _loop(self) -> None:
-        while True:
-            try:
-                await self.tick()
-            except Exception:  # noqa: BLE001 - the next tick tries again
-                logger.exception("scheduled work failed")
-            await asyncio.sleep(self.settings.scheduler_tick_seconds)
+    @property
+    def running(self) -> bool:
+        """Whether the loop is ticking."""
+        return self._loop.running
 
     def start(self) -> None:
         """Start the loop, when the settings allow it."""
-        if self.settings.scheduler_enabled and self._task is None:
-            self._task = asyncio.create_task(self._loop(), name="scheduler")
+        self._loop.start()
 
     async def stop(self) -> None:
         """Stop the loop and wait for it to end."""
-        if self._task is None:
-            return
-        self._task.cancel()
-        with contextlib.suppress(asyncio.CancelledError):
-            await self._task
-        self._task = None
+        await self._loop.stop()

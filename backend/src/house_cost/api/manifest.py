@@ -3,7 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Header, Response
-from fastapi.responses import JSONResponse
+from jigkit.web import manifest_response, preferred_language, web_manifest
 
 from ..audit import get_setting
 from .deps import DbDep
@@ -21,54 +21,20 @@ THEME = "#2f6f5e"
 
 
 def language(accept_language: str | None) -> str:
-    """The interface's language that the browser prefers: Portuguese if it asks for any, else
-    English."""
-    for part in (accept_language or "").split(","):
-        tag = part.split(";")[0].strip().lower()
-        if tag == "pt" or tag.startswith("pt-"):
-            return "pt-PT"
-        if tag == "en" or tag.startswith("en-"):
-            return "en"
-    return "en"
+    """The interface's language the browser prefers: Portuguese if it asks for any, else English."""
+    return preferred_language(accept_language, WORDS, "en")
 
 
 def manifest(lang: str, title: str = "") -> dict[str, object]:
     """The manifest, its words in ``lang``, and named ``title`` when the app has one set."""
     name, description = WORDS[lang]
-    name = title or name
-    icon = "/icons/icon-{size}.png"
-    return {
-        "name": name,
-        "short_name": name,
-        "description": description,
-        "lang": lang,
-        "start_url": "/",
-        "scope": "/",
-        "display": "standalone",
-        "background_color": BACKGROUND,
-        "theme_color": THEME,
-        "icons": [
-            {
-                "src": icon.format(size=192),
-                "sizes": "192x192",
-                "type": "image/png",
-                "purpose": "any",
-            },
-            {
-                "src": icon.format(size=512),
-                "sizes": "512x512",
-                "type": "image/png",
-                "purpose": "any",
-            },
-            # The same drawing: it keeps to the centre, so a launcher's crop leaves it whole.
-            {
-                "src": icon.format(size=512),
-                "sizes": "512x512",
-                "type": "image/png",
-                "purpose": "maskable",
-            },
-        ],
-    }
+    return web_manifest(
+        name=title or name,
+        description=description,
+        lang=lang,
+        background_color=BACKGROUND,
+        theme_color=THEME,
+    )
 
 
 @router.get("/manifest.webmanifest", include_in_schema=False)
@@ -78,14 +44,4 @@ async def get_manifest(
     """The manifest, in the browser's language, since the browser fetches it itself and sends no
     session or account language with it."""
     lang = language(accept_language)
-    return JSONResponse(
-        manifest(lang, await get_setting(db, "site_title")),
-        media_type="application/manifest+json",
-        headers={
-            # Checked on every load: an admin can rename the app, and a cached copy would put the
-            # old name on a phone's home screen.
-            "Cache-Control": "no-cache",
-            "Content-Language": lang,
-            "Vary": "Accept-Language",
-        },
-    )
+    return manifest_response(manifest(lang, await get_setting(db, "site_title")))

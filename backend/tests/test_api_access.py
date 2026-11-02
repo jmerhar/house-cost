@@ -6,9 +6,10 @@ import httpx
 import pytest
 from fastapi import FastAPI
 from helpers import PASSWORD, ok
+from jigkit.web import WRITE_HEADER
 
 from house_cost.api.deps import SESSION_COOKIE
-from house_cost.auth import WRITE_HEADER, WRITE_HEADER_VALUE
+from house_cost.auth import WRITE_HEADER_VALUE
 from house_cost.config import Settings
 
 #: The only routes open without a session.

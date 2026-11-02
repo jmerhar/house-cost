@@ -12,7 +12,6 @@ from house_cost.auth import (
     find_session,
     hash_password,
     open_session,
-    origin_allowed,
     verify_password,
 )
 from house_cost.db import session_scope
@@ -55,25 +54,6 @@ class TestThrottle:
         throttle.succeeded("a")
 
         assert not throttle.blocked("a")
-
-
-class TestOrigin:
-    @pytest.mark.parametrize(
-        ("origin", "host", "public_url", "allowed"),
-        [
-            (None, "x.test", None, True),
-            ("https://x.test", "x.test", None, True),
-            ("http://x.test", "x.test", None, True),
-            ("https://evil.test", "x.test", None, False),
-            ("null", "x.test", None, False),
-            ("https://costs.example.com", "127.0.0.1:18091", "https://costs.example.com/", True),
-            ("https://COSTS.example.com", "127.0.0.1:18091", "https://costs.example.com", True),
-            ("https://evil.test", "127.0.0.1:18091", "https://costs.example.com", False),
-            ("https://x.test", None, None, False),
-        ],
-    )
-    def test_only_the_apps_own_origin_may_write(self, origin, host, public_url, allowed) -> None:
-        assert origin_allowed(origin, host, public_url) is allowed
 
 
 class TestSessions:

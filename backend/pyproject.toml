@@ -9,9 +9,10 @@ description = "Track a shared house's running costs and split them between house
 requires-python = ">=3.14"
 license = "GPL-3.0-or-later"
 dependencies = [
-    # Settings, the database, migrations and the health probe shared with the other apps built on
-    # it. Pinned exactly; Dependabot proposes each new release.
-    "jigkit[db]==0.4.0",
+    # Settings, database, migrations, logging, the web building blocks, the scheduler and the
+    # Apprise sender shared with the other apps built on it. Pinned exactly; Dependabot proposes
+    # each new release.
+    "jigkit[db,notify,web]==0.4.0",
     "fastapi>=0.141,<0.144",
     "uvicorn[standard]>=0.52",
     "sqlalchemy[asyncio]>=2.0.52",

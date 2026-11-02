@@ -10,9 +10,9 @@ FastAPI backend over SQLite that also serves a Svelte interface.
 
 ```
 backend/src/house_cost/
-  config.py        settings from the environment (pydantic-settings)
-  db.py            async engine with SQLite's pragmas, the session factory, session_scope
-  models/          base.py (Base, UtcDateTime, naming convention), people.py (households,
+  config.py        settings from the environment, on jigkit's AppSettings (X or X_FILE, never both)
+  db.py            jigkit's engine, session factory and session_scope for these settings
+  models/          on jigkit's Base, UtcDateTime and TimestampMixin; people.py (households,
                    people, sessions), ledger.py (categories, rules, bills, lines, shares,
                    settlements, attachments), admin.py (audit log, settings, reconciliation),
                    papers.py (suppliers, services, library documents)
@@ -21,16 +21,16 @@ backend/src/house_cost/
   bills.py         set_lines (splitting a bill's lines, keeping unchanged ones), locked periods
   balances.py      each household's balance, and settle(): the transfers that clear them
   reconciliation.py  a period's bills split again by reconciled shares
-  auth.py          argon2 passwords, server-side sessions, the login throttle, the origin check
+  auth.py          argon2 passwords, server-side sessions, the login throttle, the write header
   passkeys.py      the relying party for a request, and WebAuthn challenges waiting for answers
   audit.py         record() for the audit log; the app's settings and their defaults
   notify/          Notifier: the channels the deployment configures (NOTIFY_EMAIL_URL,
                    NOTIFY_SIGNAL_URL) made into each person's Apprise URLs, and send_to;
-                   AppriseSender delivers, behind the Sender protocol; once(); messages.py is the
-                   catalogue in each language; events.py decides who hears of a new bill, a
-                   price change, a contract ending or a missing bill
+                   jigkit's AppriseSender delivers, behind its Sender protocol; once();
+                   messages.py is the catalogue in each language; events.py decides who hears
+                   of a new bill, a price change, a contract ending or a missing bill
   contacts.py      checking an email address, and a phone number into international form
-  scheduler.py     the in-process loop: the daily VACUUM INTO backup and the daily reminders,
+  scheduler.py     the daily VACUUM INTO backup and the daily reminders on jigkit's TickLoop,
                    each tick() testable with a given time
   claude.py        the optional Claude client: read_bill, read_terms, ask; the schemas its
                    answers are parsed into, and turning its dates and euros into values
@@ -41,16 +41,16 @@ backend/src/house_cost/
                    dates as Portuguese bills write them), parsers.py (one per supplier NIF, and
                    a generic one), pipeline.py (all of it, with where each value came from)
   api/
-    app.py         create_app: routers under /api, the write guard, the interface and its SPA
-                   fallback
+    app.py         create_app: routers under /api, and jigkit's health route, write guard,
+                   security headers and SPA serving
     deps.py        Services (built once per process) and the request dependencies
     schemas.py     every request and response model; the interface's types come from these
     session_cookie.py  issuing and clearing the session cookie, and describing the person
-    manifest.py    /manifest.webmanifest, in the browser's language, for adding to a home screen
+    manifest.py    /manifest.webmanifest, in the browser's language, built with jigkit.web
     routers/       one module per resource
-  healthcheck.py   `python -m house_cost.healthcheck`, the image's HEALTHCHECK
-  __main__.py      `python -m house_cost [--reload]`
-backend/alembic/   migrations; bin/entrypoint.sh runs them before the app starts
+  __main__.py      `python -m house_cost [--reload]`, through jigkit's serve
+backend/alembic/   migrations, run by jigkit's environment; bin/entrypoint.sh runs them before
+                   the app starts. The image's HEALTHCHECK is `python -m jigkit.healthcheck`
 backend/tests/     pytest; fixture_server.py serves the real app for the Bruno collection,
                    softauthn.py is a software authenticator for the passkey ceremonies,
                    synthetic.py makes the PDFs tests read, in place of real bills,

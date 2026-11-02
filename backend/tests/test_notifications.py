@@ -1,10 +1,7 @@
 """Notifications: who gets which, in which language, sent once; and the scheduled work."""
 
 import asyncio
-import json
-import threading
 from datetime import date, datetime
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -15,7 +12,7 @@ from sqlalchemy import select
 from house_cost.config import Settings
 from house_cost.db import session_scope
 from house_cost.models import SentNotification
-from house_cost.notify import AppriseSender, Notifier, with_recipient, with_target
+from house_cost.notify import Notifier, with_recipient, with_target
 from house_cost.notify.events import bill_added, contract_reminders, missing_bills
 from house_cost.notify.messages import (
     CATALOGUE,
@@ -573,50 +570,17 @@ class TestScheduler:
         await scheduler.stop()
 
         assert len(ticks) >= 2
-        assert "scheduled work failed" in caplog.text
+        assert "scheduler tick failed" in caplog.text
 
     async def test_a_disabled_scheduler_does_not_start(self, app, recorder) -> None:
         scheduler = self._scheduler(app, recorder)
         scheduler.start()
-        assert scheduler._task is None
+        assert not scheduler.running
 
     async def test_the_real_clock_is_where_the_house_is(self, app, recorder) -> None:
         scheduler = self._scheduler(app, recorder, timezone="Europe/Lisbon", backup_time="23:59")
         await scheduler.tick()
         assert scheduler._last_reminded is not None
-
-
-class TestAppriseSender:
-    def test_delivers_to_a_url_and_skips_one_it_cannot_read(self, caplog) -> None:
-        received: list[dict] = []
-
-        class Handler(BaseHTTPRequestHandler):
-            def do_POST(self) -> None:  # noqa: N802 - the name http.server dispatches to
-                received.append(json.loads(self.rfile.read(int(self.headers["Content-Length"]))))
-                self.send_response(200)
-                self.end_headers()
-
-            def log_message(self, *args: object) -> None:
-                pass
-
-        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
-        threading.Thread(target=server.serve_forever, daemon=True).start()
-        try:
-            sent = asyncio.run(
-                AppriseSender().send(
-                    [f"json://127.0.0.1:{server.server_port}", "not a url"], "Title", "Body"
-                )
-            )
-        finally:
-            server.shutdown()
-            server.server_close()
-
-        assert sent is True
-        assert (received[0]["title"], received[0]["message"]) == ("Title", "Body")
-        assert "not recognised" in caplog.text and "not a url" not in caplog.text
-
-    def test_nothing_it_can_read_sends_nothing(self) -> None:
-        assert asyncio.run(AppriseSender().send(["not a url"], "T", "B")) is False
 
 
 class TestNotifier:
