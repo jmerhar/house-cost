@@ -9,7 +9,7 @@
   import { errorMessage } from "../lib/errors";
   import { moment } from "../lib/format";
   import { LANGUAGE_NAMES, chooseLanguage } from "../lib/language";
-  import { deviceName, dismissed } from "../lib/passkeys";
+  import { PasskeyList } from "@jmerhar/jigkit/auth/svelte";
   import { m } from "../paraglide/messages.js";
   import { locales, type Locale } from "../paraglide/runtime.js";
 
@@ -69,30 +69,6 @@
     loadSessions();
     loadPasskeys();
   });
-
-  async function addPasskey(): Promise<void> {
-    error = "";
-    notice = "";
-    try {
-      const options = await app.api.passkeyOptions();
-      const credential = await app.authenticator.register(options);
-      const label = prompt(m.passkey_label(), deviceName())?.trim() || deviceName();
-      passkeys = [...passkeys, await app.api.addPasskey(label, credential)];
-      notice = m.passkey_added();
-    } catch (failure) {
-      if (!dismissed(failure)) error = errorMessage(failure);
-    }
-  }
-
-  async function removePasskey(passkey: Passkey): Promise<void> {
-    if (!confirm(m.confirm_remove_passkey())) return;
-    try {
-      await app.api.removePasskey(passkey.id);
-      passkeys = passkeys.filter((other) => other.id !== passkey.id);
-    } catch (failure) {
-      error = errorMessage(failure);
-    }
-  }
 
   async function save(event: SubmitEvent): Promise<void> {
     event.preventDefault();
@@ -231,24 +207,27 @@
 
 <h2>{m.passkeys_title()}</h2>
 <p class="muted">{m.passkeys_intro()}</p>
-<ul class="list">
-  {#each passkeys as passkey (passkey.id)}
-    <li>
-      <span class="what">
-        <strong>{passkey.label}</strong>
-        <small>
-          {passkey.last_used_at ? m.session_last_seen({ when: moment(passkey.last_used_at) }) : m.passkey_unused()}
-        </small>
-      </span>
-      <button type="button" class="link" onclick={() => removePasskey(passkey)}><Trash2 />{m.passkey_remove()}</button>
-    </li>
-  {:else}
-    <li class="muted">{m.passkeys_empty()}</li>
-  {/each}
-</ul>
-{#if app.authenticator.supported()}
-  <button type="button" class="secondary" onclick={addPasskey}><FingerprintPattern />{m.passkey_add()}</button>
-{/if}
+<PasskeyList
+  bind:passkeys
+  labels={{
+    empty: m.passkeys_empty(),
+    add: m.passkey_add(),
+    remove: m.passkey_remove(),
+    added: m.passkey_added(),
+    unused: m.passkey_unused(),
+    lastUsed: (when) => m.session_last_seen({ when }),
+    labelPrompt: m.passkey_label(),
+    confirmRemove: m.confirm_remove_passkey(),
+  }}
+  registration={{ options: () => app.api.passkeyOptions(), add: (label, credential) => app.api.addPasskey(label, credential) }}
+  remove={(passkey) => app.api.removePasskey(passkey.id)}
+  formatWhen={moment}
+  {errorMessage}
+  authenticator={app.authenticator}
+>
+  {#snippet addIcon()}<FingerprintPattern />{/snippet}
+  {#snippet removeIcon()}<Trash2 />{/snippet}
+</PasskeyList>
 
 <h2>{m.sessions_title()}</h2>
 <ul class="list">
