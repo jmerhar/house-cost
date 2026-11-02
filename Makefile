@@ -50,7 +50,7 @@ test-frontend: ## Type-check the interface and run its suite
 	bin/test-frontend.sh $(ARGS)
 
 test-bruno: ## Run the Bruno collection against the real API
-	bin/test-bruno.sh
+	.devtools/bin/test-bruno.sh
 
 test-samples: ## Read the real bills in samples/ (kept out of git) and check what they give
 	SAMPLES_DIR="$(CURDIR)/samples" bin/test-backend.sh tests/test_extraction.py -k real_samples -v
@@ -59,10 +59,10 @@ coverage: ## Run both suites with coverage and print the combined summary
 	bin/coverage.sh --format md
 
 lint: ## ShellCheck, ruff, lockfile, versions, compose files
-	bin/lint.sh
+	.devtools/bin/lint.sh
 
 openapi: ## Re-export the API schema and regenerate the interface's types
-	bin/openapi.sh
+	.devtools/bin/openapi.sh
 
 contract: openapi ## Check the committed schema and generated types are up to date
 	@git diff --exit-code frontend/openapi.json frontend/src/lib/api-types.ts \
@@ -85,13 +85,13 @@ db-shell: ## Open a SQLite shell on the development database
 ##@ Release
 
 app-icons: ## Render the home-screen icons from frontend/icons/app-icon.svg (needs rsvg-convert)
-	bin/app-icons.sh
+	.devtools/bin/app-icons.sh
 
 lockfile: ## Regenerate package-lock.json (Linux binaries, public registry URLs)
-	bin/lockfile.sh
+	.devtools/bin/lockfile.sh
 
 release: ## Cut a release from CHANGELOG.md (usage: make release VERSION=X.Y.Z; then push both)
-	bin/release.sh $(VERSION)
+	.devtools/bin/release.sh $(VERSION)
 
 clean: ## Remove build and coverage output (all regenerable)
 	rm -rf backend/htmlcov backend/coverage.xml backend/coverage.json backend/.coverage \

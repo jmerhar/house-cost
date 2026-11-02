@@ -73,8 +73,9 @@ frontend/          Svelte 5, Vite, TypeScript, Paraglide
   messages/        en.json and pt-PT.json; Paraglide compiles them into src/paraglide
                    (generated); GLOSSARY.md fixes the words for the main ideas
   openapi.json     the API's schema, committed so `make contract` can prove it current
-bruno/             a request, with assertions, for every endpoint (bin/test-bruno.sh)
-bin/               every script the Makefile and CI run
+bruno/             a request, with assertions, for every endpoint (`make test-bruno`)
+bin/               the scripts the Makefile and CI run that are house-cost's own
+devtools.toml      the shared scripts fetched from jmerhar/devtools into .devtools/ (gitignored)
 CHANGELOG.md       every release's notes; new work goes under `## Unreleased`
 TODO/              planned work not started, one file per item; delete a file when it is done
 ```
@@ -122,7 +123,7 @@ TODO/              planned work not started, one file per item; delete a file wh
 - **The image runs read-only as user 1000.** The app writes only to `/data` and `/tmp`, and Python
   writes no bytecode (`PYTHONDONTWRITEBYTECODE`).
 - **The lockfile records only the public npm registry.** Regenerate it with `make lockfile`, never
-  a plain `npm install`; `bin/check-lockfile.sh` guards it.
+  a plain `npm install`; `make lint` and CI check it.
 - **Notifications are sent after the request, never inside it.** A new bill is committed before
   its notification is scheduled, and `notify.events` logs its own failures, so a failed delivery
   cannot fail a save. Scheduled ones are sent once each, keyed in `sent_notification` by what

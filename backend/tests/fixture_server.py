@@ -2,7 +2,7 @@
 
     python -m tests.fixture_server PORT
 
-Run from backend/ by bin/test-bruno.sh. The database is migrated exactly as the container's
+Run from backend/ by `make test-bruno`. The database is migrated exactly as the container's
 entrypoint migrates it, then filled through the API itself with the agreement's example: two
 households, the electricity and road rules, MEO Energia and its electricity service, and a bill
 in each category. Log in as `lucia` with

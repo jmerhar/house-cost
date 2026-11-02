@@ -4,11 +4,26 @@ ref = "v1"
 files = [
   "make/devtools.mk",
   "config/ruff.toml",
+  "bin/lint.sh",
   "bin/ci-ruff.sh",
   "bin/check-compose.sh",
+  "bin/check-lockfile.sh",
+  "bin/lockfile.sh",
+  "bin/version.py",
+  "bin/release.sh",
+  "bin/github-release.sh",
+  "bin/openapi.sh",
+  "bin/export-openapi.py",
+  "bin/test-bruno.sh",
+  "bin/app-icons.sh",
   "bin/dev.sh",
 ]
 coverage = true
+
+# Every check `make lint` runs.
+[lint]
+checks = ["shellcheck", "ruff", "lockfile", "version", "compose"]
+ruff = "backend/.venv/bin/ruff"
 
 # Each combination of compose files that is run, validated by `make lint` and CI.
 [compose]
@@ -20,3 +35,41 @@ stacks = [
 # The stack `make dev` starts with hot reload.
 [dev]
 compose_files = ["docker-compose.yml", "docker-compose.dev.yml"]
+
+# The interface, whose lockfile resolves only to the public registry.
+[npm]
+dirs = ["frontend"]
+
+# Where the release version is written; the compose file follows the image's release line.
+[version]
+pyprojects = ["backend/pyproject.toml"]
+npm = ["frontend"]
+images = ["ghcr.io/jmerhar/house-cost"]
+
+[release]
+title = "House costs"
+# An editable install records the version it was installed at, so a local run reports a new one
+# only once the virtualenv is reinstalled; the images install afresh.
+note = "Run make install for a local make dev to report the new version."
+
+# The committed schema and the interface's types generated from it (`make openapi`).
+[openapi]
+app = "house_cost.api.schema:build_app"
+schema = "frontend/openapi.json"
+types = "frontend/src/lib/api-types.ts"
+
+# The Bruno collection against the real API over the agreement's example
+# (backend/tests/fixture_server.py), signed in as its administrator.
+[bruno]
+server_dir = "backend"
+server = "tests.fixture_server"
+health = "/api/health"
+folders = ["api"]
+url_var = "base_url"
+env_vars = ["login=lucia", "password=correct horse battery"]
+
+# The home-screen icons, rendered from the drawing (`make app-icons`).
+[icons]
+svg = "frontend/icons/app-icon.svg"
+out = "frontend/public/icons"
+background = "#2f6f5e"
