@@ -4,6 +4,27 @@ Every release of House costs, newest first. The image is `ghcr.io/jmerhar/house-
 follow semantic versioning: a major release needs something done by whoever runs it, and says
 what under **Upgrading**. Before 1.0, a minor release may.
 
+## Unreleased
+
+### Changed
+
+- Settings, the database, migrations, logins, sessions, passkeys and the interface's shared
+  pieces now come from [jigkit](https://github.com/jmerhar/jigkit), with the same behaviour and
+  the same stored data: nobody is logged out, and passkeys keep working.
+- Every response carries security headers: no content-type sniffing, a same-origin referrer, and
+  no framing by other sites.
+- The login throttle and the passkey challenges waiting for an answer are bounded, so a flood of
+  requests cannot grow the app's memory.
+- On the account page, a passkey's error or "added" notice shows beside the passkey list.
+- Updated dependencies, among them FastAPI 0.162, Pillow 13, Apprise 2.1 and the Anthropic
+  library 2.3.
+
+### Upgrading
+
+- `ANTHROPIC_API_KEY` and `ANTHROPIC_API_KEY_FILE` together, or a key file that is empty, now
+  stop the app at startup with a message saying so, rather than one quietly winning. Set one of
+  them.
+
 ## 1.1.0 — 2026-10-27
 
 ### Added
