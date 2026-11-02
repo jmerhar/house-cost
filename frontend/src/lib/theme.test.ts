@@ -8,7 +8,11 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+/** The bar's tags as index.html has them, and app.css's background for each theme. */
 function barTags(): HTMLMetaElement[] {
+  const style = document.createElement("style");
+  style.textContent = ':root { --bg: #f7f6f2; } :root[data-theme="dark"] { --bg: #17191b; }';
+  document.head.append(style);
   for (const [media, content] of [["(prefers-color-scheme: light)", "#f7f6f2"], ["(prefers-color-scheme: dark)", "#17191b"]]) {
     document.head.append(Object.assign(document.createElement("meta"), { name: "theme-color", media, content }));
   }

@@ -26,6 +26,7 @@
     "vitest": "5.0.5"
   },
   "dependencies": {
+    "@jmerhar/jigkit": "0.8.2",
     "@lucide/svelte": "1.65.0",
     "@simplewebauthn/browser": "14.0.0"
   }

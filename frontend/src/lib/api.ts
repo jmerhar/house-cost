@@ -3,7 +3,10 @@
  * bin/openapi.sh), so a changed response shape fails type-checking here instead of at runtime.
  */
 
+import { ApiClient, writeHeader, type Query } from "@jmerhar/jigkit/api";
 import type { components } from "./api-types";
+
+export { ApiError } from "@jmerhar/jigkit/api";
 
 type Schemas = components["schemas"];
 export type Health = Schemas["Health"];
@@ -51,29 +54,13 @@ export type ReadingPoint = Schemas["ReadingPoint"];
 export type Reading = Schemas["ReadingIn"];
 
 /** The header every write carries; the API refuses a write without it. */
-export const WRITE_HEADER = { "X-Requested-With": "house-cost" };
+export const WRITE_HEADER = writeHeader("house-cost");
 
-/**
- * A request that failed: its HTTP status (0 when the server could not be reached) and the
- * server's reason, which for the API's own refusals is a code such as "no_rule".
- */
-export class ApiError extends Error {
-  constructor(
-    readonly status: number,
-    message: string,
-  ) {
-    super(message);
-    this.name = "ApiError";
+/** One method per endpoint, on jigkit's client: JSON in and out, and failures as ApiError. */
+export class Api extends ApiClient {
+  constructor(base = "/api", fetcher?: typeof fetch) {
+    super({ base, fetcher, writeHeader: WRITE_HEADER });
   }
-}
-
-type Query = Record<string, string | number | undefined | null>;
-
-export class Api {
-  constructor(
-    private readonly base = "/api",
-    private readonly fetcher: typeof fetch = (...args) => fetch(...args),
-  ) {}
 
   // --- The app, setup and the session -------------------------------------------------------
 
@@ -192,47 +179,4 @@ export class Api {
     this.request<Reconciliation>("PUT", `/reconciliations/${id}`, body);
   closeReconciliation = (id: number) => this.request<Reconciliation>("POST", `/reconciliations/${id}/close`);
   deleteReconciliation = (id: number) => this.request<void>("DELETE", `/reconciliations/${id}`);
-
-  /** One request: JSON or a form in, JSON out, and any failure as an ApiError. */
-  async request<T>(method: string, path: string, body?: unknown, query: Query = {}): Promise<T> {
-    const params = new URLSearchParams();
-    for (const [key, value] of Object.entries(query)) {
-      if (value !== undefined && value !== null && value !== "") params.set(key, String(value));
-    }
-    const search = params.size ? `?${params}` : "";
-    const headers: Record<string, string> = { Accept: "application/json" };
-    if (method !== "GET") Object.assign(headers, WRITE_HEADER);
-    let payload: BodyInit | undefined;
-    if (body instanceof FormData) payload = body;
-    else if (body !== undefined) {
-      headers["Content-Type"] = "application/json";
-      payload = JSON.stringify(body);
-    }
-    let response: Response;
-    try {
-      response = await this.fetcher(this.base + path + search, {
-        method,
-        headers,
-        body: payload,
-        credentials: "same-origin",
-      });
-    } catch (error) {
-      throw new ApiError(0, error instanceof Error ? error.message : String(error));
-    }
-    if (!response.ok) throw new ApiError(response.status, await detail(response));
-    if (response.status === 204) return undefined as T;
-    return (await response.json()) as T;
-  }
-}
-
-/** The server's own explanation of a failure, when it gave one, else the status text. */
-async function detail(response: Response): Promise<string> {
-  try {
-    const body = (await response.json()) as { detail?: unknown };
-    if (typeof body.detail === "string") return body.detail;
-    if (Array.isArray(body.detail)) return "invalid";
-  } catch {
-    // Not JSON: fall through to the status text.
-  }
-  return response.statusText || `HTTP ${response.status}`;
 }

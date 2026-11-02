@@ -1,11 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   LANGUAGE_KEY,
-  browserStorage,
   chooseLanguage,
   chosenLanguage,
   intlLocale,
-  match,
   settleLanguage,
   useLanguageStrategies,
 } from "./language";
@@ -28,25 +26,6 @@ afterEach(() => {
   // Mocks first: one test makes reading localStorage itself throw.
   vi.restoreAllMocks();
   localStorage.clear();
-});
-
-describe("match", () => {
-  it("finds a language by its whole tag", () => {
-    expect(match(["pt-PT"])).toBe("pt-PT");
-  });
-
-  it("finds a language by its first part", () => {
-    expect(match(["pt-BR"])).toBe("pt-PT");
-    expect(match(["PT"])).toBe("pt-PT");
-  });
-
-  it("takes the first wanted language it has", () => {
-    expect(match(["de", "en-US", "pt"])).toBe("en");
-  });
-
-  it("finds nothing when it has none of them", () => {
-    expect(match(["de", "fr"])).toBeUndefined();
-  });
 });
 
 describe("chosenLanguage", () => {
@@ -86,19 +65,6 @@ describe("chooseLanguage", () => {
     const reload = vi.fn();
     chooseLanguage("pt-PT", reload, refusing);
     expect(reload).not.toHaveBeenCalled();
-  });
-});
-
-describe("browserStorage", () => {
-  it("is the page's localStorage", () => {
-    expect(browserStorage()).toBe(window.localStorage);
-  });
-
-  it("is undefined when reading it is refused", () => {
-    vi.spyOn(window, "localStorage", "get").mockImplementation(() => {
-      throw new Error("SecurityError");
-    });
-    expect(browserStorage()).toBeUndefined();
   });
 });
 

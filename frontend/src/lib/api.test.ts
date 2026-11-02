@@ -64,30 +64,6 @@ describe("Api", () => {
     await expect(api.createBill({} as never)).rejects.toEqual(new ApiError(422, "no_rule"));
   });
 
-  it("reports a validation failure as invalid", async () => {
-    const api = new Api("/api", answering(422, { detail: [{ loc: ["body"], msg: "x" }] }));
-    await expect(api.me()).rejects.toMatchObject({ status: 422, message: "invalid" });
-  });
-
-  it("falls back to the status text, then the status", async () => {
-    await expect(new Api("/api", answering(502, "<html>", "Bad Gateway")).me()).rejects.toMatchObject({
-      message: "Bad Gateway",
-    });
-    await expect(new Api("/api", answering(500, { detail: 5 })).me()).rejects.toMatchObject({ message: "HTTP 500" });
-  });
-
-  it("reports an unreachable server as status 0", async () => {
-    const offline = vi.fn(async () => {
-      throw new TypeError("Failed to fetch");
-    }) as unknown as typeof fetch;
-    const odd = vi.fn(async () => {
-      throw "offline";
-    }) as unknown as typeof fetch;
-
-    await expect(new Api("/api", offline).me()).rejects.toMatchObject({ status: 0, message: "Failed to fetch", name: "ApiError" });
-    await expect(new Api("/api", odd).me()).rejects.toMatchObject({ status: 0, message: "offline" });
-  });
-
   it("uses the global fetch by default", async () => {
     const spy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ required: true })));
     expect(await new Api().setupState()).toEqual({ required: true });
