@@ -32,7 +32,7 @@ jobs:
 
       # Tesseract's packages, kept between runs: Ubuntu's mirror can take minutes for them. A
       # new key each run saves whatever newer versions apt fetched; the prefix restores the last.
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         with:
           path: ~/apt-cache
           key: apt-ocr-${{ runner.os }}-${{ github.run_id }}
