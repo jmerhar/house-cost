@@ -17,6 +17,7 @@ files = [
   "bin/test-bruno.sh",
   "bin/app-icons.sh",
   "bin/dev.sh",
+  "bin/ci.py",
 ]
 coverage = true
 
@@ -73,3 +74,59 @@ env_vars = ["login=lucia", "password=correct horse battery"]
 svg = "frontend/icons/app-icon.svg"
 out = "frontend/public/icons"
 background = "#2f6f5e"
+
+# CI, run by jmerhar/devtools' python-docker-app.yml (.github/workflows/ci.yml): each suite is a job,
+# the image is built once all of them and the coverage gate pass, and a version tag gets its
+# GitHub release.
+[ci]
+junit = ["backend/junit/*.xml"]
+coverage_description = "Backend + interface HTML coverage report"
+
+# Through the same script as `make test-backend`, so CI and a local run cannot drift. The OCR tests
+# run here rather than skipping, as they do where Tesseract is missing; Tesseract's packages are
+# kept between runs, since Ubuntu's mirror can take minutes for them.
+[[ci.suite]]
+name = "backend"
+python = true
+cache = "~/apt-cache"
+setup = "bin/install-ocr.sh ~/apt-cache"
+install = 'pip install -e "backend[test]"'
+run = "bin/test-backend.sh -v --junitxml=junit/backend.xml --cov=house_cost --cov-report=term-missing --cov-report=xml --cov-report=json --cov-report=html"
+env = { PYTHON = "python", REQUIRE_TESSERACT = "1" }
+coverage = ["backend/coverage.xml", "backend/coverage.json", "backend/htmlcov", "backend/junit"]
+
+[[ci.suite]]
+name = "frontend"
+node = true
+install = "npm ci --no-audit --no-fund --prefix frontend"
+run = "bin/test-frontend.sh"
+coverage = ["frontend/coverage"]
+
+# The interface's types are generated from the API's schema; regenerating and diffing makes a
+# changed response model without `make openapi` fail the build.
+[[ci.suite]]
+name = "contract"
+python = true
+node = true
+install = "pip install -e backend && npm ci --no-audit --no-fund --prefix frontend"
+run = ".devtools/bin/openapi.sh && git diff --exit-code frontend/openapi.json frontend/src/lib/api-types.ts"
+env = { PYTHON = "python" }
+
+# The Bruno collection's requests, with their assertions, against the real API.
+[[ci.suite]]
+name = "bruno"
+python = true
+node = true
+install = 'pip install -e "backend[test]"'
+run = ".devtools/bin/test-bruno.sh"
+env = { PYTHON = "python" }
+
+[[ci.suite]]
+name = "lint"
+python = true
+install = "pip install ruff"
+run = ".devtools/bin/lint.sh"
+env = { RUFF = "ruff" }
+
+[[ci.image]]
+image = "ghcr.io/jmerhar/house-cost"
