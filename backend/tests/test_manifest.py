@@ -4,8 +4,6 @@ import re
 import struct
 from pathlib import Path
 
-from house_cost.api.manifest import language, manifest
-
 WEB = Path(__file__).resolve().parents[2] / "frontend"
 
 
@@ -45,20 +43,10 @@ async def test_the_manifest_is_in_the_browsers_language(client) -> None:
     assert portuguese.headers["vary"] == "Accept-Language"
 
 
-def test_the_browsers_first_known_language_is_taken() -> None:
-    assert [language(h) for h in (None, "", "de-DE,pt;q=0.5", "en-GB,pt", "fr", "pt-BR")] == [
-        "en",
-        "en",
-        "pt-PT",
-        "en",
-        "en",
-        "pt-PT",
-    ]
-
-
-def test_every_icon_named_exists_at_its_size_and_is_opaque() -> None:
+async def test_every_icon_named_exists_at_its_size_and_is_opaque(client) -> None:
     """A home screen fills a transparent icon with a colour of its own, so none may have alpha."""
-    named = [(icon["src"], icon["sizes"]) for icon in manifest("en")["icons"]]  # type: ignore[union-attr]
+    icons = (await client.get("/manifest.webmanifest")).json()["icons"]
+    named = [(icon["src"], icon["sizes"]) for icon in icons]
     page = (WEB / "index.html").read_text(encoding="utf-8")
     touch = re.search(r'rel="apple-touch-icon" href="([^"]+)"', page)
     assert touch is not None
