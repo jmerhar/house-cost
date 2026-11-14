@@ -37,8 +37,23 @@ section {
   gap: 0.5rem;
   margin: 0.5rem 0 1rem;
 }
-.heading h1 {
+.heading h1,
+.heading h2 {
   margin: 0;
+}
+
+/* A card's own heading row: the name lines up with its actions, and the card's gap spaces it. */
+.card > .heading {
+  align-items: baseline;
+  margin: 0;
+}
+
+.card > .subheading {
+  margin: 0.25rem 0 0;
+}
+
+.card > .list:last-child {
+  margin-bottom: 0;
 }
 /* Forms */
 

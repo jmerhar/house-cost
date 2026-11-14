@@ -379,7 +379,7 @@
           </select>
         </label>
         <label>
-          {m.field_service()} <small>({m.optional()})</small>
+          <span>{m.field_service()} <small>({m.optional()})</small></span>
           <select bind:value={serviceId} onchange={chooseService}>
             <option value="">—</option>
             {#each services as service (service.id)}<option value={String(service.id)}>{service.name}</option>{/each}
@@ -415,7 +415,7 @@
                 <input bind:value={line.amount} inputmode="decimal" required placeholder={amountInput(0)} />
               </label>
               <label class="wide">
-                {m.field_line_description()} <small>({m.optional()})</small>
+                <span>{m.field_line_description()} <small>({m.optional()})</small></span>
                 <input bind:value={line.description} maxlength="300" />
               </label>
             </div>
