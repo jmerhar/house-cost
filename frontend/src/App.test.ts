@@ -48,7 +48,7 @@ describe("App", () => {
 
     await fireEvent.click(await screen.findByRole("button", { name: "Lúcia" }));
     expect(screen.getByRole("link", { name: "Settings" })).toBeInTheDocument();
-    await fireEvent.click(screen.getByRole("button", { name: "More" }));
+    await fireEvent.click(document.querySelector<HTMLButtonElement>(".app-wide-only .app-menu-button")!);
     expect(screen.getByRole("link", { name: "Reconciliation" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Settings" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Balances" })).toHaveAttribute("aria-current", "page");

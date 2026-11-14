@@ -1,317 +1,34 @@
-/* The interface's one stylesheet: built for a phone first, widening into columns on larger screens. */
+/*
+ * The interface's look: jigkit's base stylesheet (colours light and dark, form controls, buttons,
+ * cards, the navigation and icons), then what only these pages need: the balances, lists of bills
+ * and settlements, figures, bars, tables, the activity log and the settings.
+ */
 
+@import "@jmerhar/jigkit/styles/base.css";
+
+/* The page keeps to a reading width; owing and being owed take the accent and danger colours. */
 :root {
-  color-scheme: light dark;
-  --bg: #f7f6f2;
-  --surface: #ffffff;
-  --fg: #1d1f21;
-  --muted: #5e6469;
-  --accent: #2f6f5e;
-  --accent-fg: #ffffff;
-  --line: #dcdad3;
-  --danger: #a3322b;
-  --owed: #2f6f5e;
-  --owes: #a3322b;
-  --note-bg: #e8f1ee;
-  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%235e6469' stroke-width='1.6'/%3E%3C/svg%3E");
-  --radius: 10px;
-  accent-color: var(--accent);
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
-  line-height: 1.5;
-  -webkit-text-size-adjust: 100%;
-}
-
-/* Dark colours: from the device's setting, unless the person chose light; or chosen outright.
-   The choice is kept on the browser (lib/theme.ts) and set on <html> before the page draws. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #17191b;
-    --surface: #212427;
-    --fg: #e8e6e1;
-    --muted: #9aa0a5;
-    --accent: #6cbfa6;
-    --accent-fg: #10221c;
-    --line: #34383c;
-    --danger: #ef8a82;
-    --owed: #6cbfa6;
-    --owes: #ef8a82;
-    --note-bg: #1f302b;
-    --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%239aa0a5' stroke-width='1.6'/%3E%3C/svg%3E");
-  }
-}
-
-:root[data-theme="dark"] {
-  --bg: #17191b;
-  --surface: #212427;
-  --fg: #e8e6e1;
-  --muted: #9aa0a5;
-  --accent: #6cbfa6;
-  --accent-fg: #10221c;
-  --line: #34383c;
-  --danger: #ef8a82;
-  --owed: #6cbfa6;
-  --owes: #ef8a82;
-  --note-bg: #1f302b;
-  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%239aa0a5' stroke-width='1.6'/%3E%3C/svg%3E");
-}
-
-:root[data-theme="light"] {
-  color-scheme: light;
-}
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--fg);
-}
-
-a {
-  color: var(--accent);
-}
-
-h1 {
-  font-size: 1.5rem;
-  margin: 0.5rem 0 1rem;
-}
-
-h2 {
-  font-size: 1.15rem;
-  margin: 1.5rem 0 0.5rem;
+  --page-width: 52rem;
+  --owed: var(--accent);
+  --owes: var(--danger);
 }
 
 h3 {
-  font-size: 1rem;
   margin: 0;
 }
 
-/* Layout */
-
-.bar {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  padding: max(0.5rem, env(safe-area-inset-top)) 1rem 0.5rem;
+option {
   background: var(--surface);
-  border-bottom: 1px solid var(--line);
-}
-
-/* As wide as the page's content (main's 52rem less its padding), so the menu lines up with it. */
-.bar-inner {
-  max-width: 50rem;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem 1.25rem;
-}
-
-.brand {
-  font-weight: 700;
-  color: var(--accent);
-  text-decoration: none;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-nav.pages {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem 1rem;
-}
-
-nav.pages > a,
-.menu-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.3rem 0;
-  min-height: 0;
-  border: none;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  background: none;
-  color: var(--muted);
-  font-size: 1rem;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-nav.pages > a[aria-current="page"],
-.menu-button.current {
-  color: var(--fg);
-  font-weight: 600;
-  border-bottom-color: var(--accent);
-}
-
-.menu {
-  position: relative;
-}
-
-.menu .chevron {
-  width: 0.9em;
-  height: 0.9em;
-}
-
-.account {
-  margin-left: auto;
-}
-
-.menu-panel {
-  position: absolute;
-  top: calc(100% + 0.4rem);
-  left: 0;
-  z-index: 3;
-  min-width: 13rem;
-  margin: 0;
-  padding: 0.35rem;
-  list-style: none;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
-}
-
-.account .menu-panel {
-  left: auto;
-  right: 0;
-}
-
-.menu-panel a,
-.menu-panel button {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.6rem;
-  width: 100%;
-  min-height: 2.5rem;
-  padding: 0.45rem 0.7rem;
-  border: none;
-  border-radius: 6px;
-  background: none;
-  color: var(--fg);
-  font-size: 1rem;
-  text-decoration: none;
-}
-
-.menu-panel a:hover,
-.menu-panel button:hover {
-  background: var(--bg);
-  filter: none;
-}
-
-.menu-panel a[aria-current="page"] {
-  color: var(--accent);
-  font-weight: 600;
-}
-
-/* On a phone the pages are a tab bar along the bottom, and "More" opens upwards from it; the
-   account menu stays in the top bar, by the app's name. */
-@media (max-width: 47.99rem) {
-  nav.pages {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 2;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 0;
-    padding: 0.25rem 0.25rem calc(0.25rem + env(safe-area-inset-bottom));
-    background: var(--surface);
-    border-top: 1px solid var(--line);
-  }
-
-  nav.pages > a,
-  nav.pages .menu-button {
-    flex-direction: column;
-    justify-content: center;
-    gap: 0.15rem;
-    width: 100%;
-    min-width: 0;
-    padding: 0.3rem 0.1rem;
-    border-bottom: none;
-    font-size: 0.72rem;
-  }
-
-  nav.pages > a span,
-  nav.pages .menu-button span {
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  nav.pages > a .lucide,
-  nav.pages .menu-button .lucide {
-    width: 1.5rem;
-    height: 1.5rem;
-  }
-
-  nav.pages .chevron {
-    display: none;
-  }
-
-  nav.pages > a[aria-current="page"],
-  nav.pages .menu-button.current {
-    color: var(--accent);
-  }
-
-  nav.pages .menu {
-    position: static;
-  }
-
-  /* Above the More tab, at the right edge, as wide as its entries. */
-  nav.pages .menu-panel {
-    top: auto;
-    bottom: calc(100% + 0.4rem);
-    left: auto;
-    right: 0.5rem;
-  }
-
-  .account .name {
-    max-width: 9rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .account .menu-button .lucide {
-    width: 1.6rem;
-    height: 1.6rem;
-  }
-
-  main,
-  footer {
-    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
-  }
-}
-
-main {
-  max-width: 52rem;
-  margin: 0 auto;
-  padding: 1rem 1rem calc(2rem + env(safe-area-inset-bottom));
+  color: var(--text);
 }
 
 section {
   margin-bottom: 2rem;
 }
-
 .centre {
   text-align: center;
   margin-top: 30vh;
 }
-
 .heading {
   display: flex;
   flex-wrap: wrap;
@@ -320,81 +37,10 @@ section {
   gap: 0.5rem;
   margin: 0.5rem 0 1rem;
 }
-
 .heading h1 {
   margin: 0;
 }
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 1rem;
-  margin-bottom: 1rem;
-}
-
-.narrow {
-  max-width: 24rem;
-  margin: 10vh auto 2rem;
-}
-
 /* Forms */
-
-label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.9rem;
-  color: var(--muted);
-  margin-bottom: 0.75rem;
-}
-
-label.check {
-  flex-direction: row;
-  align-items: center;
-  color: var(--fg);
-}
-
-input,
-select,
-textarea {
-  font: inherit;
-  font-size: 1rem;
-  color: var(--fg);
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 0.55rem 0.65rem;
-  width: 100%;
-}
-
-input[type="checkbox"] {
-  width: auto;
-}
-
-/* The native arrow sits flush against the edge whatever the padding, so it is drawn instead. */
-select {
-  appearance: none;
-  padding-right: 2.25rem;
-  background: var(--bg) var(--chevron) no-repeat right 0.75rem center / 12px 8px;
-}
-
-option {
-  background: var(--surface);
-  color: var(--fg);
-}
-
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-button:focus-visible,
-.button:focus-visible,
-a:focus-visible,
-label.button:focus-within,
-label.link:focus-within {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
 
 /* A file input hidden from sight but not from the keyboard: its label is the visible button. */
 .file-input {
@@ -412,11 +58,10 @@ fieldset {
   padding: 0;
   min-width: 0;
 }
-
 .grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0 1rem;
+  gap: 0.75rem 1rem;
 }
 
 @media (max-width: 30rem) {
@@ -443,7 +88,8 @@ fieldset {
 .filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 0 0.75rem;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .filters label {
@@ -458,48 +104,42 @@ form.inline {
   display: flex;
   gap: 0.5rem;
 }
-
 .actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1rem;
+  margin-top: 0.25rem;
 }
-
-button,
+/* A link or a file input's label drawn as a button. */
 .button {
-  font: inherit;
   display: inline-flex;
+  gap: 0.4rem;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  min-height: 2.6rem;
   padding: 0.5rem 1rem;
-  border-radius: 8px;
   border: 1px solid var(--accent);
+  border-radius: var(--control-radius);
   background: var(--accent);
-  color: var(--accent-fg);
-  cursor: pointer;
+  color: var(--accent-text);
+  font: inherit;
   text-decoration: none;
   white-space: nowrap;
+  cursor: pointer;
 }
 
-button.secondary,
 .button.secondary {
   background: transparent;
   color: var(--accent);
 }
 
-button:hover,
-.button:hover {
-  filter: brightness(1.08);
+.button.danger {
+  border-color: var(--danger);
+  background: transparent;
+  color: var(--danger);
 }
 
-button.danger,
-.button.danger {
-  background: transparent;
-  border-color: var(--danger);
-  color: var(--danger);
+.button:focus-visible,
+label.button:focus-within,
+label.link:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* An action set apart from the others in its row, such as Delete beside Save. */
@@ -551,7 +191,6 @@ label.button {
   padding: 0;
   border-top: 1px solid var(--line);
 }
-
 /* A row's date, amount and actions line up with its first line, its title, however many lines
    of detail and notes follow it. */
 .list > li {
@@ -585,21 +224,12 @@ label.button {
   min-width: 0;
 }
 
-.what small,
-.muted {
-  color: var(--muted);
-}
-
 /* An item's notes in a list, with the line breaks they were written with. */
 .notes {
   margin-top: 0.2rem;
-  color: var(--fg);
+  color: var(--text);
   white-space: pre-line;
   overflow-wrap: anywhere;
-}
-
-textarea {
-  resize: vertical;
 }
 
 .amount,
@@ -632,14 +262,6 @@ textarea {
 .list button.link .lucide {
   margin-right: 0.3rem;
   vertical-align: -0.2em;
-}
-
-.tag {
-  font-size: 0.75rem;
-  color: var(--muted);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 0 0.5rem;
 }
 
 .cards {
@@ -704,9 +326,7 @@ textarea {
 }
 
 .note {
-  background: var(--note-bg);
-  border-left: 3px solid var(--accent);
-  padding: 0.5rem 0.75rem;
+  background: var(--accent-soft);
 }
 
 .total {
@@ -758,28 +378,6 @@ tfoot td {
   border-radius: 4px;
   background: var(--accent);
   min-width: 2px;
-}
-
-/* A form's one main action across its whole width, such as logging in with a passkey. */
-.wide-button {
-  width: 100%;
-}
-
-.or {
-  text-align: center;
-  margin: 0.75rem 0;
-}
-
-/* A way of logging in for those who know they want it, kept quiet beside the main one. */
-.other-login {
-  margin: 0.5rem 0 0;
-}
-
-/* Lucide's icons, sized to the text beside them and drawn in its colour. */
-.lucide {
-  width: 1.15em;
-  height: 1.15em;
-  flex: none;
 }
 
 .wide-button .lucide {
@@ -859,43 +457,6 @@ footer {
   margin-top: 0.35rem;
   color: var(--muted);
   font-size: 0.85rem;
-}
-
-/* The account menu's automatic, light and dark choice: one segmented control across the menu,
-   set apart from the links by a line above and below. */
-.menu-panel .theme {
-  display: flex;
-  margin: 0.35rem 0;
-  padding: 0.5rem 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-}
-
-.menu-panel .theme button {
-  flex: 1;
-  justify-content: center;
-  min-height: 2.25rem;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 0;
-  color: var(--muted);
-}
-
-.menu-panel .theme button + button {
-  border-left: none;
-}
-
-.menu-panel .theme button:first-child {
-  border-radius: 6px 0 0 6px;
-}
-
-.menu-panel .theme button:last-child {
-  border-radius: 0 6px 6px 0;
-}
-
-.menu-panel .theme button[aria-pressed="true"] {
-  background: var(--note-bg);
-  color: var(--accent);
 }
 
 /* A section's title inside its box rather than on its border, as a fieldset's legend sits by
