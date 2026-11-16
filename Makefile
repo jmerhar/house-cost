@@ -1,8 +1,8 @@
 .PHONY: app-icons install dev up down logs shell build test test-backend test-frontend test-bruno test-samples \
-        coverage lint openapi contract check migrate revision db-shell lockfile release clean
+        coverage lint openapi contract check migrate revision db-shell release clean
 
-# help, devtools-update and coverage-tooling come from jmerhar/devtools; make fetches them on the
-# first run and whenever devtools.toml changes.
+# help, devtools-update, coverage-tooling, node-modules and lockfile come from jmerhar/devtools;
+# make fetches them on the first run and whenever devtools.toml changes.
 .DEFAULT_GOAL := help
 include .devtools/make/devtools.mk
 .devtools/make/devtools.mk: devtools.toml bin/devtools-fetch.sh
@@ -10,13 +10,11 @@ include .devtools/make/devtools.mk
 
 ##@ Setup
 
-# node_modules is installed through whatever registry this machine's npm reaches, without touching
-# the lockfile, which records only the public registry.
 install: ## Create the backend virtualenv and install the frontend packages
 	python3 -m venv backend/.venv
 	backend/.venv/bin/pip install --quiet --upgrade pip
 	backend/.venv/bin/pip install --quiet -e "backend[test]"
-	cd frontend && npm ci --no-audit --no-fund --registry="$$(cd / && npm config get registry)"
+	$(MAKE) node-modules
 
 ##@ Development
 
@@ -86,9 +84,6 @@ db-shell: ## Open a SQLite shell on the development database
 
 app-icons: ## Render the home-screen icons from frontend/icons/app-icon.svg (needs rsvg-convert)
 	.devtools/bin/app-icons.sh
-
-lockfile: ## Regenerate package-lock.json (Linux binaries, public registry URLs)
-	.devtools/bin/lockfile.sh
 
 release: ## Cut a release from CHANGELOG.md (usage: make release VERSION=X.Y.Z; then push both)
 	.devtools/bin/release.sh $(VERSION)
