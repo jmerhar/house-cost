@@ -12,7 +12,7 @@ dependencies = [
     # Settings, database, migrations, logging, the web building blocks, the scheduler and the
     # Apprise sender shared with the other apps built on it. Pinned exactly; Dependabot proposes
     # each new release.
-    "jigkit[auth,db,notify,passkeys,web]==0.15.0",
+    "jigkit[auth,db,notify,passkeys,web]==0.19.0",
     "fastapi>=0.141,<0.163",
     "uvicorn[standard]>=0.52",
     "sqlalchemy[asyncio]>=2.0.52",
@@ -26,16 +26,16 @@ dependencies = [
     # Reading bills: the fiscal QR code (zxing-cpp) in pages rendered as images (Pillow).
     "zxing-cpp>=3.1",
     "pillow>=12.3,<14",
-    "apprise>=2.0,<2.2",
+    "apprise>=2.0,<2.3",
     # Optional: Claude reads what the local parsers cannot, when an API key is set.
-    "anthropic>=1.13,<2.7",
+    "anthropic>=1.13,<2.9",
     # Time zones for TZ, which the slim base image may not carry.
     "tzdata>=2026.5",
 ]
 
 [project.optional-dependencies]
 test = [
-    "jigkit[testing]==0.15.0",
+    "jigkit[testing]==0.19.0",
     "pytest>=9.1",
     "pytest-asyncio>=1.4",
     "pytest-cov>=7.1",
