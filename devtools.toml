@@ -136,15 +136,14 @@ env = { RUFF = "ruff" }
 image = "ghcr.io/jmerhar/house-cost"
 
 # .github/dependabot.yml, generated from these by `make devtools-fix`: GitHub Actions, then each
-# update below, every one grouped into a single weekly pull request that takes a release once it is
-# three days old. A pull request builds the image, so a dependency that breaks it fails there.
+# update below. Each takes a release once it is three days old, in one weekly pull request of minor
+# and patch releases and another of majors, which waits for a hand migration. A pull request builds
+# the image, so a dependency that breaks it fails there.
 [[dependabot.update]]
 ecosystem = "npm"
 directory = "/frontend"
 group = "frontend"
-comment = """The interface. svelte-check names the TypeScript majors it supports as a peer
-dependency, so a new major cannot install until svelte-check accepts it; move both by hand then."""
-ignore = [{ dependency = "typescript", update_types = ["version-update:semver-major"] }]
+comment = "The interface."
 
 [[dependabot.update]]
 ecosystem = "pip"
