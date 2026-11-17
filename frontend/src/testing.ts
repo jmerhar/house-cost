@@ -14,6 +14,13 @@ export type Call = { method: string; path: string; query: URLSearchParams; body:
 type Answer = object | string | number | boolean | null | undefined;
 type Handler = Answer | ((call: Call) => Answer | Promise<Answer>);
 
+/** The item at ``index``, failing the test with a clear message when there is none. */
+export function nth<T>(items: readonly T[], index: number): T {
+  const item = items[index];
+  if (item === undefined) throw new Error(`no item at ${index}; there are ${items.length}`);
+  return item;
+}
+
 /** A response refusing a request, as the API refuses one. */
 export function refuse(status: number, detail: string): Response {
   return new Response(JSON.stringify({ detail }), { status, headers: { "Content-Type": "application/json" } });

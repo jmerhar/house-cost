@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { navigate, route } from "../lib/router.svelte";
-import { ELECTRICITY, LUCIA, OWNERS, ROAD, aBill, appFor, fakeApi, refuse, renderPage, type Call } from "../testing";
+import { ELECTRICITY, LUCIA, OWNERS, ROAD, aBill, appFor, fakeApi, nth, refuse, renderPage, type Call } from "../testing";
 import BillForm from "./BillForm.svelte";
 
 const preview = (call: Call) => {
@@ -52,7 +52,7 @@ describe("a new bill", () => {
     await fireEvent.change(screen.getByLabelText("Category"), { target: { value: String(ELECTRICITY.id) } });
     await fireEvent.input(screen.getByLabelText("Amount (€)"), { target: { value: "18,37" } });
     await fireEvent.click(screen.getByRole("button", { name: "Add another item" }));
-    const [, second] = screen.getAllByRole("listitem");
+    const second = nth(screen.getAllByRole("listitem"), 1);
     await fireEvent.change(within(second).getByLabelText("Category"), { target: { value: String(ROAD.id) } });
     await fireEvent.input(within(second).getByLabelText("Amount (€)"), { target: { value: "1,61" } });
     await fireEvent.input(within(second).getByLabelText(/What it is for/), { target: { value: "Gravel" } });
@@ -80,7 +80,7 @@ describe("a new bill", () => {
     expect(screen.queryByRole("button", { name: "Remove this item" })).not.toBeInTheDocument();
     await fireEvent.click(screen.getByRole("button", { name: "Add another item" }));
     expect(screen.getAllByRole("listitem")).toHaveLength(2);
-    await fireEvent.click(screen.getAllByRole("button", { name: "Remove this item" })[0]);
+    await fireEvent.click(nth(screen.getAllByRole("button", { name: "Remove this item" }), 0));
     expect(screen.getAllByRole("listitem")).toHaveLength(1);
   });
 

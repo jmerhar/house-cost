@@ -14,6 +14,7 @@ import {
   appFor,
   fakeApi,
   fakeAuthenticator,
+  nth,
   refuse,
   renderPage,
 } from "../testing";
@@ -54,7 +55,7 @@ describe("Setup", () => {
 
     await waitFor(() => expect(onDone).toHaveBeenCalledOnce());
     expect(app.me).toEqual(ADMIN);
-    expect(calls[0].body).toEqual({
+    expect(nth(calls, 0).body).toEqual({
       household_name: "Lúcia",
       name: "Lúcia",
       login: "lucia",
@@ -143,7 +144,7 @@ describe("Bills", () => {
     expect(screen.getByText("Locked")).toBeInTheDocument();
     expect(document.querySelectorAll(".notes")).toHaveLength(1);
     expect(document.querySelector(".notes")?.textContent).toBe("Package: shared.\nMobile: Lúcia's card.");
-    expect(screen.getAllByRole("link")[1]).toHaveAttribute("href", "/bills/7");
+    expect(nth(screen.getAllByRole("link"), 1)).toHaveAttribute("href", "/bills/7");
     expect(await screen.findByRole("option", { name: "2025" })).toBeInTheDocument();
   });
 
@@ -386,17 +387,17 @@ describe("Activity", () => {
     });
     renderPage(Activity, appFor(api));
 
-    const first = (await screen.findAllByRole("listitem"))[0];
+    const first = nth(await screen.findAllByRole("listitem"), 0);
     expect(first).toHaveTextContent("Tiago added a bill");
     expect(within(first).getByRole("link", { name: "a bill" })).toHaveAttribute("href", "/bills/7");
     expect(first).toHaveTextContent("MEO Energia · €287.59");
     const icons = screen.getAllByRole("listitem").map((item) => item.querySelector(".entry-icon")!);
-    expect(icons[0]).toHaveClass("create");
-    expect(icons[0].querySelector("svg")).toHaveClass("lucide-receipt");
-    expect(icons[1]).toHaveClass("delete");
-    expect(icons[2].querySelector("svg")).toHaveClass("lucide-activity");
-    expect(screen.getAllByRole("listitem")[1]).toHaveTextContent("Tiago deleted a bill");
-    expect(screen.getAllByRole("listitem")[2]).toHaveTextContent("Someone frobnicate widget");
+    expect(nth(icons, 0)).toHaveClass("create");
+    expect(nth(icons, 0).querySelector("svg")).toHaveClass("lucide-receipt");
+    expect(nth(icons, 1)).toHaveClass("delete");
+    expect(nth(icons, 2).querySelector("svg")).toHaveClass("lucide-activity");
+    expect(nth(screen.getAllByRole("listitem"), 1)).toHaveTextContent("Tiago deleted a bill");
+    expect(nth(screen.getAllByRole("listitem"), 2)).toHaveTextContent("Someone frobnicate widget");
     expect(screen.getAllByRole("link")).toHaveLength(1);
   });
 
@@ -617,16 +618,16 @@ describe("Admin", () => {
     await fireEvent.submit(screen.getByLabelText("Add a household").closest("form")!);
     await waitFor(() => expect(calls.find((c) => c.method === "POST")?.body).toEqual({ name: "Third", position: 2, active: true }));
 
-    await fireEvent.click(screen.getAllByRole("button", { name: "Edit" })[0]);
+    await fireEvent.click(nth(screen.getAllByRole("button", { name: "Edit" }), 0));
     await waitFor(() => expect(calls.find((c) => c.path === "/households/1")?.body).toMatchObject({ name: "Lúcia S." }));
     await fireEvent.click(screen.getByRole("button", { name: "Move Tiago + Marta up" }));
     await waitFor(() => expect(calls.find((c) => c.path === "/households/2")?.body).toMatchObject({ position: -1 }));
     const ask = vi.spyOn(window, "confirm").mockReturnValueOnce(false).mockReturnValue(true);
     const deactivated = () => calls.some((c) => c.path === "/households/1" && (c.body as { active?: boolean }).active === false);
-    await fireEvent.click(screen.getAllByRole("button", { name: "Deactivate" })[0]);
+    await fireEvent.click(nth(screen.getAllByRole("button", { name: "Deactivate" }), 0));
     expect(ask).toHaveBeenCalledWith(expect.stringContaining("Deactivate Lúcia?"));
     expect(deactivated()).toBe(false);
-    await fireEvent.click(screen.getAllByRole("button", { name: "Deactivate" })[0]);
+    await fireEvent.click(nth(screen.getAllByRole("button", { name: "Deactivate" }), 0));
     await waitFor(() => expect(calls.filter((c) => c.path === "/households/1").at(-1)?.body).toMatchObject({ active: false }));
   });
 
@@ -750,9 +751,9 @@ describe("Admin", () => {
     const { api } = adminApi({ "PUT /people/1": refuse(409, "last_admin"), "POST /households": refuse(409, "name_taken") });
     renderPage(Admin, appFor(api));
     await screen.findByText("tiago · Tiago + Marta · Member");
-    await fireEvent.click(screen.getAllByRole("button", { name: "Edit" })[2]);
+    await fireEvent.click(nth(screen.getAllByRole("button", { name: "Edit" }), 2));
     await fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
-    await fireEvent.click(screen.getAllByRole("button", { name: "Edit" })[2]);
+    await fireEvent.click(nth(screen.getAllByRole("button", { name: "Edit" }), 2));
     const form = screen.getByRole("button", { name: "Save" }).closest("form")!;
     await fireEvent.change(within(form).getByLabelText("Role"), { target: { value: "member" } });
     await fireEvent.submit(form);
@@ -767,7 +768,7 @@ describe("Admin", () => {
     vi.spyOn(window, "prompt").mockReturnValue(null);
     const { api, calls } = adminApi();
     renderPage(Admin, appFor(api));
-    await fireEvent.click((await screen.findAllByRole("button", { name: "Edit" }))[0]);
+    await fireEvent.click(nth(await screen.findAllByRole("button", { name: "Edit" }), 0));
     expect(calls.some((c) => c.method === "PUT")).toBe(false);
   });
 

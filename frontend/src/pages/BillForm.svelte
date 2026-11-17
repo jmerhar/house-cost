@@ -163,7 +163,8 @@
     const service = services.find((s) => String(s.id) === serviceId);
     if (!service) return;
     if (!supplier) supplier = suppliers.find((s) => s.id === service.supplier_id)?.name ?? "";
-    if (service.default_category_id && !lines[0].categoryId) lines[0].categoryId = String(service.default_category_id);
+    const first = lines[0];
+    if (service.default_category_id && first && !first.categoryId) first.categoryId = String(service.default_category_id);
   }
 
   /** Show each line's split as it would be saved, asking the API for the rule in force. */
@@ -396,6 +397,7 @@
       <h2>{m.lines_title()}</h2>
       <ol class="lines">
         {#each lines as line, index (line.key)}
+          {@const preview = previews[line.key]}
           <li class="card">
             <div class="grid">
               <label>
@@ -419,9 +421,9 @@
                 <input bind:value={line.description} maxlength="300" />
               </label>
             </div>
-            {#if previews[line.key]}
-              <p class="split" class:problem={previews[line.key].problem}>
-                {m.split_label()}: {previews[line.key].text}
+            {#if preview}
+              <p class="split" class:problem={preview.problem}>
+                {m.split_label()}: {preview.text}
               </p>
             {/if}
             {#if lines.length > 1}

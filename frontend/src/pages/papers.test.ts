@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { DocumentMatch, Service, Supplier } from "../lib/api";
 import { navigate } from "../lib/router.svelte";
-import { ADMIN, ELECTRICITY, ROAD, aBill, appFor, fakeApi, refuse, renderPage } from "../testing";
+import { ADMIN, ELECTRICITY, ROAD, aBill, appFor, fakeApi, nth, refuse, renderPage } from "../testing";
 import BillForm from "./BillForm.svelte";
 import Documents from "./Documents.svelte";
 import Services from "./Services.svelte";
@@ -66,7 +66,7 @@ describe("Services", () => {
     expect(screen.getByText(/^Minimum term ends 28 Jul 2027$/)).not.toHaveClass("problem");
     expect(screen.getByText("Notice (days): 30")).toBeInTheDocument();
     expect(screen.getByText(/^Ends on 1 Jan 2030$/)).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: "Documents" })[0]).toHaveAttribute("href", "/documents?service=5");
+    expect(nth(screen.getAllByRole("link", { name: "Documents" }), 0)).toHaveAttribute("href", "/documents?service=5");
     expect(screen.getAllByText("Inactive")).toHaveLength(2);
     expect([...document.querySelectorAll(".notes")].map((note) => note.textContent)).toEqual([
       "Customer no. 123",
@@ -144,8 +144,7 @@ describe("Services", () => {
     renderPage(Services, appFor(api));
     await screen.findByText("CPE: PT0002000000000000XX");
 
-    const edits = screen.getAllByRole("button", { name: "Edit" });
-    await fireEvent.click(edits[0]);
+    await fireEvent.click(nth(screen.getAllByRole("button", { name: "Edit" }), 0));
     const supplierForm = screen.getByRole("button", { name: "Save" }).closest("form")!;
     expect(within(supplierForm).getByLabelText("NIF (tax number)")).toHaveValue("506743357");
     expect(within(supplierForm).getByLabelText("Notes").tagName).toBe("TEXTAREA");
@@ -154,7 +153,7 @@ describe("Services", () => {
     await waitFor(() => expect(calls.find((c) => c.method === "PUT" && c.path === "/suppliers/1")?.body).toMatchObject({ active: false }));
     await waitFor(() => expect(screen.queryByRole("button", { name: "Save" })).not.toBeInTheDocument());
 
-    await fireEvent.click(screen.getAllByRole("button", { name: "Edit" })[1]);
+    await fireEvent.click(nth(screen.getAllByRole("button", { name: "Edit" }), 1));
     const serviceForm = screen.getByRole("button", { name: "Save" }).closest("form")!;
     expect(within(serviceForm).getByLabelText(/References/)).toHaveValue("CPE: PT0002000000000000XX");
     await fireEvent.click(within(serviceForm).getByLabelText("Renews automatically"));
@@ -365,7 +364,7 @@ describe("Documents", () => {
   it("says so when it cannot load", async () => {
     const { api } = fakeApi({ "GET /documents": refuse(500, "boom"), "GET /suppliers": refuse(500, "boom"), "GET /services": [] });
     renderPage(Documents, appFor(api));
-    expect((await screen.findAllByRole("alert"))[0]).toHaveTextContent("boom");
+    expect(nth(await screen.findAllByRole("alert"), 0)).toHaveTextContent("boom");
   });
 });
 
@@ -389,7 +388,7 @@ describe("a bill's service", () => {
     const { api } = fakeApi({
       "GET /services": [{ ...POWER, active: false }],
       "GET /suppliers": [MEO],
-      "GET /bills/7": aBill({ service_id: POWER.id, supplier: "MEO", lines: [{ ...aBill().lines[0], category_id: ROAD.id }] }),
+      "GET /bills/7": aBill({ service_id: POWER.id, supplier: "MEO", lines: [{ ...nth(aBill().lines, 0), category_id: ROAD.id }] }),
     });
     renderPage(BillForm, appFor(api), { id: 7 });
     await screen.findByDisplayValue("MEO");

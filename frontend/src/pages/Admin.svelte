@@ -221,19 +221,20 @@
   <h2>{m.households_title()}</h2>
   <ul class="list">
     {#each app.households as household, index (household.id)}
+      {@const above = app.households[index - 1]}
       <li>
         <span class="what">
           <strong>{household.name} {#if !household.active}<small class="tag">{m.status_inactive()}</small>{/if}</strong>
         </span>
         <span class="row-actions">
           <button type="button" class="link" onclick={() => renameHousehold(household)}><Pencil />{m.edit()}</button>
-          {#if index > 0}
+          {#if above}
             <button
               type="button"
               class="link"
               aria-label={m.move_up_label({ name: household.name })}
               title={m.move_up_label({ name: household.name })}
-              onclick={() => saveHousehold(household, { position: app.households[index - 1].position - 1 })}><ArrowUp />{m.move_up()}</button
+              onclick={() => saveHousehold(household, { position: above.position - 1 })}><ArrowUp />{m.move_up()}</button
             >
           {/if}
           <button type="button" class="link" class:danger={household.active} onclick={() => toggleHousehold(household)}>

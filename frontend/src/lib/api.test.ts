@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { Api, ApiError, WRITE_HEADER } from "./api";
-import { fakeApi, refuse } from "../testing";
+import { fakeApi, nth, refuse } from "../testing";
 
 function answering(status: number, body: unknown, statusText = ""): typeof fetch {
   return vi.fn(async () =>
@@ -36,7 +36,7 @@ describe("Api", () => {
     const file = new File(["%PDF"], "bill.pdf", { type: "application/pdf" });
     await api.attach(file, { bill_id: 7 });
 
-    const form = calls[0].body as FormData;
+    const form = nth(calls, 0).body as FormData;
     expect(form.get("bill_id")).toBe("7");
     expect((form.get("file") as File).name).toBe("bill.pdf");
   });
@@ -44,7 +44,7 @@ describe("Api", () => {
   it("builds queries without the empty parts", async () => {
     const { api, calls } = fakeApi({ "GET /bills": { items: [], total: 0 } });
     await api.bills({ q: "meo", year: "", category_id: undefined, paid_by_id: null, limit: 50 });
-    expect(calls[0].query.toString()).toBe("q=meo&limit=50");
+    expect(nth(calls, 0).query.toString()).toBe("q=meo&limit=50");
   });
 
   it("answers nothing for a 204", async () => {
@@ -150,7 +150,7 @@ describe("Api", () => {
       "POST /reconciliations/1/close",
       "DELETE /reconciliations/1",
     ]);
-    expect(calls[14].query.get("category_id")).toBe("1");
-    expect(calls[17].query.toString()).toBe("category_id=1&on=2026-01-01&amount_cents=100");
+    expect(nth(calls, 14).query.get("category_id")).toBe("1");
+    expect(nth(calls, 17).query.toString()).toBe("category_id=1&on=2026-01-01&amount_cents=100");
   });
 });

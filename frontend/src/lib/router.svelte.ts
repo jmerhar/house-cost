@@ -44,9 +44,11 @@ export function match(pattern: string, path: string): Record<string, string> | n
   const have = path.split("/").filter(Boolean);
   if (want.length !== have.length) return null;
   const params: Record<string, string> = {};
-  for (let i = 0; i < want.length; i++) {
-    if (want[i].startsWith(":")) params[want[i].slice(1)] = decodeURIComponent(have[i]);
-    else if (want[i] !== have[i]) return null;
+  for (const [i, part] of want.entries()) {
+    const value = have[i];
+    if (value === undefined) return null;
+    if (part.startsWith(":")) params[part.slice(1)] = decodeURIComponent(value);
+    else if (part !== value) return null;
   }
   return params;
 }
