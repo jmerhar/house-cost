@@ -150,7 +150,7 @@ make dev            # API :8000 + Vite :5173 with hot reload
 make test           # both suites; ARGS=... passes through to pytest or vitest
 make coverage       # both suites with coverage and the combined summary
 make test-samples   # read the real bills in samples/ (ignored by git) against expected.json
-make lint           # shellcheck, ruff, lockfile, versions, compose files
+make lint           # shellcheck, ruff, lockfile, versions, compose files, ESLint
 make contract       # the committed schema and generated types are current
 make check          # all of the above and the Bruno collection: gate a commit on this
 make revision m="what changed"   # generate a migration from the models

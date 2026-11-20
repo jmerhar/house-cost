@@ -65,10 +65,10 @@ export function interceptLinks(root: HTMLElement): () => void {
     }
     const link = (event.target as Element | null)?.closest?.("a");
     if (!link || link.target || link.hasAttribute("download")) return;
-    const url = new URL(link.href, location.href);
-    if (url.origin !== location.origin || url.pathname.startsWith("/api/")) return;
+    // The link's own origin, pathname and search are already resolved against the page.
+    if (link.origin !== location.origin || link.pathname.startsWith("/api/")) return;
     event.preventDefault();
-    navigate(url.pathname + url.search);
+    navigate(link.pathname + link.search);
   };
   root.addEventListener("click", onClick);
   return () => root.removeEventListener("click", onClick);

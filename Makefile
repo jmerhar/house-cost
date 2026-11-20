@@ -56,8 +56,9 @@ test-samples: ## Read the real bills in samples/ (kept out of git) and check wha
 coverage: ## Run both suites with coverage and print the combined summary
 	bin/coverage.sh --format md
 
-lint: ## ShellCheck, ruff, lockfile, versions, compose files
+lint: ## ShellCheck, ruff, lockfile, versions, compose files, and ESLint on the interface
 	.devtools/bin/lint.sh
+	cd frontend && npm run lint
 
 openapi: ## Re-export the API schema and regenerate the interface's types
 	.devtools/bin/openapi.sh

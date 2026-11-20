@@ -38,7 +38,7 @@
   let email = $state(app.me?.email ?? "");
   let phone = $state(app.me?.phone ?? "");
   const channels = $derived(app.me?.notify_channels ?? []);
-  let notifyOn = $state<Record<Event, boolean>>({
+  const notifyOn = $state<Record<Event, boolean>>({
     new_bill: true,
     price_change: true,
     contract: true,

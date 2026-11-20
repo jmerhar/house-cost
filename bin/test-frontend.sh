@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Type-check the interface and run its tests with coverage.
+# Lint and type-check the interface, and run its tests with coverage.
 #
 # Called by `make test-frontend`, by bin/coverage.sh and by CI. node_modules must already be
 # there: CI installs it with `npm ci`, and `make install` does locally (through whatever registry
@@ -13,5 +13,6 @@ if [ ! -d node_modules ]; then
   exit 1
 fi
 node build/compile-messages.ts
+npm run lint
 npx svelte-check --tsconfig ./tsconfig.json --fail-on-warnings
 npx vitest run --coverage "$@"

@@ -255,6 +255,8 @@
             <Building2 />{supplier.name}
             {#if !supplier.active}<small class="tag">{m.inactive()}</small>{/if}
           </h2>
+          <!-- Svelte trims literal whitespace at the start of a block; the mustache keeps the space before the dot. -->
+          <!-- eslint-disable-next-line svelte/no-useless-mustaches -->
           <p class="muted caption">{m.field_supplier()}{#if supplier.nif}{" · "}{m.nif_value({ nif: supplier.nif })}{/if}</p>
           {#if supplier.notes}<p class="caption notes">{supplier.notes}</p>{/if}
         </div>
