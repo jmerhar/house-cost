@@ -13,7 +13,7 @@ dependencies = [
     # Apprise sender shared with the other apps built on it. Pinned exactly; Dependabot proposes
     # each new release.
     "jigkit[auth,db,notify,passkeys,web]==0.21.0",
-    "fastapi>=0.141,<0.163",
+    "fastapi>=0.141,<0.166",
     "uvicorn[standard]>=0.52",
     "sqlalchemy[asyncio]>=2.0.52",
     "aiosqlite>=0.22",
